@@ -1,4 +1,4 @@
-# pylint: disable=missing-docstring
+# pylint: disable=missing-docstring, invalid-name
 
 """Geoscience Portal AWS CloudFormation Stack Definition
 """
@@ -9,6 +9,7 @@ import troposphere.ec2 as ec2
 REDHAT_IMAGEID = "ami-d3daace9"
 SYSTEM_PREFIX = "GeosciencePortal"
 KEY_PAIR_NAME = "lazar@work"
+WEBSERVER_IP = "54.206.17.34"
 
 def resource_name(name):
     return SYSTEM_PREFIX + name
@@ -16,10 +17,18 @@ def resource_name(name):
 def stack():
     template = Template()
     security_group = template.add_resource(webserver_security_group())
-    template.add_resource(webserver(security_group))
+    webserver = template.add_resource(make_webserver(security_group))
+    assign_eip(template, webserver, WEBSERVER_IP)
     return template
 
-def webserver(security_group):
+def assign_eip(template, instance, ip):
+    return template.add_resource(ec2.EIPAssociation(
+        "WebserverIpAssociation",
+        EIP=ip,
+        InstanceId=Ref(instance)
+    ))
+
+def make_webserver(security_group):
     name = resource_name("WebServer")
     instance = ec2.Instance(name)
     instance.ImageId = REDHAT_IMAGEID
