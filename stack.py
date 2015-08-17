@@ -79,7 +79,7 @@ def make_webserver(security_group):
 def webserver_security_group():
     security_group = ec2.SecurityGroup(
         "WebserverSecurityGroup",
-        GroupDescription="Allow SSH and HTTP from anywhere.",
+        GroupDescription="Allow SSH from GA and HTTP from anywhere.",
         SecurityGroupIngress=[]
     )
     allow_ssh_from_ga(security_group)
