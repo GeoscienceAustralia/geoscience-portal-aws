@@ -1,2 +1,2 @@
 #!/bin/bash
-aws cloudformation delete-stack --stack-name GeosciencePortal
+aws cloudformation delete-stack --stack-name GeosciencePortal2

@@ -4,12 +4,13 @@
 """
 
 from troposphere import Base64, Ref, Tags, Template
+from troposphere import cloudformation as cf
 import troposphere.ec2 as ec2
 
 REDHAT_IMAGEID = "ami-d3daace9"
-SYSTEM_PREFIX = "GeosciencePortal"
+SYSTEM_PREFIX = "GeosciencePortal2"
 KEY_PAIR_NAME = "lazar@work"
-WEBSERVER_IP = "54.206.17.34"
+WEBSERVER_IP = "54.153.211.253"
 
 def resource_name(name):
     return SYSTEM_PREFIX + name
@@ -30,12 +31,45 @@ def assign_eip(template, instance, ip):
 
 def make_webserver(security_group):
     name = resource_name("WebServer")
-    instance = ec2.Instance(name)
-    instance.ImageId = REDHAT_IMAGEID
-    instance.InstanceType = "t2.small"
-    instance.Tags = Tags(Name=name)
-    instance.KeyName = KEY_PAIR_NAME
-    instance.SecurityGroups = [Ref(security_group)]
+    instance = ec2.Instance(
+        name,
+        ImageId=REDHAT_IMAGEID,
+        InstanceType="t2.small",
+        Tags=Tags(Name=name),
+        KeyName=KEY_PAIR_NAME,
+        SecurityGroups=[Ref(security_group)],
+        Metadata=cf.Metadata(
+            cf.Init(
+                cf.InitConfigSets(
+                    default=["config"]
+                ),
+                config=cf.InitConfig(
+                    packages={
+                        "yum": {
+                            "telnet": [],
+                            "tomcat": [],
+                            "wget": [],
+                        }
+                    },
+                    files={
+                        "/usr/share/tomcat/webapps/geonetwork.war": {
+                            "source": "http://internode.dl.sourceforge.net/project/geonetwork/GeoNetwork_opensource/v3.0.1/geonetwork.war",
+                            "owner": "tomcat",
+                            "group": "tomcat",
+                        },
+                    },
+                    services={
+                        "sysvinit": {
+                            "tomcat": {
+                                "enabled": "true",
+                                "ensureRunning": "true",
+                            }
+                        }
+                    }
+                )
+            )
+        )
+    )
 
     with open("webserver-init.sh", "r") as user_data:
         instance.UserData = Base64(user_data.read())

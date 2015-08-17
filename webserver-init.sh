@@ -1,7 +1,6 @@
 #!/bin/bash
 set -x
 echo "portal-dev" > /etc/hostname
-yum -y install tomcat telnet wget
-(cd /usr/share/tomcat/webapps; wget http://internode.dl.sourceforge.net/project/geonetwork/GeoNetwork_opensource/v3.0.1/geonetwork.war; chown tomcat.tomcat geonetwork.war)
-systemctl enable tomcat
-systemctl start tomcat
+easy_install https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-latest.tar.gz
+cfn-init --region ap-southeast-2 -s GeosciencePortal2 -r GeosciencePortal2WebServer
+# yum -y install tomcat telnet wget
