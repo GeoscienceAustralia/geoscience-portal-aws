@@ -48,17 +48,17 @@ def webserver_security_group():
         GroupDescription="Allow SSH and HTTP from anywhere.",
         SecurityGroupIngress=[]
     )
-    allow_ssh(security_group)
+    allow_ssh_from_ga(security_group)
     allow_http(security_group)
     return security_group
 
-def allow_ssh(security_group):
+def allow_ssh_from_ga(security_group):
     security_group.SecurityGroupIngress.append(
         ec2.SecurityGroupRule(
             IpProtocol="tcp",
             FromPort="22",
             ToPort="22",
-            CidrIp="0.0.0.0/0"
+            CidrIp="192.104.44.129/32"
         )
     )
 
