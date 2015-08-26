@@ -123,6 +123,7 @@ def make_webserver(security_group):
                             "tomcat": cf.InitService(
                                 enabled=True,
                                 ensureRunning=True,
+                                files=["/usr/share/tomcat/webapps/geonetwork.war", "/usr/share/tomcat/webapps/geoscience-portal.war"],
                             ),
                             "cfn-hup": cf.InitService(
                                 enabled=True,
