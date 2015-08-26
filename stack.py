@@ -7,7 +7,6 @@ import sys
 from troposphere import Base64, Join, Ref, Tags, Template
 from troposphere import cloudformation as cf
 import troposphere.ec2 as ec2
-# import troposphere.iam as iam
 from subprocess import call
 import glob
 import os
@@ -30,12 +29,6 @@ def stack():
     template = Template()
     security_group = template.add_resource(webserver_security_group())
     webserver = template.add_resource(make_webserver(security_group))
-    # webserver_instance_profile = template.add_resource(iam.InstanceProfile(
-    #     "InstanceProfile",
-    #     Path="/",
-    #     Roles=["DeveloperAdmin"],
-    # ))
-    # webserver.IamInstanceProfile = Ref(webserver_instance_profile)
     assign_eip(template, webserver, WEBSERVER_IP)
     return template
 
@@ -59,7 +52,6 @@ def get_geoscience_portal_war_url():
     bucket = s3.get_bucket("ga-gov-au")
     key = bucket.get_key("mvn-snapshot/" + war_filename)
     return key.generate_url(3600)
-    # return "http://s3-ap-southeast-2.amazonaws.com/ga.gov.au/mvn-snapshot/" + war_filename
 
 def make_webserver(security_group):
     name = resource_name("WebServer")
