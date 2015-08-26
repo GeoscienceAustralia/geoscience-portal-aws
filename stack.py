@@ -85,9 +85,6 @@ def make_webserver(security_group):
                         }
                     },
                     files=cf.InitFiles({
-                        "/etc/cloud/cloud.cfg.d/99_hostname.cfg": cf.InitFile(
-                            content="#cloud-config\nhostname: portal-dev"
-                        ),
                         "/usr/share/tomcat/webapps/geonetwork.war": cf.InitFile(
                             source="http://internode.dl.sourceforge.net/project/geonetwork/GeoNetwork_opensource/v3.0.1/geonetwork.war",
                             owner="tomcat",
