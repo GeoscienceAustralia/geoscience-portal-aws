@@ -3,11 +3,15 @@ stack.json: stack.py webserver-init.sh
 
 .PHONEY:
 stack: stack.json 
-	./create-stack.sh
+	aws cloudformation create-stack --stack-name GeosciencePortal --template-body file:///`pwd`/stack.json
+
+.PHONEY:
+restack: stack.json
+	aws cloudformation update-stack --stack-name GeosciencePortal --template-body file:///`pwd`/stack.json
 
 .PHONEY:
 unstack: 
-	./delete-stack.sh
+	aws cloudformation delete-stack --stack-name GeosciencePortal
 
 .PHONEY:
 clean:
