@@ -1,5 +1,5 @@
 stack.json: stack.py webserver-init.sh
-	python2 $^ > $@
+	python2 stack.py 1.0.0-SNAPSHOT > $@
 
 .PHONEY:
 stack: stack.json 
