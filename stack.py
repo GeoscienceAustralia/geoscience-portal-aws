@@ -64,9 +64,10 @@ def make_webserver(security_group):
         Metadata=cf.Metadata(
             cf.Init(
                 cf.InitConfigSets(
-                    default=["config"]
+                    default=["on_create", {"ConfigSet": "update"}],
+                    update=["on_update"]
                 ),
-                config=cf.InitConfig(
+                on_create=cf.InitConfig(
                     packages={
                         "yum": {
                             "telnet": [],
@@ -74,6 +75,7 @@ def make_webserver(security_group):
                             "java-1.7.0-openjdk.x86_64": [],
                             "wget": [],
                             "iptables-services": [],
+                            "postgresql-server": [],
                         }
                     },
                     files=cf.InitFiles({
@@ -82,11 +84,6 @@ def make_webserver(security_group):
                         ),
                         "/usr/share/tomcat/webapps/geonetwork.war": cf.InitFile(
                             source="http://internode.dl.sourceforge.net/project/geonetwork/GeoNetwork_opensource/v3.0.1/geonetwork.war",
-                            owner="tomcat",
-                            group="tomcat",
-                        ),
-                        "/usr/share/tomcat/webapps/ROOT.war": cf.InitFile(
-                            source=get_geoscience_portal_war_url(),
                             owner="tomcat",
                             group="tomcat",
                         ),
@@ -108,7 +105,8 @@ def make_webserver(security_group):
                                 "action=/usr/bin/cfn-init",
                                 " --stack ", stack_id,
                                 " --resource ", name,
-                                " --region ", region, "\n",
+                                " --region ", region,
+                                " -c update\n",
                                 "runas=root\n"
                             ]),
                         ),
@@ -116,7 +114,7 @@ def make_webserver(security_group):
                     commands={
                         "redirectPort80": {
                             "command": "iptables -A PREROUTING -t nat -i eth0 -p tcp --dport 80 -j REDIRECT --to-port 8080 && iptables-save > /etc/sysconfig/iptables"
-                        }
+                        },
                     },
                     services={
                         "sysvinit": cf.InitServices({
@@ -139,6 +137,15 @@ def make_webserver(security_group):
                             ),
                         }),
                     },
+                ),
+                on_update=cf.InitConfig(
+                    files=cf.InitFiles({
+                        "/usr/share/tomcat/webapps/ROOT.war": cf.InitFile(
+                            source=get_geoscience_portal_war_url(),
+                            owner="tomcat",
+                            group="tomcat",
+                        ),
+                    })
                 )
             )
         )
