@@ -32,7 +32,6 @@ def stack():
     assign_eip(template, webserver, WEBSERVER_IP)
     return template
 
-
 def assign_eip(template, instance, ip):
     return template.add_resource(ec2.EIPAssociation(
         "WebserverIpAssociation",
@@ -77,6 +76,9 @@ def make_webserver(security_group):
                         }
                     },
                     files=cf.InitFiles({
+                        "/etc/cloud/cloud.cfg.d/99_hostname.cfg": cf.InitFile(
+                            content="preserve_hostname: true",
+                        ),
                         "/usr/share/tomcat/webapps/geonetwork.war": cf.InitFile(
                             source="http://internode.dl.sourceforge.net/project/geonetwork/GeoNetwork_opensource/v3.0.1/geonetwork.war",
                             owner="tomcat",
