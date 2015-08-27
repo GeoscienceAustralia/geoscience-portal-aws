@@ -85,7 +85,7 @@ def make_webserver(security_group):
                             owner="tomcat",
                             group="tomcat",
                         ),
-                        "/usr/share/tomcat/webapps/geoscience-portal.war": cf.InitFile(
+                        "/usr/share/tomcat/webapps/ROOT.war": cf.InitFile(
                             source=get_geoscience_portal_war_url(),
                             owner="tomcat",
                             group="tomcat",
@@ -123,7 +123,7 @@ def make_webserver(security_group):
                             "tomcat": cf.InitService(
                                 enabled=True,
                                 ensureRunning=True,
-                                files=["/usr/share/tomcat/webapps/geonetwork.war", "/usr/share/tomcat/webapps/geoscience-portal.war"],
+                                files=["/usr/share/tomcat/webapps/geonetwork.war", "/usr/share/tomcat/webapps/ROOT.war"],
                             ),
                             "iptables": cf.InitService(
                                 enabled=True,
