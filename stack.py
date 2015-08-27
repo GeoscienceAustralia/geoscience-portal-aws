@@ -73,6 +73,7 @@ def make_webserver(security_group):
                             "tomcat": [],
                             "java-1.7.0-openjdk.x86_64": [],
                             "wget": [],
+                            "iptables-services": [],
                         }
                     },
                     files=cf.InitFiles({
@@ -112,12 +113,21 @@ def make_webserver(security_group):
                             ]),
                         ),
                     }),
+                    commands={
+                        "redirectPort80": {
+                            "command": "iptables -A PREROUTING -t nat -i eth0 -p tcp --dport 80 -j REDIRECT --to-port 8080 && iptables-save > /etc/sysconfig/iptables"
+                        }
+                    },
                     services={
                         "sysvinit": cf.InitServices({
                             "tomcat": cf.InitService(
                                 enabled=True,
                                 ensureRunning=True,
                                 files=["/usr/share/tomcat/webapps/geonetwork.war", "/usr/share/tomcat/webapps/geoscience-portal.war"],
+                            ),
+                            "iptables": cf.InitService(
+                                enabled=True,
+                                ensureRunning=True,
                             ),
                             "cfn-hup": cf.InitService(
                                 enabled=True,
@@ -128,7 +138,7 @@ def make_webserver(security_group):
                                 ],
                             ),
                         }),
-                    }
+                    },
                 )
             )
         )
