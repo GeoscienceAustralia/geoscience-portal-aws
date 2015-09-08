@@ -127,7 +127,6 @@ def make_webserver(security_group):
                             "tomcat": cf.InitService(
                                 enabled=True,
                                 ensureRunning=True,
-                                files=["/usr/share/tomcat/webapps/geonetwork.war", "/usr/share/tomcat/webapps/ROOT.war"],
                             ),
                             "iptables": cf.InitService(
                                 enabled=True,
@@ -157,6 +156,11 @@ def make_webserver(security_group):
                             group="tomcat",
                         ),
                     }),
+                    commands={
+                        "restart-tomcat": {
+                            "command": "service tomcat restart"
+                        },
+                    },
                 )
             )
         )
