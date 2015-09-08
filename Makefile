@@ -15,4 +15,4 @@ unstack:
 
 .PHONEY:
 clean:
-	rm stack.json
+	rm -f stack.json *.war
