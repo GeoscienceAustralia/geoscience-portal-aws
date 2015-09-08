@@ -118,7 +118,7 @@ def make_webserver(security_group):
                         ),
                     }),
                     commands={
-                        "redirectPort80": {
+                        "redirect-port-80-to-port-8080": {
                             "command": "iptables -A PREROUTING -t nat -i eth0 -p tcp --dport 80 -j REDIRECT --to-port 8080 && iptables-save > /etc/sysconfig/iptables"
                         },
                     },
