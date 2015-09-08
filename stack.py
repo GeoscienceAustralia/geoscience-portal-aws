@@ -42,15 +42,25 @@ def assign_eip(template, instance, ip):
 def geoscience_portal_version():
     return sys.argv[1]
 
-def get_geoscience_portal_war_url():
-    arg = GA_PUBLIC_NEXUS + '&g=au.gov.ga&a=geoscience-portal&v=' + geoscience_portal_version() + '&e=war'
+def geoscience_portal_geonetwork_version():
+    return sys.argv[2]
+
+def get_nexus_artifact_url(group_id, artifact_id, version):
+    arg = GA_PUBLIC_NEXUS + '&g=' + group_id + '&a=' + artifact_id + '&v=' + version + '&e=war'
     call(["wget", arg, '--content-disposition', "--timestamping"])
-    war_filename = max(glob.iglob("*.war"), key=os.path.getctime)
+    war_filename = max(glob.iglob(artifact_id + "*.war"), key=os.path.getctime)
     call(["aws", "s3", "cp", war_filename, "s3://ga-gov-au/mvn-snapshot/", "--quiet", "--acl", "public-read"])
+    call(["rm", war_filename])
     s3 = boto.connect_s3()
     bucket = s3.get_bucket("ga-gov-au")
     key = bucket.get_key("mvn-snapshot/" + war_filename)
     return key.generate_url(3600)
+
+def get_geoscience_portal_war_url():
+    return get_nexus_artifact_url("au.gov.ga", "geoscience-portal", geoscience_portal_version())
+
+def get_geoscience_portal_geonetwork_war_url():
+    return get_nexus_artifact_url("au.gov.ga", "geoscience-portal-geonetwork", geoscience_portal_geonetwork_version())
 
 def make_webserver(security_group):
     name = resource_name("WebServer")
@@ -81,11 +91,6 @@ def make_webserver(security_group):
                     files=cf.InitFiles({
                         "/etc/cloud/cloud.cfg.d/99_hostname.cfg": cf.InitFile(
                             content="preserve_hostname: true",
-                        ),
-                        "/usr/share/tomcat/webapps/geonetwork.war": cf.InitFile(
-                            source="http://internode.dl.sourceforge.net/project/geonetwork/GeoNetwork_opensource/v3.0.1/geonetwork.war",
-                            owner="tomcat",
-                            group="tomcat",
                         ),
                         "/etc/cfn/cfn-hup.conf": cf.InitFile(
                             content=Join('', [
@@ -145,7 +150,12 @@ def make_webserver(security_group):
                             owner="tomcat",
                             group="tomcat",
                         ),
-                    })
+                        "/usr/share/tomcat/webapps/geonetwork.war": cf.InitFile(
+                            source=get_geoscience_portal_geonetwork_war_url(),
+                            owner="tomcat",
+                            group="tomcat",
+                        ),
+                    }),
                 )
             )
         )
