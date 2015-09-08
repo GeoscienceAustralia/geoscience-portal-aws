@@ -86,6 +86,7 @@ def make_webserver(security_group):
                             "wget": [],
                             "iptables-services": [],
                             "postgresql-server": [],
+                            "python-pip": [],
                         }
                     },
                     files=cf.InitFiles({
