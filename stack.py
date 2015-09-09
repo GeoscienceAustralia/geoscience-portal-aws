@@ -87,6 +87,7 @@ def make_webserver(security_group):
                             "iptables-services": [],
                             "postgresql-server": [],
                             "python-pip": [],
+                            "unzip": [],
                         }
                     },
                     files=cf.InitFiles({
@@ -116,14 +117,33 @@ def make_webserver(security_group):
                                 "runas=root\n"
                             ]),
                         ),
+                        "/root/.pgpass": cf.InitFile(
+                            content="localhost:5432:*:postgres:secret",
+                            mode="0600",
+                        ),
+                        "/var/lib/pgsql/password": cf.InitFile(
+                            content="secret",
+                            owner="postgres",
+                            mode="0600",
+                        ),
                     }),
                     commands={
                         "redirect-port-80-to-port-8080": {
                             "command": "iptables -A PREROUTING -t nat -i eth0 -p tcp --dport 80 -j REDIRECT --to-port 8080 && iptables-save > /etc/sysconfig/iptables"
                         },
+                        "allow-sudo-without-tty": {
+                            "command": "sed -i '/Defaults    requiretty/s/^/#/g' /etc/sudoers"
+                        },
+                        "init-postgres": {
+                            "command": "sudo -u postgres initdb -D /var/lib/pgsql/data -A md5 --pwfile=/var/lib/pgsql/password"
+                        },
                     },
                     services={
                         "sysvinit": cf.InitServices({
+                            "postgresql": cf.InitService(
+                                enabled=True,
+                                ensureRunning=True,
+                            ),
                             "tomcat": cf.InitService(
                                 enabled=True,
                                 ensureRunning=True,
@@ -157,6 +177,9 @@ def make_webserver(security_group):
                         ),
                     }),
                     commands={
+                        "setup-geonetwork-database": {
+                            "command": "unzip -p /usr/share/tomcat/webapps/geonetwork.war WEB-INF/classes/geonetwork-db.sql | psql -U postgres"
+                        },
                         "restart-tomcat": {
                             "command": "service tomcat restart"
                         },
