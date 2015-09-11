@@ -67,7 +67,7 @@ def make_webserver(security_group):
     instance = ec2.Instance(
         name,
         ImageId=REDHAT_IMAGEID,
-        InstanceType="t2.small",
+        InstanceType="t2.medium",
         Tags=Tags(Name=name),
         KeyName=KEY_PAIR_NAME,
         SecurityGroups=[Ref(security_group)],
