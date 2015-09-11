@@ -128,13 +128,16 @@ def make_webserver(security_group):
                         ),
                     }),
                     commands={
-                        "00-redirect-port-80-to-port-8080": {
+                        "00-disable-webapp-auto-deployment": {
+                            "command": "sed -i 's/autoDeploy=\"true\"/autoDeploy=\"false\"/' /usr/share/tomcat/conf/server.xml"
+                        },
+                        "10-redirect-port-80-to-port-8080": {
                             "command": "iptables -A PREROUTING -t nat -i eth0 -p tcp --dport 80 -j REDIRECT --to-port 8080 && iptables-save > /etc/sysconfig/iptables"
                         },
-                        "10-allow-sudo-without-tty": {
+                        "20-allow-sudo-without-tty": {
                             "command": "sed -i '/Defaults    requiretty/s/^/#/g' /etc/sudoers"
                         },
-                        "20-init-postgres": {
+                        "30-init-postgres": {
                             "command": "sudo -u postgres initdb -D /var/lib/pgsql/data -A md5 --pwfile=/var/lib/pgsql/password"
                         },
                     },
