@@ -1,3 +1,4 @@
 #!/bin/bash
-
-echo "Success"
+export AWS_PROFILE=dev-account
+PATH=~/.local/bin:$PATH
+make restack
