@@ -183,7 +183,13 @@ def make_webserver(security_group):
                         "00-setup-geonetwork-database": {
                             "command": "unzip -p /usr/share/tomcat/webapps/geonetwork.war WEB-INF/classes/geonetwork-db.sql | psql -U postgres"
                         },
-                        "10-restart-tomcat": {
+                        "10-undeploy-geonetwork": {
+                            "command": "rm -rf /usr/share/tomcat/webapps/geonetwork",
+                        },
+                        "20-undeploy-geoscience-portal": {
+                            "command": "rm -rf /usr/share/tomcat/webapps/ROOT",
+                        },
+                        "30-restart-tomcat": {
                             "command": "service tomcat restart"
                         },
                     },
