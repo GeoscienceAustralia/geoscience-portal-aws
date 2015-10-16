@@ -192,7 +192,7 @@ def make_webserver(security_group):
                         "30-undeploy-geoscience-portal": {
                             "command": "rm -rf /usr/share/tomcat/webapps/ROOT",
                         },
-                        "40-restart-tomcat": {
+                        "40-start-tomcat": {
                             "command": "service tomcat start"
                         },
                     },
