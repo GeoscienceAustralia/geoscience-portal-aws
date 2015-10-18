@@ -13,9 +13,9 @@ import os
 import boto
 
 REDHAT_IMAGEID = "ami-d3daace9"
-SYSTEM_PREFIX = "GeosciencePortal"
+SYSTEM_PREFIX = "GeosciencePortal2"
 KEY_PAIR_NAME = "lazar@work"
-WEBSERVER_IP = "54.206.17.34"
+WEBSERVER_IP = "54.153.211.253"
 GA_PUBLIC_NEXUS = "http://maven-int.ga.gov.au/nexus/service/local/artifact/maven/redirect?r=public"
 
 stack_id = Ref("AWS::StackId")
