@@ -3,6 +3,8 @@
 from troposphere import Join, Ref
 import troposphere.ec2 as ec2
 
+PUBLIC_GA_GOV_AU_PTR = '192.104.44.129'
+
 def name_tag(suffix):
     return Join('', [
         Ref('AWS::StackName'),
@@ -10,7 +12,7 @@ def name_tag(suffix):
         suffix])
 
 def ssh_ingress_from_ga(security_group):
-    return ssh_ingress(security_group, '192.104.44.129/32')
+    return ssh_ingress(security_group, PUBLIC_GA_GOV_AU_PTR + '/32')
 
 def ssh_ingress(security_group, cidr='0.0.0.0/0'):
     title = security_group.title + 'IngressSSH'
