@@ -1,6 +1,11 @@
-# pylint: disable=missing-docstring, invalid-name, line-too-long, redefined-outer-name, too-many-arguments
+# pylint: disable=invalid-name, line-too-long, redefined-outer-name, too-many-arguments
 
-"""Geoscience Portal AWS VPC
+"""Default VPC definition
+
+This is a VPC with an internet gateway and public and private subnets.
+A NAT instance in the public subnet allows incoming SSH traffic from GA, and
+HTTP and ICMP traffic from everywhere. The private subnet routes out all
+outbound traffic via the NAT instance and the internet gateway.
 """
 
 from . import name_tag, http_ingress, icmp_ingress, ssh_ingress_from_ga
@@ -11,6 +16,7 @@ DEFAULT_NAT_IMAGE_ID = "ami-893f53b3"
 DEFAULT_NAT_INSTANCE_TYPE = "t2.micro"
 
 def add_vpc(template, key_pair_name, nat_ip, nat_image_id=DEFAULT_NAT_IMAGE_ID, nat_instance_type=DEFAULT_NAT_INSTANCE_TYPE):
+    """Create a VPC resource and add it to the given template."""
     vpcId = "VPC"
     vpc = template.add_resource(ec2.VPC(
         vpcId,
@@ -25,6 +31,7 @@ def add_vpc(template, key_pair_name, nat_ip, nat_image_id=DEFAULT_NAT_IMAGE_ID, 
     return vpc
 
 def private_subnet(template):
+    """Extract and return the "PublicSubnet" resource from the given template."""
     return template.resources["PrivateSubnet"]
 
 def _add_nat(template, vpc, public_subnet, image_id, instance_type, key_pair_name, nat_ip):
@@ -58,7 +65,6 @@ def _add_nat(template, vpc, public_subnet, image_id, instance_type, key_pair_nam
         InstanceId=Ref(nat.title)
     ))
     return nat
-
 
 def _add_public_subnet(template, vpc):
     title = "PublicSubnet"

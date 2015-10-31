@@ -1,20 +1,24 @@
-# pylint: disable=missing-docstring, invalid-name, line-too-long, redefined-outer-name, too-many-arguments
+# pylint: disable=invalid-name, line-too-long, redefined-outer-name, too-many-arguments
+
+"""Useful utility functions"""
 
 from troposphere import Join, Ref
 import troposphere.ec2 as ec2
 
 PUBLIC_GA_GOV_AU_PTR = '192.104.44.129'
 
-def name_tag(suffix):
-    return Join('', [
-        Ref('AWS::StackName'),
-        '-',
-        suffix])
+def name_tag(resource_name):
+    """Prepend stack name to the given resource name."""
+    return Join('', [Ref('AWS::StackName'), '-', resource_name])
 
 def ssh_ingress_from_ga(security_group):
+    """Return an ingress for the given security group to allow
+    SSH traffic from public.ga.gov.au."""
+
     return ssh_ingress(security_group, PUBLIC_GA_GOV_AU_PTR + '/32')
 
 def ssh_ingress(security_group, cidr='0.0.0.0/0'):
+    """Return an ingress for the given security group to allow SSH traffic."""
     title = security_group.title + 'IngressSSH'
     return ec2.SecurityGroupIngress(
         title,
@@ -26,6 +30,7 @@ def ssh_ingress(security_group, cidr='0.0.0.0/0'):
     )
 
 def http_ingress(security_group, cidr='0.0.0.0/0'):
+    """Return an ingress for the given security group to allow HTTP traffic."""
     title = security_group.title + 'IngressHTTP'
     return ec2.SecurityGroupIngress(
         title,
@@ -37,6 +42,7 @@ def http_ingress(security_group, cidr='0.0.0.0/0'):
     )
 
 def icmp_ingress(security_group, cidr='0.0.0.0/0'):
+    """Return an ingress for the given security group to allow ICMP traffic."""
     title = security_group.title + 'IngressICMP'
     return ec2.SecurityGroupIngress(
         title,
