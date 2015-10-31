@@ -22,4 +22,4 @@ uninstall:
 
 .PHONEY:
 clean:
-	rm -rf *.dot *.svg *.json build dist
+	rm -rf *.dot *.svg *.json build dist *.egg-info
