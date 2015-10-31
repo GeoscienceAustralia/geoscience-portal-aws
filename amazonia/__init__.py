@@ -1,5 +1,3 @@
-# pylint: disable=invalid-name, line-too-long, redefined-outer-name, too-many-arguments
-
 """Useful utility functions"""
 
 from troposphere import Join, Ref

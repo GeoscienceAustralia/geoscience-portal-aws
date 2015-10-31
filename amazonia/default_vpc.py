@@ -1,4 +1,4 @@
-# pylint: disable=invalid-name, line-too-long, redefined-outer-name, too-many-arguments
+# pylint: disable=too-many-arguments
 
 """Default VPC definition
 
@@ -15,18 +15,21 @@ import troposphere.ec2 as ec2
 DEFAULT_NAT_IMAGE_ID = "ami-893f53b3"
 DEFAULT_NAT_INSTANCE_TYPE = "t2.micro"
 
-def add_vpc(template, key_pair_name, nat_ip, nat_image_id=DEFAULT_NAT_IMAGE_ID, nat_instance_type=DEFAULT_NAT_INSTANCE_TYPE):
+def add_vpc(template, key_pair_name, nat_ip,
+            nat_image_id=DEFAULT_NAT_IMAGE_ID,
+            nat_instance_type=DEFAULT_NAT_INSTANCE_TYPE):
     """Create a VPC resource and add it to the given template."""
-    vpcId = "VPC"
+    vpc_id = "VPC"
     vpc = template.add_resource(ec2.VPC(
-        vpcId,
+        vpc_id,
         CidrBlock="10.0.0.0/16",
         Tags=Tags(
-            Name=name_tag(vpcId)
+            Name=name_tag(vpc_id)
         ),
     ))
     public_subnet = _add_public_subnet(template, vpc)
-    nat = _add_nat(template, vpc, public_subnet, nat_image_id, nat_instance_type, key_pair_name, nat_ip)
+    nat = _add_nat(template, vpc, public_subnet, nat_image_id, nat_instance_type,
+                   key_pair_name, nat_ip)
     _add_private_subnet(template, vpc, nat)
     return vpc
 
@@ -101,7 +104,7 @@ def _add_public_subnet(template, vpc):
 
 def _add_private_subnet(template, vpc, nat):
     title = "PrivateSubnet"
-    private_subnet = template.add_resource(ec2.Subnet(
+    subnet = template.add_resource(ec2.Subnet(
         title,
         VpcId=Ref(vpc.title),
         CidrBlock="10.0.1.0/24",
@@ -119,7 +122,7 @@ def _add_private_subnet(template, vpc, nat):
     ))
     template.add_resource(ec2.SubnetRouteTableAssociation(
         "PrivateRouteTableAssociation",
-        SubnetId=Ref(private_subnet.title),
+        SubnetId=Ref(subnet.title),
         RouteTableId=Ref(route_table),
     ))
     template.add_resource(ec2.Route(
@@ -132,16 +135,16 @@ def _add_private_subnet(template, vpc, nat):
 
 
 def _add_internet_gateway(template, vpc):
-    gatewayId = "InternetGateway"
+    gateway_id = "InternetGateway"
     internet_gateway = template.add_resource(ec2.InternetGateway(
-        gatewayId,
+        gateway_id,
         Tags=Tags(
-            Name=name_tag(gatewayId),
+            Name=name_tag(gateway_id),
         ),
     ))
-    attachmentId = "InternetGatewayAttachment"
+    attachment_id = "InternetGatewayAttachment"
     template.add_resource(ec2.VPCGatewayAttachment(
-        attachmentId,
+        attachment_id,
         VpcId=Ref(vpc.title),
         InternetGatewayId=Ref(internet_gateway.title),
     ))
