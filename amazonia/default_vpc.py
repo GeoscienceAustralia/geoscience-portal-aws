@@ -10,6 +10,23 @@ import troposphere.ec2 as ec2
 DEFAULT_NAT_IMAGE_ID = "ami-893f53b3"
 DEFAULT_NAT_INSTANCE_TYPE = "t2.micro"
 
+def add_vpc(template, key_pair_name, nat_ip, nat_image_id=DEFAULT_NAT_IMAGE_ID, nat_instance_type=DEFAULT_NAT_INSTANCE_TYPE):
+    vpcId = "VPC"
+    vpc = template.add_resource(ec2.VPC(
+        vpcId,
+        CidrBlock="10.0.0.0/16",
+        Tags=Tags(
+            Name=name_tag(vpcId)
+        ),
+    ))
+    public_subnet = _add_public_subnet(template, vpc)
+    nat = _add_nat(template, vpc, public_subnet, nat_image_id, nat_instance_type, key_pair_name, nat_ip)
+    _add_private_subnet(template, vpc, nat)
+    return vpc
+
+def private_subnet(template):
+    return template.resources["PrivateSubnet"]
+
 def _add_nat(template, vpc, public_subnet, image_id, instance_type, key_pair_name, nat_ip):
     nat_sg_id = "NatSecurityGroup"
     nat_sg = template.add_resource(ec2.SecurityGroup(
@@ -107,19 +124,6 @@ def _add_private_subnet(template, vpc, nat):
     ))
     return private_subnet
 
-def add_vpc(template, key_pair_name, nat_ip, nat_image_id=DEFAULT_NAT_IMAGE_ID, nat_instance_type=DEFAULT_NAT_INSTANCE_TYPE):
-    vpcId = "VPC"
-    vpc = template.add_resource(ec2.VPC(
-        vpcId,
-        CidrBlock="10.0.0.0/16",
-        Tags=Tags(
-            Name=name_tag(vpcId)
-        ),
-    ))
-    public_subnet = _add_public_subnet(template, vpc)
-    nat = _add_nat(template, vpc, public_subnet, nat_image_id, nat_instance_type, key_pair_name, nat_ip)
-    _add_private_subnet(template, vpc, nat)
-    return vpc
 
 def _add_internet_gateway(template, vpc):
     gatewayId = "InternetGateway"
@@ -137,5 +141,3 @@ def _add_internet_gateway(template, vpc):
     ))
     return internet_gateway
 
-def private_subnet(template):
-    return template.resources["PrivateSubnet"]
