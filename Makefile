@@ -10,7 +10,7 @@ default_vpc.json: amazonia/__init__.py amazonia/default_vpc.py
 
 .PHONEY:
 viz: default_vpc.svg
-	feh --magick-timeout 1 $<
+	feh --magick-timeout 1 $< &
 
 .PHONEY:
 install:
