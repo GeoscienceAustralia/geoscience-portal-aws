@@ -58,6 +58,7 @@ def _add_nat(template, vpc, public_subnet, image_id, instance_type, key_pair_nam
         SubnetId=Ref(public_subnet.title),
         ImageId=image_id,
         InstanceType=instance_type,
+        SourceDestCheck=False,
         Tags=Tags(
             Name=name_tag(nat_id),
         ),
