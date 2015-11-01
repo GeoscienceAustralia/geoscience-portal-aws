@@ -39,6 +39,18 @@ def http_ingress(security_group, cidr='0.0.0.0/0'):
         CidrIp=cidr
     )
 
+def https_ingress(security_group, cidr='0.0.0.0/0'):
+    """Return an ingress for the given security group to allow HTTPS traffic."""
+    title = security_group.title + 'IngressHTTPS'
+    return ec2.SecurityGroupIngress(
+        title,
+        IpProtocol='tcp',
+        FromPort='443',
+        ToPort='443',
+        GroupId=Ref(security_group.title),
+        CidrIp=cidr
+    )
+
 def icmp_ingress(security_group, cidr='0.0.0.0/0'):
     """Return an ingress for the given security group to allow ICMP traffic."""
     title = security_group.title + 'IngressICMP'

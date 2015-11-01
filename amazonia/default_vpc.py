@@ -8,7 +8,7 @@ HTTP and ICMP traffic from everywhere. The private subnet routes out all
 outbound traffic via the NAT instance and the internet gateway.
 """
 
-from . import name_tag, http_ingress, icmp_ingress, ssh_ingress_from_ga
+from . import name_tag, http_ingress, https_ingress, icmp_ingress, ssh_ingress_from_ga
 from troposphere import Ref, Tags
 import troposphere.ec2 as ec2
 
@@ -50,6 +50,7 @@ def _add_nat(template, vpc, public_subnet, image_id, instance_type, key_pair_nam
     template.add_resource(ssh_ingress_from_ga(nat_sg))
     template.add_resource(icmp_ingress(nat_sg))
     template.add_resource(http_ingress(nat_sg))
+    template.add_resource(https_ingress(nat_sg))
     nat_id = "NAT"
     nat = template.add_resource(ec2.Instance(
         nat_id,
