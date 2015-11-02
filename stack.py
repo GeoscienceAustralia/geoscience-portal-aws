@@ -59,12 +59,12 @@ def get_geoscience_portal_geonetwork_war_url():
     return get_nexus_artifact_url("au.gov.ga", "geoscience-portal-geonetwork", geoscience_portal_geonetwork_version())
 
 def make_webserver(subnet, security_group):
-    name = "Webserver"
+    instance_id = "Webserver"
     instance = ec2.Instance(
-        name,
+        instance_id,
         ImageId=REDHAT_IMAGEID,
         InstanceType="t2.medium",
-        Tags=Tags(Name=name_tag(name)),
+        Tags=Tags(Name=name_tag(instance_id)),
         KeyName=KEY_PAIR_NAME,
         SubnetId=Ref(subnet.title),
         SecurityGroupIds=[Ref(security_group.title)],
@@ -105,10 +105,10 @@ def make_webserver(subnet, security_group):
                             content=Join("", [
                                 "[cfn-auto-reloader-hook]\n",
                                 "triggers=post.update\n",
-                                "path=Resources.", name, ".Metadata.AWS::CloudFormation::Init\n",
+                                "path=Resources.", instance_id, ".Metadata.AWS::CloudFormation::Init\n",
                                 "action=/usr/bin/cfn-init",
                                 " --stack ", stack_id,
-                                " --resource ", name,
+                                " --resource ", instance_id,
                                 " --region ", region,
                                 " -c update\n",
                                 "runas=root\n"
