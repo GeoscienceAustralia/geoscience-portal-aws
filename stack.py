@@ -16,9 +16,9 @@ from amazonia import http_ingress, icmp_ingress, ssh_ingress, name_tag
 import amazonia.default_vpc as default_vpc
 
 REDHAT_IMAGEID = "ami-d3daace9"
-SYSTEM_PREFIX = "GeosciencePortal2"
+SYSTEM_PREFIX = "GeosciencePortal"
 KEY_PAIR_NAME = "lazar@work"
-NAT_IP = "54.153.211.253"
+NAT_IP = "54.206.17.34"
 GA_PUBLIC_NEXUS = "http://maven-int.ga.gov.au/nexus/service/local/artifact/maven/redirect?r=public"
 
 stack_id = Ref("AWS::StackId")
