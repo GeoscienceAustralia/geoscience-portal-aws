@@ -37,6 +37,10 @@ def private_subnet(template):
     """Extract and return the "PublicSubnet" resource from the given template."""
     return template.resources["PrivateSubnet"]
 
+def nat_instance(template):
+    """Extract and return the NAT instance from the given template."""
+    return template.resources["NAT"]
+
 def _add_nat(template, vpc, public_subnet, image_id, instance_type, key_pair_name, nat_ip):
     nat_sg_id = "NatSecurityGroup"
     nat_sg = template.add_resource(ec2.SecurityGroup(
