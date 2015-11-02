@@ -64,6 +64,7 @@ def _add_nat(template, vpc, public_subnet, image_id, instance_type, key_pair_nam
         ImageId=image_id,
         InstanceType=instance_type,
         SourceDestCheck=False,
+        PrivateIpAddress="10.0.0.100",
         Tags=Tags(
             Name=name_tag(nat_id),
         ),
