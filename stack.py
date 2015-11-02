@@ -12,32 +12,28 @@ import glob
 import os
 import boto
 
+from amazonia import http_ingress, icmp_ingress, ssh_ingress, name_tag
+import amazonia.default_vpc as default_vpc
+
 REDHAT_IMAGEID = "ami-d3daace9"
 SYSTEM_PREFIX = "GeosciencePortal2"
 KEY_PAIR_NAME = "lazar@work"
-WEBSERVER_IP = "54.153.211.253"
+NAT_IP = "54.153.211.253"
 GA_PUBLIC_NEXUS = "http://maven-int.ga.gov.au/nexus/service/local/artifact/maven/redirect?r=public"
 
 stack_id = Ref("AWS::StackId")
 stack_name = Ref("AWS:StackName")
 region = Ref("AWS::Region")
 
-def resource_name(name):
-    return SYSTEM_PREFIX + name
-
 def stack():
     template = Template()
-    security_group = template.add_resource(webserver_security_group())
-    webserver = template.add_resource(make_webserver(security_group))
-    assign_eip(template, webserver, WEBSERVER_IP)
+    vpc = default_vpc.add_vpc(template, KEY_PAIR_NAME, NAT_IP)
+    security_group = template.add_resource(webserver_security_group(vpc))
+    template.add_resource(http_ingress(security_group))
+    template.add_resource(icmp_ingress(security_group))
+    template.add_resource(ssh_ingress(security_group))
+    template.add_resource(make_webserver(default_vpc.private_subnet(template), security_group))
     return template
-
-def assign_eip(template, instance, ip):
-    return template.add_resource(ec2.EIPAssociation(
-        "WebserverIpAssociation",
-        EIP=ip,
-        InstanceId=Ref(instance)
-    ))
 
 def geoscience_portal_version():
     return sys.argv[1]
@@ -62,15 +58,16 @@ def get_geoscience_portal_war_url():
 def get_geoscience_portal_geonetwork_war_url():
     return get_nexus_artifact_url("au.gov.ga", "geoscience-portal-geonetwork", geoscience_portal_geonetwork_version())
 
-def make_webserver(security_group):
-    name = resource_name("WebServer")
+def make_webserver(subnet, security_group):
+    name = "Webserver"
     instance = ec2.Instance(
         name,
         ImageId=REDHAT_IMAGEID,
         InstanceType="t2.medium",
-        Tags=Tags(Name=name),
+        Tags=Tags(Name=name_tag(name)),
         KeyName=KEY_PAIR_NAME,
-        SecurityGroups=[Ref(security_group)],
+        SubnetId=Ref(subnet.title),
+        SecurityGroupIds=[Ref(security_group.title)],
         Metadata=cf.Metadata(
             cf.Init(
                 cf.InitConfigSets(
@@ -206,42 +203,17 @@ def make_webserver(security_group):
 
     return instance
 
-def webserver_security_group():
+def webserver_security_group(vpc):
+    title = "WebserverSecurityGroup"
     security_group = ec2.SecurityGroup(
-        "WebserverSecurityGroup",
+        title,
         GroupDescription="Allow SSH from GA and HTTP from anywhere.",
-        SecurityGroupIngress=[]
+        VpcId=Ref(vpc.title),
+        SecurityGroupIngress=[],
+        Tags=Tags(
+            Name=name_tag(title),
+        ),
     )
-    allow_ssh_from_ga(security_group)
-    allow_http(security_group)
     return security_group
-
-def allow_ssh_from_ga(security_group):
-    security_group.SecurityGroupIngress.append(
-        ec2.SecurityGroupRule(
-            IpProtocol="tcp",
-            FromPort="22",
-            ToPort="22",
-            CidrIp="192.104.44.129/32"
-        )
-    )
-
-def allow_http(security_group):
-    security_group.SecurityGroupIngress.append(
-        ec2.SecurityGroupRule(
-            IpProtocol="tcp",
-            FromPort="80",
-            ToPort="80",
-            CidrIp="0.0.0.0/0"
-        )
-    )
-    security_group.SecurityGroupIngress.append(
-        ec2.SecurityGroupRule(
-            IpProtocol="tcp",
-            FromPort="8080",
-            ToPort="8080",
-            CidrIp="0.0.0.0/0"
-        )
-    )
 
 print(stack().to_json())
