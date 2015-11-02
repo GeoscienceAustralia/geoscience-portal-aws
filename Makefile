@@ -1,4 +1,4 @@
-stack.json: stack.py webserver-init.sh
+stack.json: stack.py webserver-init.sh nat-init.sh
 	python2 stack.py 1.0.0-SNAPSHOT 1.0.0-SNAPSHOT > $@
 
 %.svg: %.json

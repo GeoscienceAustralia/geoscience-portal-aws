@@ -33,6 +33,9 @@ def stack():
     template.add_resource(icmp_ingress(security_group))
     template.add_resource(ssh_ingress(security_group))
     template.add_resource(make_webserver(default_vpc.private_subnet(template), security_group))
+
+    with open("nat-init.sh", "r") as user_data:
+        default_vpc.nat_instance(template).UserData = Base64(user_data.read())
     return template
 
 def geoscience_portal_version():
