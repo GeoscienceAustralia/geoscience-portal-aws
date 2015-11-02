@@ -68,6 +68,7 @@ def make_webserver(subnet, security_group):
         KeyName=KEY_PAIR_NAME,
         SubnetId=Ref(subnet.title),
         SecurityGroupIds=[Ref(security_group.title)],
+        PrivateIpAddress="10.0.1.100",
         Metadata=cf.Metadata(
             cf.Init(
                 cf.InitConfigSets(
