@@ -4,6 +4,8 @@
 """
 
 import sys
+import random
+import string
 from troposphere import Base64, Join, Ref, Tags, Template
 from troposphere import cloudformation as cf
 import troposphere.ec2 as ec2
@@ -20,6 +22,12 @@ SYSTEM_PREFIX = "GeosciencePortal"
 KEY_PAIR_NAME = "lazar@work"
 NAT_IP = "54.206.17.34"
 GA_PUBLIC_NEXUS = "http://maven-int.ga.gov.au/nexus/service/local/artifact/maven/redirect?r=public"
+
+def _generate_password():
+    return ''.join(random.sample(string.ascii_letters + string.digits, 10))
+
+POSTGRES_SUPERUSER_PASSWORD = _generate_password()
+GEONETWORK_DB_PASSWORD = _generate_password()
 
 stack_id = Ref("AWS::StackId")
 stack_name = Ref("AWS:StackName")
@@ -119,11 +127,11 @@ def make_webserver(subnet, security_group):
                             ]),
                         ),
                         "/root/.pgpass": cf.InitFile(
-                            content="localhost:5432:*:postgres:secret",
+                            content="localhost:5432:*:postgres:" + POSTGRES_SUPERUSER_PASSWORD,
                             mode="0600",
                         ),
                         "/var/lib/pgsql/password": cf.InitFile(
-                            content="secret",
+                            content=POSTGRES_SUPERUSER_PASSWORD,
                             owner="postgres",
                             mode="0600",
                         ),
@@ -185,13 +193,18 @@ def make_webserver(subnet, security_group):
                             "command": "service tomcat stop"
                         },
                         "10-setup-geonetwork-database": {
-                            "command": "unzip -p /usr/share/tomcat/webapps/geonetwork.war WEB-INF/classes/geonetwork-db.sql | psql -U postgres"
+                            "command": "unzip -p /usr/share/tomcat/webapps/geonetwork.war WEB-INF/classes/geonetwork-db.sql"
+                                       "| sed 's/${password}/" + GEONETWORK_DB_PASSWORD + "/' | psql -U postgres"
                         },
                         "20-undeploy-geonetwork": {
                             "command": "rm -rf /usr/share/tomcat/webapps/geonetwork",
                         },
                         "30-undeploy-geoscience-portal": {
                             "command": "rm -rf /usr/share/tomcat/webapps/ROOT",
+                        },
+                        "35-set-geonetwork-password": {
+                            "command": "(cd /usr/share/tomcat/webapps && unzip geonetwork.war -d geonetwork && chown -R tomcat.tomcat geonetwork"
+                                       " && sed -i 's/${password}/" + GEONETWORK_DB_PASSWORD + "/' geonetwork/WEB-INF/config-db/jdbc.properties)"
                         },
                         "40-start-tomcat": {
                             "command": "service tomcat start"
