@@ -1,4 +1,4 @@
 #!/bin/bash
 export AWS_PROFILE=dev-account
 PATH=~/.local/bin:$PATH
-make clean restack
+GEOSCIENCE_PORTAL_VERSION=1.0.0-SNAPSHOT GEOSCIENCE_GEONETWORK_VERSION=1.0.0-SNAPSHOT make clean restack
