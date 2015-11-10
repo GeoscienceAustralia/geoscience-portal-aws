@@ -3,18 +3,20 @@
 """Geoscience Portal AWS CloudFormation Stack Definition
 """
 
-import sys
-import random
-import string
-from troposphere import Base64, Join, Ref, Tags, Template
-from troposphere import cloudformation as cf
-import troposphere.ec2 as ec2
-from subprocess import call
 import glob
 import os
+import random
+import string
+from   subprocess import call
+import sys
+
 import boto
 
-from amazonia import http_ingress, icmp_ingress, ssh_ingress, name_tag
+from   troposphere import Base64, Join, Ref, Tags, Template
+from   troposphere import cloudformation as cf
+import troposphere.ec2 as ec2
+
+from   amazonia import http_ingress, icmp_ingress, ssh_ingress, name_tag
 import amazonia.default_vpc as default_vpc
 
 REDHAT_IMAGEID = "ami-d3daace9"
