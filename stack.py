@@ -205,7 +205,7 @@ def make_webserver(subnet, security_group):
                             "command": "rm -rf /usr/share/tomcat/webapps/ROOT",
                         },
                         "35-set-geonetwork-password": {
-                            "command": "(cd /usr/share/tomcat/webapps && unzip geonetwork.war -d geonetwork && chown -R tomcat.tomcat geonetwork"
+                            "command": "(cd /usr/share/tomcat/webapps && unzip -q geonetwork.war -d geonetwork && chown -R tomcat.tomcat geonetwork"
                                        " && sed -i 's/${password}/" + GEONETWORK_DB_PASSWORD + "/' geonetwork/WEB-INF/config-db/jdbc.properties)"
                         },
                         "40-start-tomcat": {
