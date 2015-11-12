@@ -2,6 +2,11 @@
 build:
 	python setup.py build
 
+
+cftemplate.json: amazonia/__init__.py amazonia/default_vpc.py
+	./scripts/viz > $@
+
+
 default_vpc.json: amazonia/__init__.py amazonia/default_vpc.py
 	./scripts/viz > $@
 
