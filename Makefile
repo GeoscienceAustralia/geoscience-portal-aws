@@ -8,8 +8,8 @@ singleAZ.json: amazonia/__init__.py amazonia/cftemplates.py
 dualAZ.json: amazonia/__init__.py amazonia/cftemplates.py
 	./scripts/dualAZ > $@
 
-cftemplate.json: amazonia/__init__.py amazonia/cftemplates.py
-	./scripts/viz > $@
+cftemplate_tests.json: amazonia/__init__.py amazonia/cftemplates.py
+	./scripts/cftemplate_tests > $@
 
 default_vpc.json: amazonia/__init__.py amazonia/cftemplates.py
 	./scripts/viz > $@

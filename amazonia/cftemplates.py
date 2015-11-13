@@ -14,6 +14,14 @@ DEFAULT_NAT_IMAGE_ID = "ami-893f53b3"
 DEFAULT_NAT_INSTANCE_TYPE = "t2.micro"
 
 
+
+
+def create_VPC(template, VPCName, CidrBlock, key_pair_name):
+    """Create a VPC resource and add it to the given template."""
+    vpc = template.add_resource(ec2.VPC(VPCName,CidrBlock="10.0.0.0/16",Tags=Tags(Name=name_tag(vpc_id))))  
+    
+
+
 def create_singleAZenv(template, key_pair_name, nat_ip,
                        nat_image_id=DEFAULT_NAT_IMAGE_ID,
                        nat_instance_type=DEFAULT_NAT_INSTANCE_TYPE):
@@ -32,6 +40,7 @@ def create_dualAZenv(template, key_pair_name, nat_ip,
     _add_private_subnet(template, vpc, nat, "2")
 
 
+
 def add_vpc(template, key_pair_name, nat_ip,
             nat_image_id=DEFAULT_NAT_IMAGE_ID,
             nat_instance_type=DEFAULT_NAT_INSTANCE_TYPE):
@@ -44,12 +53,13 @@ def add_vpc(template, key_pair_name, nat_ip,
             Name=name_tag(vpc_id)
         ),
     ))
-
     public_subnet = _add_public_subnet(template, vpc)
     nat = _add_nat(template, vpc, public_subnet, nat_image_id, nat_instance_type,
                    key_pair_name, nat_ip)
     _add_private_subnet(template, vpc, nat)
     return vpc
+
+
 
 def private_subnet(template):
     """Extract and return the "PublicSubnet" resource from the given template."""
