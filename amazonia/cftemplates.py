@@ -14,12 +14,14 @@ DEFAULT_NAT_IMAGE_ID = "ami-893f53b3"
 DEFAULT_NAT_INSTANCE_TYPE = "t2.micro"
 
 
+# number of subnets created
+num_subnets = 0
 
 
 def create_VPC(template, VPCName, CidrBlock, key_pair_name):
     """Create a VPC resource and add it to the given template."""
-    vpc = template.add_resource(ec2.VPC(VPCName,CidrBlock="10.0.0.0/16",Tags=Tags(Name=name_tag(vpc_id))))  
-    
+    vpc = template.add_resource(ec2.VPC(VPCName,CidrBlock="10.0.0.0/16",Tags=Tags(Name=name_tag(VPCName))))  
+    return vpc
 
 
 def create_singleAZenv(template, key_pair_name, nat_ip,
@@ -29,15 +31,54 @@ def create_singleAZenv(template, key_pair_name, nat_ip,
     add_vpc(template, key_pair_name, nat_ip, nat_image_id, nat_instance_type)
 
 
-def create_dualAZenv(template, key_pair_name, nat_ip,
-                       nat_image_id=DEFAULT_NAT_IMAGE_ID,
-                       nat_instance_type=DEFAULT_NAT_INSTANCE_TYPE):
+def add_AZnetwork(template, vpc):
     """ Public function to create a dual AZ environment in a new VPC """
-    vpc = add_vpc(template, key_pair_name, nat_ip, nat_image_id, nat_instance_type)
-    public_subnet = _add_public_subnet(template, vpc, "2")
-    nat = _add_nat(template, vpc, public_subnet, nat_image_id, nat_instance_type,
-                   key_pair_name, nat_ip, "2")
-    _add_private_subnet(template, vpc, nat, "2")
+    public_subnet = add_public_subnet(template, vpc)
+#    _add_private_subnet(template, vpc, nat, "2")
+
+
+
+
+
+def add_public_subnet(template, vpc):
+    global num_subnets
+    num_subnets=num_subnets+1
+    title = "PublicSubnet" + str(num_subnets)
+    public_subnet = template.add_resource(ec2.Subnet(
+        title,
+        VpcId=Ref(vpc.title),
+        CidrBlock="10.0.0.0/24",
+        Tags=Tags(
+            Name=name_tag(title)
+        ),
+    ))
+
+    internet_gateway_id = "InternetGateway" + str(num_subnets)
+    internet_gateway = _add_internet_gateway(template, vpc, internet_gateway_id)
+
+    route_table_id = "PublicRouteTable" + str(num_subnets)
+    route_table = template.add_resource(ec2.RouteTable(
+        route_table_id,
+        VpcId=Ref(vpc.title),
+        Tags=Tags(
+            Name=name_tag(route_table_id),
+        ),
+    ))
+    template.add_resource(ec2.SubnetRouteTableAssociation(
+        route_table_id + "Association",
+        SubnetId=Ref(public_subnet.title),
+        RouteTableId=Ref(route_table),
+    ))
+
+    template.add_resource(ec2.Route(
+        "InboundRoute" + str(num_subnets),
+        GatewayId=Ref(internet_gateway.title),
+        RouteTableId=Ref(route_table.title),
+        DestinationCidrBlock="0.0.0.0/0",
+    ))
+
+    return public_subnet
+
 
 
 
@@ -104,41 +145,6 @@ def _add_nat(template, vpc, public_subnet, image_id, instance_type, key_pair_nam
     ))
     return nat
 
-def _add_public_subnet(template, vpc, num=""):
-    title = "PublicSubnet" + num
-    public_subnet = template.add_resource(ec2.Subnet(
-        title,
-        VpcId=Ref(vpc.title),
-        CidrBlock="10.0.0.0/24",
-        Tags=Tags(
-            Name=name_tag(title)
-        ),
-    ))
-
-    internet_gateway_id = "InternetGateway" + num
-    internet_gateway = _add_internet_gateway(template, vpc, internet_gateway_id)
-
-    route_table_id = "PublicRouteTable" + num
-    route_table = template.add_resource(ec2.RouteTable(
-        route_table_id,
-        VpcId=Ref(vpc.title),
-        Tags=Tags(
-            Name=name_tag(route_table_id),
-        ),
-    ))
-    template.add_resource(ec2.SubnetRouteTableAssociation(
-        route_table_id + "Association",
-        SubnetId=Ref(public_subnet.title),
-        RouteTableId=Ref(route_table),
-    ))
-
-    template.add_resource(ec2.Route(
-        "InboundRoute" + num,
-        GatewayId=Ref(internet_gateway.title),
-        RouteTableId=Ref(route_table.title),
-        DestinationCidrBlock="0.0.0.0/0",
-    ))
-    return public_subnet
 
 def _add_private_subnet(template, vpc, nat, num=""):
     title = "PrivateSubnet" + num
