@@ -154,6 +154,9 @@ def make_webserver(subnet, security_group):
                         "40-install-pip3": {
                             "command": "wget -O - https://bootstrap.pypa.io/get-pip.py | python3.4 && ln -s /usr/bin/python3.4 /usr/bin/python3"
                         },
+                        "42-install-python3-urllib3": {
+                            "command": "pip3 install urllib3"
+                        },
                     },
                     services={
                         "sysvinit": cf.InitServices({
