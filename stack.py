@@ -97,7 +97,7 @@ def make_webserver(subnet, security_group):
                             "wget": [],
                             "iptables-services": [],
                             "postgresql-server": [],
-                            "python-pip": [],
+                            "python34": [],
                             "unzip": [],
                         }
                     },
@@ -150,6 +150,9 @@ def make_webserver(subnet, security_group):
                         },
                         "30-init-postgres": {
                             "command": "sudo -u postgres initdb -D /var/lib/pgsql/data -A md5 --pwfile=/var/lib/pgsql/password"
+                        },
+                        "40-install-pip3": {
+                            "command": "wget -O - https://bootstrap.pypa.io/get-pip.py | python3.4 && ln -s /usr/bin/python3.4 /usr/bin/python3"
                         },
                     },
                     services={
