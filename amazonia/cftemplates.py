@@ -16,71 +16,26 @@ DEFAULT_NAT_INSTANCE_TYPE = "t2.micro"
 
 # number of subnets created
 num_subnets = 0
+num_route_tables = 0
+num_internet_gateways = 0
+num_routes = 0
 
 
-def create_VPC(template, VPCName, CidrBlock, key_pair_name):
+def create_vpc(template, VPCName, CidrBlock, key_pair_name):
     """Create a VPC resource and add it to the given template."""
     vpc = template.add_resource(ec2.VPC(VPCName,CidrBlock="10.0.0.0/16",Tags=Tags(Name=name_tag(VPCName))))  
     return vpc
 
 
-def create_singleAZenv(template, key_pair_name, nat_ip,
-                       nat_image_id=DEFAULT_NAT_IMAGE_ID,
-                       nat_instance_type=DEFAULT_NAT_INSTANCE_TYPE):
-    """ Public function to create a single AZ environment in a new VPC """
-    add_vpc(template, key_pair_name, nat_ip, nat_image_id, nat_instance_type)
-
-
-def add_AZnetwork(template, vpc):
-    """ Public function to create a dual AZ environment in a new VPC """
-    public_subnet = add_public_subnet(template, vpc)
-#    _add_private_subnet(template, vpc, nat, "2")
-
-
-
-
-
-def add_public_subnet(template, vpc):
-    global num_subnets
-    num_subnets=num_subnets+1
-    title = "PublicSubnet" + str(num_subnets)
-    public_subnet = template.add_resource(ec2.Subnet(
-        title,
-        VpcId=Ref(vpc.title),
-        CidrBlock="10.0.0.0/24",
-        Tags=Tags(
-            Name=name_tag(title)
-        ),
-    ))
-
-    internet_gateway_id = "InternetGateway" + str(num_subnets)
-    internet_gateway = _add_internet_gateway(template, vpc, internet_gateway_id)
-
-    route_table_id = "PublicRouteTable" + str(num_subnets)
-    route_table = template.add_resource(ec2.RouteTable(
-        route_table_id,
-        VpcId=Ref(vpc.title),
-        Tags=Tags(
-            Name=name_tag(route_table_id),
-        ),
-    ))
-    template.add_resource(ec2.SubnetRouteTableAssociation(
-        route_table_id + "Association",
-        SubnetId=Ref(public_subnet.title),
-        RouteTableId=Ref(route_table),
-    ))
-
-    template.add_resource(ec2.Route(
-        "InboundRoute" + str(num_subnets),
-        GatewayId=Ref(internet_gateway.title),
-        RouteTableId=Ref(route_table.title),
-        DestinationCidrBlock="0.0.0.0/0",
-    ))
-
-    return public_subnet
-
-
-
+def addSingleAZenv(template, vpc):
+	print ("Hello there\n")
+	""" Public function to create a single AZ environment in a vpc """
+	public_subnet = add_public_subnet(template, vpc)
+	public_route_table = add_route_table(template, vpc, public_subnet)
+	internet_gateway = add_internet_gateway(template, vpc)
+	add_route_public_ingress(template, public_route_table, internet_gateway) 
+	# configure network
+	return template
 
 def add_vpc(template, key_pair_name, nat_ip,
             nat_image_id=DEFAULT_NAT_IMAGE_ID,
@@ -100,6 +55,56 @@ def add_vpc(template, key_pair_name, nat_ip,
     _add_private_subnet(template, vpc, nat)
     return vpc
 
+
+
+def add_public_subnet(template, vpc):
+    global num_subnets
+    num_subnets=num_subnets+1
+    title = "PublicSubnet" + str(num_subnets)
+    public_subnet = template.add_resource	(ec2.Subnet(title,
+											 VpcId=Ref(vpc.title),
+											 CidrBlock="10.0.0.0/24",
+											 Tags=Tags(Name=name_tag(title)),
+										)
+								)
+    return public_subnet
+
+
+								
+def add_route_table(template, vpc, subnet):
+
+	global num_route_tables
+	num_route_tables = num_route_tables + 1
+
+	# create the route table in the VPC
+	route_table_id = "PublicRouteTable" + str(num_route_tables)
+	route_table = template.add_resource(ec2.RouteTable(route_table_id,VpcId=Ref(vpc.title),Tags=Tags(Name=name_tag(route_table_id)),))
+	
+	# Associate the route table with the subnet
+	template.add_resource(ec2.SubnetRouteTableAssociation(
+		route_table_id + "Association",
+		SubnetId=Ref(subnet.title),
+		RouteTableId=Ref(route_table),
+	))
+	return route_table
+	
+def add_route_public_ingress(template, route_table, internet_gateway):
+	global num_routes 
+	num_routes = num_routes + 1
+	template.add_resource(ec2.Route(
+		"InboundRoute" + str(num_routes),
+		GatewayId=Ref(internet_gateway.title),
+		RouteTableId=Ref(route_table.title),
+		DestinationCidrBlock="0.0.0.0/0",
+	))
+
+
+def add_internet_gateway(template, vpc):
+	global num_internet_gateways
+	num_internet_gateways = num_internet_gateways + 1
+	internet_gateway_id = "InternetGateway" + str(num_internet_gateways)
+	internet_gateway = _add_internet_gateway(template, vpc, internet_gateway_id)
+	return internet_gateway
 
 
 def private_subnet(template):
