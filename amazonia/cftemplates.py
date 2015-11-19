@@ -28,7 +28,6 @@ def create_vpc(template, VPCName, CidrBlock, key_pair_name):
 
 
 def addSingleAZenv(template, vpc):
-	print ("Hello there\n")
 	""" Public function to create a single AZ environment in a vpc """
 	public_subnet = add_public_subnet(template, vpc)
 	public_route_table = add_route_table(template, vpc, public_subnet)
