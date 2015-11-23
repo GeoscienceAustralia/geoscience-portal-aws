@@ -10,7 +10,6 @@ def main():
     template = Template()
     vpc = create_vpc(template, "VPC", "10.1.0.0/16", "BILL-TEST")
     addSingleAZenv(template, vpc) 
-    print(template.to_json())
-
+    print(template.to_json(indent=2, separators=(',', ': ')))
 if __name__ == "__main__":
     main()

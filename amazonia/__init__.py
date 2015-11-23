@@ -5,9 +5,12 @@ import troposphere.ec2 as ec2
 
 PUBLIC_GA_GOV_AU_PTR = '192.104.44.129'
 
+def stack_name_tag():
+    return "Ref('AWS::StackName')" 
+
 def name_tag(resource_name):
     """Prepend stack name to the given resource name."""
-    return Join('', [Ref('AWS::StackName'), '-', resource_name])
+    return Join("", [Ref('AWS::StackName'), '-', resource_name])
 
 def ssh_ingress_from_ga(security_group):
     """Return an ingress for the given security group to allow
