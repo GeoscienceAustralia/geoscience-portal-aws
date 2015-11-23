@@ -15,7 +15,7 @@ NAT_INSTANCE_TYPE = "t2.micro"
 NAT_IP_ADDRESS="10.0.0.100"
 SYSTEM_NAME="TestApplication"
 ENVIRONMENT_NAME="Experimental"
-
+AVAILABILITY_ZONES = ["ap-southeast-2a", "ap-southeast-2b"]
 
 
 #CIDRs
