@@ -4,12 +4,12 @@
 
 from troposphere import Template
 
-from amazonia.cftemplates import create_vpc, addSingleAZenv 
+from amazonia.cftemplates import addVPC, addSingleAZenv 
 
 def main():
     template = Template()
-    vpc = create_vpc(template, "VPC", "10.1.0.0/16", "BILL-TEST")
-    addSingleAZenv(template, vpc) 
+    vpc = addVPC(template)
+    addSingleAZenv(template, vpc, "BILL_TEST") 
     print(template.to_json(indent=2, separators=(',', ': ')))
 if __name__ == "__main__":
     main()
