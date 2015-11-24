@@ -16,18 +16,21 @@ NAT_IP_ADDRESS="10.0.0.100"
 SYSTEM_NAME="TestApplication"
 ENVIRONMENT_NAME="Experimental"
 AVAILABILITY_ZONES = ["ap-southeast-2a", "ap-southeast-2b"]
-
+WEB_IMAGE_ID = "ami-c11856fb"
 
 #CIDRs
 PUBLIC_GA_GOV_AU_CIDR = '192.104.44.129/32'
 VPC_CIDR = "10.0.0.0/16" 
 PUBLIC_SUBNET_AZ1_CIDR = "10.0.0.0/24"
+PUBLIC_SUBNET_AZ2_CIDR = "10.0.10.0/24"
 PRIVATE_SUBNET_AZ1_CIDR = "10.0.1.0/24"
+PRIVATE_SUBNET_AZ2_CIDR = "10.0.11.0/24"
 PUBLIC_CIDR = "0.0.0.0/0"
 PUBLIC_SUBNET_NAME = "PublicSubnet"
 PRIVATE_SUBNET_NAME = "PrivateSubnet"
 
-
+# Handler for switching Availability Zones
+current_az = 0
 
 # number of subnets created
 num_vpcs = 0
@@ -40,6 +43,13 @@ num_security_groups = 0
 num_ingress_rules = 0
 
 
+def switch_availability_zone():
+    """ A simple function to switch Availability zones. """
+    global current_az
+    if current_az == 0:
+        current_az = 1
+    else:
+        current_az = 0
 
 
 def add_vpc(template, cidr):
@@ -57,22 +67,24 @@ def add_vpc(template, cidr):
 
 def add_subnet(template, vpc, name, cidr):
     global num_subnets
-    num_subnets=num_subnets+1
+    num_subnets += 1
+
     title = name + str(num_subnets)
     public_subnet = template.add_resource(ec2.Subnet(title,
+                                                     AvailabilityZone=AVAILABILITY_ZONES[current_az],
                                                      VpcId=Ref(vpc.title),
                                                      CidrBlock=cidr,
                                                      Tags=Tags(Name=name_tag(title), Environment=ENVIRONMENT_NAME)))
     return public_subnet
 
 								
-def add_route_table(template, vpc, subnet):
+def add_route_table(template, vpc, subnet, route_type=""):
 
 	global num_route_tables
 	num_route_tables = num_route_tables + 1
 
 	# create the route table in the VPC
-	route_table_id = "PublicRouteTable" + str(num_route_tables)
+	route_table_id = route_type + "RouteTable" + str(num_route_tables)
 	route_table = template.add_resource(ec2.RouteTable(route_table_id,
                                                            VpcId=Ref(vpc.title),
                                                            Tags=Tags(Name=name_tag(route_table_id)),))

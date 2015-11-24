@@ -6,7 +6,7 @@ singleAZ.json: amazonia/__init__.py amazonia/cftemplates.py
 	./scripts/singleAZ > $@
 
 dualAZ.json: amazonia/__init__.py amazonia/cftemplates.py
-	./scripts/dualAZ > $@
+	./scripts/dualAZ_tests > $@
 
 cftemplate_tests.json: amazonia/__init__.py amazonia/cftemplates.py
 	./scripts/cftemplate_tests > $@

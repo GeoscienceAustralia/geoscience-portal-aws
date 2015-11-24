@@ -20,11 +20,11 @@ def addSingleAZenv(template, vpc, key_pair_name):
 
     # configure network
     public_subnet = add_subnet(template, vpc, PUBLIC_SUBNET_NAME, PUBLIC_SUBNET_AZ1_CIDR)
-    public_route_table = add_route_table(template, vpc, public_subnet)
+    public_route_table = add_route_table(template, vpc, public_subnet, "Public")
     internet_gateway = add_internet_gateway(template, vpc)
     add_route_ingress_via_gateway(template, public_route_table, internet_gateway, PUBLIC_CIDR)
     private_subnet = add_subnet(template, vpc, PRIVATE_SUBNET_NAME, PRIVATE_SUBNET_AZ1_CIDR)
-    private_route_table = add_route_table(template, vpc, private_subnet)
+    private_route_table = add_route_table(template, vpc, private_subnet, "Private")
     nat = add_nat(template, public_subnet, key_pair_name)
     nat_sg = add_security_group(template, vpc, nat)
     add_route_egress_via_NAT(template, private_route_table, nat)
@@ -40,17 +40,34 @@ def addSingleAZenv(template, vpc, key_pair_name):
     return template
 
 def addDualAZenv(template, vpc, key_pair_name):
-    """ Public function to create a dual AZ environment in a vpc """"
+    """ Public function to create a dual AZ environment in a vpc """
 
     # AZ 1
     public_subnet = add_subnet(template, vpc, PUBLIC_SUBNET_NAME, PUBLIC_SUBNET_AZ1_CIDR)
-    public_route_table = add_route_table(template, vpc, public_subnet)
+    public_route_table = add_route_table(template, vpc, public_subnet, "Public")
     internet_gateway = add_internet_gateway(template, vpc)
     add_route_ingress_via_gateway(template, public_route_table, internet_gateway, PUBLIC_CIDR)
     private_subnet = add_subnet(template, vpc, PRIVATE_SUBNET_NAME, PRIVATE_SUBNET_AZ1_CIDR)
-    private_route_table = add_route_table(template, vpc, private_subnet)
+    private_route_table = add_route_table(template, vpc, private_subnet, "Private")
     nat = add_nat(template, public_subnet, key_pair_name)
     nat_sg = add_security_group(template, vpc, nat)
+    add_route_egress_via_NAT(template, private_route_table, nat)
+    # enable inbound http access to the NAT from anywhere
+    add_security_group_ingress(template, nat_sg, 'tcp', '80', '80', PUBLIC_CIDR)
+    # enable inbound https access to the NAT from anywhere
+    add_security_group_ingress(template, nat_sg, 'tcp', '443', '443', PUBLIC_CIDR)
+    # enable inbound SSH  access to the NAT from GA
+    add_security_group_ingress(template, nat_sg, 'tcp', '22', '22', PUBLIC_GA_GOV_AU_CIDR)
+    # enable inbound ICMP access to the NAT from anywhere
+    add_security_group_ingress(template, nat_sg, 'icmp', '-1', '-1', PUBLIC_CIDR)
+
+    switch_availability_zone()
+
+    # AZ 2
+    public_subnet = add_subnet(template, vpc, PUBLIC_SUBNET_NAME, PUBLIC_SUBNET_AZ2_CIDR)
+    private_subnet = add_subnet(template, vpc, PRIVATE_SUBNET_NAME, PRIVATE_SUBNET_AZ2_CIDR)
+    private_route_table = add_route_table(template, vpc, private_subnet, "Private")
+    nat = add_nat(template, public_subnet, key_pair_name)
     add_route_egress_via_NAT(template, private_route_table, nat)
     # enable inbound http access to the NAT from anywhere
     add_security_group_ingress(template, nat_sg, 'tcp', '80', '80', PUBLIC_CIDR)
