@@ -8,6 +8,7 @@ The functions in this module generate cloud formation scripts that install commo
 
 from troposphere import Ref, Tags, Join
 import troposphere.ec2 as ec2
+import troposphere.elasticloadbalancing as elb
 import sys
 
 NAT_IMAGE_ID = "ami-893f53b3"
@@ -17,6 +18,7 @@ SYSTEM_NAME="TestApplication"
 ENVIRONMENT_NAME="Experimental"
 AVAILABILITY_ZONES = ["ap-southeast-2a", "ap-southeast-2b"]
 WEB_IMAGE_ID = "ami-c11856fb"
+WEB_INSTANCE_TYPE= "t2.small"
 
 #CIDRs
 PUBLIC_GA_GOV_AU_CIDR = '192.104.44.129/32'
@@ -32,7 +34,7 @@ PRIVATE_SUBNET_NAME = "PrivateSubnet"
 # Handler for switching Availability Zones
 current_az = 0
 
-# number of subnets created
+# numbers to count objects created
 num_vpcs = 0
 num_subnets = 0
 num_route_tables = 0
@@ -41,7 +43,9 @@ num_routes = 0
 num_nats = 0
 num_security_groups = 0
 num_ingress_rules = 0
-
+num_load_balancers = 0
+num_web_instances = 0
+num_web_security_groups = 0
 
 def switch_availability_zone():
     """ A simple function to switch Availability zones. """
@@ -138,7 +142,7 @@ def add_route_egress_via_NAT(template, route_table, nat):
         ))
 
         
-def add_security_group(template, vpc, ec2Instance):
+def add_security_group(template, vpc, ec2Instances):
     global num_security_groups 
     num_security_groups += 1
     sg_title = "SecurityGroup" + str(num_security_groups)
@@ -148,11 +152,12 @@ def add_security_group(template, vpc, ec2Instance):
                                                  VpcId=Ref(vpc.title),
                                                  Tags=Tags(Name=name_tag(sg_title))))
 
-    # the if condition below is the only way we could find out whether an attribute had been set
-    # the troposphere object attributes are not python attributes, they are dictionary lookups!
-    if not('SecurityGroupIds' in ec2Instance.properties):
-        ec2Instance.SecurityGroupIds =  []         
-    ec2Instance.SecurityGroupIds = ec2Instance.SecurityGroupIds +  [Ref(sg.title)] 
+    for ec2Instance in ec2Instances:
+        if not(hasattr(ec2Instance, 'SecurityGroupIds')):
+            ec2Instance.SecurityGroupIds =  []
+
+        ec2Instance.SecurityGroupIds = ec2Instance.SecurityGroupIds +  [Ref(sg.title)]
+
     return sg     
 
 
@@ -189,7 +194,64 @@ def add_nat(template, public_subnet, key_pair_name, natIP=NAT_IP_ADDRESS):
     ))
     return nat
 
-        
+def add_web_instance(template, key_pair_name, subnet, userdata):
+    global num_web_instances
+    num_web_instances += 1
+
+    instance_title = "WebServer" + str(num_web_instances)
+
+    instance = template.add_resource(ec2.Instance(
+        instance_title,
+        InstanceType=WEB_INSTANCE_TYPE,
+        KeyName=key_pair_name,
+        SourceDestCheck=False,
+        ImageId=WEB_IMAGE_ID,
+        NetworkInterfaces=[ec2.NetworkInterfaceProperty(
+                                                        DeviceIndex="0",
+                                                        DeleteOnTermination=True,
+                                                        SubnetId=Ref(subnet.title),
+        )],
+        Tags=Tags(
+            Name=name_tag(instance_title),
+        ),
+        UserData=userdata,
+    ))
+    return instance
+
+
+def add_load_balancer(template, instances, subnets, healthcheck_target, security_groups):
+    global num_load_balancers
+    num_load_balancers += 1
+
+
+    elb_title = "ElasticLoadBalancer" + str(num_load_balancers)
+    return_elb = template.add_resource(elb.LoadBalancer(
+        elb_title,
+        CrossZone=True,
+        Instances=[Ref(instances[0]),Ref(instances[1])],
+        HealthCheck=elb.HealthCheck(
+                                    Target=healthcheck_target,
+                                    HealthyThreshold="10",
+                                    UnhealthyThreshold="2",
+                                    Interval="30",
+                                    Timeout="5",
+        ),
+        Listeners=[elb.Listener(
+                                LoadBalancerPort="80",
+                                Protocol="HTTP",
+                                InstancePort="80",
+                                InstanceProtocol="HTTP",
+        )],
+        Scheme="internet-facing",
+        SecurityGroups=Ref(security_groups),
+        Subnets=[Ref(subnets[0]),Ref(subnets[1])],
+        Tags=Tags(
+            Name=name_tag(elb_title),
+        ),
+    ))
+    return return_elb
+
+
 def stack_name_tag():
     return "Ref('AWS::StackName')" 
 
