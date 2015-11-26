@@ -9,7 +9,7 @@ from amazonia.cftemplates import addVPC, addDualAZenv
 def main():
     template = Template()
     vpc = addVPC(template)
-    addDualAZenv(template, vpc, "")
+    addDualAZenv(template, vpc, "ShaneBYOD")
     print(template.to_json(indent=2, separators=(',', ': ')))
 
 if __name__ == "__main__":

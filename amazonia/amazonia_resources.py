@@ -6,7 +6,7 @@ The functions in this module generate cloud formation scripts that install commo
 
 """
 
-from troposphere import Ref, Tags, Join
+from troposphere import Ref, Tags, Join, Base64
 import troposphere.ec2 as ec2
 import troposphere.elasticloadbalancing as elb
 import sys
@@ -142,7 +142,7 @@ def add_route_egress_via_NAT(template, route_table, nat):
         ))
 
         
-def add_security_group(template, vpc, ec2Instances):
+def add_security_group(template, vpc):
     global num_security_groups 
     num_security_groups += 1
     sg_title = "SecurityGroup" + str(num_security_groups)
@@ -151,12 +151,6 @@ def add_security_group(template, vpc, ec2Instances):
                                                  GroupDescription="Security group",
                                                  VpcId=Ref(vpc.title),
                                                  Tags=Tags(Name=name_tag(sg_title))))
-
-    for ec2Instance in ec2Instances:
-        if not(hasattr(ec2Instance, 'SecurityGroupIds')):
-            ec2Instance.SecurityGroupIds =  []
-
-        ec2Instance.SecurityGroupIds = ec2Instance.SecurityGroupIds +  [Ref(sg.title)]
 
     return sg     
 
@@ -176,25 +170,31 @@ def add_security_group_ingress(template, security_group, protocol, from_port, to
     return template
 
 
-def add_nat(template, public_subnet, key_pair_name, natIP=NAT_IP_ADDRESS):
+def add_nat(template, public_subnet, key_pair_name, security_group, natIP=NAT_IP_ADDRESS):
     global num_nats
     num_nats += 1
     nat_title = "NAT" + str(num_nats)
     nat = template.add_resource(ec2.Instance(
         nat_title,
         KeyName=key_pair_name,
-        SubnetId=Ref(public_subnet.title),
         ImageId=NAT_IMAGE_ID,
         InstanceType=NAT_INSTANCE_TYPE,
+        NetworkInterfaces=[ec2.NetworkInterfaceProperty(
+                                                        GroupSet=[Ref(security_group.title)],
+                                                        AssociatePublicIpAddress=True,
+                                                        DeviceIndex="0",
+                                                        DeleteOnTermination=True,
+                                                        SubnetId=Ref(public_subnet.title),
+        )],
         SourceDestCheck=False,
-        PrivateIpAddress=natIP,
+        #PrivateIpAddress=natIP,
         Tags=Tags(
             Name=name_tag(nat_title),
         ),
     ))
     return nat
 
-def add_web_instance(template, key_pair_name, subnet, userdata):
+def add_web_instance(template, key_pair_name, subnet, security_group, userdata):
     global num_web_instances
     num_web_instances += 1
 
@@ -207,6 +207,8 @@ def add_web_instance(template, key_pair_name, subnet, userdata):
         SourceDestCheck=False,
         ImageId=WEB_IMAGE_ID,
         NetworkInterfaces=[ec2.NetworkInterfaceProperty(
+                                                        GroupSet=[Ref(security_group.title)],
+                                                        AssociatePublicIpAddress=True,
                                                         DeviceIndex="0",
                                                         DeleteOnTermination=True,
                                                         SubnetId=Ref(subnet.title),
@@ -214,7 +216,7 @@ def add_web_instance(template, key_pair_name, subnet, userdata):
         Tags=Tags(
             Name=name_tag(instance_title),
         ),
-        UserData=userdata,
+        UserData=Base64(userdata),
     ))
     return instance
 
@@ -222,7 +224,6 @@ def add_web_instance(template, key_pair_name, subnet, userdata):
 def add_load_balancer(template, instances, subnets, healthcheck_target, security_groups):
     global num_load_balancers
     num_load_balancers += 1
-
 
     elb_title = "ElasticLoadBalancer" + str(num_load_balancers)
     return_elb = template.add_resource(elb.LoadBalancer(
@@ -243,7 +244,7 @@ def add_load_balancer(template, instances, subnets, healthcheck_target, security
                                 InstanceProtocol="HTTP",
         )],
         Scheme="internet-facing",
-        SecurityGroups=Ref(security_groups),
+        SecurityGroups=[Ref(security_groups[0])],
         Subnets=[Ref(subnets[0]),Ref(subnets[1])],
         Tags=Tags(
             Name=name_tag(elb_title),
