@@ -3,16 +3,16 @@ build:
 	python setup.py build
 
 singleAZ.json: amazonia/__init__.py amazonia/cftemplates.py
-	./scripts/singleAZ > $@
+	source ./scripts/singleAZ > $@
 
 dualAZ.json: amazonia/__init__.py amazonia/cftemplates.py
-	./scripts/dualAZ_tests > $@
+	python ./scripts/dualAZ_tests > $@
 
 cftemplate_tests.json: amazonia/__init__.py amazonia/cftemplates.py
-	./scripts/cftemplate_tests > $@
+	source ./scripts/cftemplate_tests > $@
 
 default_vpc.json: amazonia/__init__.py amazonia/cftemplates.py
-	./scripts/viz > $@
+	source ./scripts/viz > $@
 
 %.svg: %.json
 	cat $< | cfviz | dot -Tsvg -o$@

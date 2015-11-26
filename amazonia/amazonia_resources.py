@@ -46,6 +46,7 @@ num_ingress_rules = 0
 num_load_balancers = 0
 num_web_instances = 0
 num_web_security_groups = 0
+num_route_table_associations = 0
 
 def switch_availability_zone():
     """ A simple function to switch Availability zones. """
@@ -82,8 +83,7 @@ def add_subnet(template, vpc, name, cidr):
     return public_subnet
 
 								
-def add_route_table(template, vpc, subnet, route_type=""):
-
+def add_route_table(template, vpc, route_type=""):
 	global num_route_tables
 	num_route_tables = num_route_tables + 1
 
@@ -92,14 +92,18 @@ def add_route_table(template, vpc, subnet, route_type=""):
 	route_table = template.add_resource(ec2.RouteTable(route_table_id,
                                                            VpcId=Ref(vpc.title),
                                                            Tags=Tags(Name=name_tag(route_table_id)),))
-	
-	# Associate the route table with the subnet
-	template.add_resource(ec2.SubnetRouteTableAssociation(
-		route_table_id + "Association",
-		SubnetId=Ref(subnet.title),
-		RouteTableId=Ref(route_table),
-	))
-	return route_table
+        return route_table
+
+def add_route_table_subnet_association(template, route_table, subnet):
+    global num_route_table_associations
+    num_route_table_associations += 1
+    
+    # Associate the route table with the subnet
+    template.add_resource(ec2.SubnetRouteTableAssociation(
+	route_table.title + "Association" + str(num_route_table_associations),
+	SubnetId=Ref(subnet.title),
+	RouteTableId=Ref(route_table.title),
+    ))
 	
 
 def add_internet_gateway(template, vpc):
