@@ -31,6 +31,23 @@ PUBLIC_CIDR = "0.0.0.0/0"
 PUBLIC_SUBNET_NAME = "PublicSubnet"
 PRIVATE_SUBNET_NAME = "PrivateSubnet"
 
+
+
+# WEB SERVER BOOTSTRAP SCRIPTS
+WEB_SERVER_AZ1_USER_DATA  ="#!/bin/sh\n"
+WEB_SERVER_AZ1_USER_DATA += "yum -y install httpd && chkconfig httpd on\n"
+WEB_SERVER_AZ1_USER_DATA += "/etc/init.d/httpd start && yum -y install git\n"
+WEB_SERVER_AZ1_USER_DATA += "git clone https://github.com/budawangbill/webserverconfig.git\n"
+WEB_SERVER_AZ1_USER_DATA += "cp webserverconfig/testAZ1.html /var/www/html/test.html"
+
+WEB_SERVER_AZ2_USER_DATA  ="#!/bin/sh\n"
+WEB_SERVER_AZ2_USER_DATA += "yum -y install httpd && chkconfig httpd on\n"
+WEB_SERVER_AZ2_USER_DATA += "/etc/init.d/httpd start && yum -y install git\n"
+WEB_SERVER_AZ2_USER_DATA += "git clone https://github.com/budawangbill/webserverconfig.git\n"
+WEB_SERVER_AZ2_USER_DATA += "cp webserverconfig/testAZ2.html /var/www/html/test.html"
+
+
+
 # Handler for switching Availability Zones
 current_az = 0
 

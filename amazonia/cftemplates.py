@@ -94,11 +94,11 @@ def addDualAZenv(template, vpc, key_pair_name):
     add_security_group_ingress(template, web_sg, 'tcp', '443', '443', PUBLIC_CIDR)
     add_security_group_ingress(template, web_sg, 'tcp', '22', '22', PUBLIC_GA_GOV_AU_CIDR)
 
-    #WEB INSTANCES
-    userdata="#!/bin/sh\nyum -y install httpd && chkconfig httpd on && /etc/init.d/httpd start"
+    
 
-    web_instance1 = add_web_instance(template, key_pair_name, public_subnet1, web_sg, userdata)
-    web_instance2 = add_web_instance(template, key_pair_name, public_subnet2, web_sg, userdata)
+
+    web_instance1 = add_web_instance(template, key_pair_name, public_subnet1, web_sg, WEB_SERVER_AZ1_USER_DATA)
+    web_instance2 = add_web_instance(template, key_pair_name, public_subnet2, web_sg, WEB_SERVER_AZ2_USER_DATA)
 
 
     add_load_balancer(template, [web_instance1.title, web_instance2.title], [public_subnet1.title, public_subnet2.title], "HTTP:80/error/noindex.html", [web_sg.title])
