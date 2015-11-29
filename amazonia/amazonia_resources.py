@@ -136,9 +136,7 @@ def add_security_group(template, vpc, ec2Instance):
                                                  VpcId=Ref(vpc.title),
                                                  Tags=Tags(Name=name_tag(sg_title))))
 
-    # the if condition below is the only way we could find out whether an attribute had been set
-    # the troposphere object attributes are not python attributes, they are dictionary lookups!
-    if not('SecurityGroupIds' in ec2Instance.properties):
+    if not(hasattr(ec2Instance, 'SecurityGroupIds')):
         ec2Instance.SecurityGroupIds =  []         
     ec2Instance.SecurityGroupIds = ec2Instance.SecurityGroupIds +  [Ref(sg.title)] 
     return sg     
