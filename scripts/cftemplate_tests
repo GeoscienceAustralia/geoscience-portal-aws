@@ -11,5 +11,6 @@ def main():
     vpc = addVPC(template)
     addSingleAZenv(template, vpc, "")
     print(template.to_json(indent=2, separators=(',', ': ')))
+
 if __name__ == "__main__":
     main()
