@@ -9,7 +9,8 @@ from amazonia.cftemplates import addVPC, addSingleAZenv
 def main():
     template = Template()
     vpc = addVPC(template)
-    addSingleAZenv(template, vpc, "BILL_TEST") 
+    addSingleAZenv(template, vpc, "")
     print(template.to_json(indent=2, separators=(',', ': ')))
+
 if __name__ == "__main__":
     main()

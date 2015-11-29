@@ -2,3 +2,5 @@ build
 dist
 *.pyc
 .idea/
+amazonia.egg-info/
+*.json
