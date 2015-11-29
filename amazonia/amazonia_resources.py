@@ -173,6 +173,10 @@ def add_security_group(template, vpc):
                                                  VpcId=Ref(vpc.title),
                                                  Tags=Tags(Name=name_tag(sg_title))))
 
+    if not(hasattr(ec2Instance, 'SecurityGroupIds')):
+        ec2Instance.SecurityGroupIds =  []         
+    ec2Instance.SecurityGroupIds = ec2Instance.SecurityGroupIds +  [Ref(sg.title)] 
+	
     return sg     
 
 
