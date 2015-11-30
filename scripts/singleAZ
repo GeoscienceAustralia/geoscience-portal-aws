@@ -2,8 +2,6 @@
 
 # pylint: disable=missing-docstring, invalid-name, line-too-long, redefined-outer-name, too-many-arguments
 
-from troposphere import Template
-
 from amazonia.cftemplates import SingleAZenv
 
 def main():
