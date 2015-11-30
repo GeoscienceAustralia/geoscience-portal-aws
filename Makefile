@@ -3,7 +3,7 @@ build:
 	python setup.py build
 
 singleAZ.json: amazonia/__init__.py amazonia/cftemplates.py
-	source ./scripts/singleAZ > $@
+	python ./scripts/singleAZ > $@
 
 dualAZ.json: amazonia/__init__.py amazonia/cftemplates.py
 	python ./scripts/dualAZ_tests > $@
