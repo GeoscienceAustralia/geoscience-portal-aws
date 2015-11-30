@@ -6,10 +6,9 @@ The functions in this module generate cloud formation scripts that install commo
 
 """
 
-from troposphere import Ref, Tags, Join, Base64
+from troposphere import Ref, Tags, Join, Base64, autoscaling
 import troposphere.ec2 as ec2
 import troposphere.elasticloadbalancing as elb
-import sys
 
 NAT_IMAGE_ID = "ami-893f53b3"
 NAT_INSTANCE_TYPE = "t2.micro"
@@ -77,7 +76,7 @@ def switch_availability_zone():
 def add_vpc(template, cidr):
     """Create a VPC resource and add it to the given template."""
     global num_vpcs
-    num_vpcs = num_vpcs + 1
+    num_vpcs += 1
     vpc_title = "VPC" + str(num_vpcs)
 
     vpc = template.add_resource(ec2.VPC(vpc_title,
@@ -284,10 +283,3 @@ def name_tag(resource_name):
 def private_subnet(template, name):
     """Extract and return the specified subnet resource from the given template."""
     return template.resources[name]
-
-
-
-
-
-
-
