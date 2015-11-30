@@ -101,15 +101,15 @@ def add_subnet(template, vpc, name, cidr):
 
 								
 def add_route_table(template, vpc, route_type=""):
-	global num_route_tables
-	num_route_tables = num_route_tables + 1
+    global num_route_tables
+    num_route_tables = num_route_tables + 1
 
-	# create the route table in the VPC
-	route_table_id = route_type + "RouteTable" + str(num_route_tables)
-	route_table = template.add_resource(ec2.RouteTable(route_table_id,
-                                                           VpcId=Ref(vpc.title),
-                                                           Tags=Tags(Name=name_tag(route_table_id)),))
-        return route_table
+    # create the route table in the VPC
+    route_table_id = route_type + "RouteTable" + str(num_route_tables)
+    route_table = template.add_resource(ec2.RouteTable(route_table_id,
+                                                       VpcId=Ref(vpc.title),
+                                                       Tags=Tags(Name=name_tag(route_table_id)),))
+    return route_table
 
 def add_route_table_subnet_association(template, route_table, subnet):
     global num_route_table_associations
@@ -124,43 +124,43 @@ def add_route_table_subnet_association(template, route_table, subnet):
 	
 
 def add_internet_gateway(template, vpc):
-	global num_internet_gateways
-	num_internet_gateways = num_internet_gateways + 1
-	internet_gateway_title = "InternetGateway" + str(num_internet_gateways)
+    global num_internet_gateways
+    num_internet_gateways = num_internet_gateways + 1
+    internet_gateway_title = "InternetGateway" + str(num_internet_gateways)
 
-        internet_gateway = template.add_resource(ec2.InternetGateway(internet_gateway_title,
-                                                                     Tags=Tags(Name=name_tag(internet_gateway_title),
-                                                                               Environment=ENVIRONMENT_NAME)
+    internet_gateway = template.add_resource(ec2.InternetGateway(internet_gateway_title,
+                                                                 Tags=Tags(Name=name_tag(internet_gateway_title),
+                                                                           Environment=ENVIRONMENT_NAME)
 
-        ))
+    ))
 
-        attachment_title = internet_gateway_title + "Attachment"
-        template.add_resource(ec2.VPCGatewayAttachment(attachment_title,
-                                                       VpcId=Ref(vpc.title),
-                                                       InternetGatewayId=Ref(internet_gateway.title),
-        ))
-        return internet_gateway
+    attachment_title = internet_gateway_title + "Attachment"
+    template.add_resource(ec2.VPCGatewayAttachment(attachment_title,
+                                                   VpcId=Ref(vpc.title),
+                                                   InternetGatewayId=Ref(internet_gateway.title),
+    ))
+    return internet_gateway
 
 
 def add_route_ingress_via_gateway(template, route_table, internet_gateway, cidr):
-	global num_routes 
-	num_routes = num_routes + 1
-	template.add_resource(ec2.Route(
-		"InboundRoute" + str(num_routes),
-		GatewayId=Ref(internet_gateway.title),
-		RouteTableId=Ref(route_table.title),
-		DestinationCidrBlock=cidr))
+    global num_routes 
+    num_routes = num_routes + 1
+    template.add_resource(ec2.Route(
+            "InboundRoute" + str(num_routes),
+            GatewayId=Ref(internet_gateway.title),
+            RouteTableId=Ref(route_table.title),
+            DestinationCidrBlock=cidr))
 
 
 def add_route_egress_via_NAT(template, route_table, nat):
-	global num_routes 
-	num_routes = num_routes + 1
+    global num_routes 
+    num_routes = num_routes + 1
 
-        template.add_resource(ec2.Route("OutboundRoute" + str(num_routes),
-                                        InstanceId=Ref(nat.title),
-                                        RouteTableId=Ref(route_table.title),
-                                        DestinationCidrBlock="0.0.0.0/0",
-        ))
+    template.add_resource(ec2.Route("OutboundRoute" + str(num_routes),
+                                    InstanceId=Ref(nat.title),
+                                    RouteTableId=Ref(route_table.title),
+                                    DestinationCidrBlock="0.0.0.0/0",
+    ))
 
         
 def add_security_group(template, vpc):
