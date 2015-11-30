@@ -63,6 +63,7 @@ num_load_balancers = 0
 num_web_instances = 0
 num_web_security_groups = 0
 num_route_table_associations = 0
+num_auto_scaling_groups = 0
 
 def switch_availability_zone():
     """ A simple function to switch Availability zones. """
@@ -272,6 +273,20 @@ def add_load_balancer(template, instances, subnets, healthcheck_target, security
     ))
     return return_elb
 
+def add_autoscaling_group(template, desired_capacity, dependency, health_check_type, launch_configuration_name):
+    global num_auto_scaling_groups
+    num_auto_scaling_groups += 1
+
+    auto_scaling_group_title = "AutoScalingGroup" + str(num_auto_scaling_groups)
+
+    asg = template.add_resource(AutoScalingGroup(
+        auto_scaling_group_title,
+        AvailabilityZones=AVAILABILITY_ZONES,
+        DependsOn=[dependency],
+        DesiredCapacity=desired_capacity,
+        HealthCheckType=health_check_type,
+        LaunchConfigurationName=Ref(launch_configuration_name),
+    ))
 
 def stack_name_tag():
     return "Ref('AWS::StackName')" 
