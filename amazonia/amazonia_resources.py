@@ -242,25 +242,27 @@ def add_web_instance(template, key_pair_name, subnet, security_group, userdata):
     return instance
 
 
+def get_refs(items):
+    refs = []
+    for item in items:
+        refs.append(Ref(item.title))
+
+    return refs
+
+
 def add_load_balancer(template, resources, subnets, healthcheck_target, security_groups):
     global num_load_balancers
     num_load_balancers += 1
 
-    resource_refs = []
-    resource_types = []
-    subnet_refs = []
-
-    for resource in resources:
-        resource_refs.append("Ref('" + str(resource.title) + "')")
-        resource_types.append(str(resource.Type))
-
-    for subnet in subnets:
-        subnet_refs.append("Ref('" + str(subnet.title) + "')")
+    resource_refs = get_refs(resources)
+    subnet_refs = get_refs(subnets)
+    security_group_refs = get_refs(security_groups)
 
     elb_title = "ElasticLoadBalancer" + str(num_load_balancers)
     return_elb = template.add_resource(elb.LoadBalancer(
         elb_title,
         CrossZone=True,
+        Instances=resource_refs,
         HealthCheck=elb.HealthCheck(
                                     Target=healthcheck_target,
                                     HealthyThreshold="10",
@@ -275,8 +277,8 @@ def add_load_balancer(template, resources, subnets, healthcheck_target, security
                                 InstanceProtocol="HTTP",
         )],
         Scheme="internet-facing",
-        SecurityGroups=[Ref(security_groups[0])],
-        Subnets=[Ref(subnets[0]),Ref(subnets[1])],
+        SecurityGroups=security_group_refs,
+        Subnets=subnet_refs,
         Tags=Tags(
             Name=name_tag(elb_title),
         ),
