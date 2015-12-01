@@ -10,7 +10,7 @@ import string
 from   subprocess import call
 import sys
 
-import boto
+import boto3
 
 from   troposphere import Base64, Join, Ref, Tags, Template
 from   troposphere import cloudformation as cf
@@ -60,10 +60,15 @@ def get_nexus_artifact_url(group_id, artifact_id, version):
     war_filename = max(glob.iglob(artifact_id + "*.war"), key=os.path.getctime)
     call(["aws", "s3", "cp", war_filename, "s3://ga-gov-au/mvn-snapshot/", "--quiet", "--acl", "public-read"])
     call(["rm", war_filename])
-    s3 = boto.connect_s3()
-    bucket = s3.get_bucket("ga-gov-au")
-    key = bucket.get_key("mvn-snapshot/" + war_filename)
-    return key.generate_url(3600)
+    s3 = boto3.client("s3")
+    return s3.generate_presigned_url(
+        "get_object",
+        Params={
+            "Bucket": "ga-gov-au",
+            "Key": "mvn-snapshot/" + war_filename,
+        },
+        ExpiresIn=3600,
+        )
 
 def get_geoscience_portal_war_url():
     return get_nexus_artifact_url("au.gov.ga", "geoscience-portal", geoscience_portal_version())

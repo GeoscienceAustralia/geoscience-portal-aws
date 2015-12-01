@@ -1,5 +1,5 @@
 stack.json: stack.py webserver-init.sh nat-init.sh
-	python2 stack.py ${GEOSCIENCE_PORTAL_VERSION} ${GEOSCIENCE_GEONETWORK_VERSION} > $@
+	python stack.py ${GEOSCIENCE_PORTAL_VERSION} ${GEOSCIENCE_GEONETWORK_VERSION} > $@
 
 %.svg: %.json
 	cat $< | cfviz | dot -Tsvg -o$@
