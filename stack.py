@@ -12,13 +12,14 @@ import sys
 
 import boto3
 
-from   troposphere import Base64, Join, Ref, Tags, Template
+from   troposphere import Base64, Join, Ref, Tags
 from   troposphere import cloudformation as cf
 import troposphere.ec2 as ec2
 
-from   amazonia import http_ingress, icmp_ingress, ssh_ingress, name_tag
-import amazonia.default_vpc as default_vpc
+from amazonia.cftemplates import SingleAZenv
+from amazonia.amazonia_resources import name_tag, add_security_group_ingress
 
+PUBLIC_GA_GOV_AU_PTR = '192.104.44.129'
 REDHAT_IMAGEID = "ami-d3daace9"
 SYSTEM_PREFIX = "GeosciencePortal"
 KEY_PAIR_NAME = "lazar@work"
@@ -36,16 +37,21 @@ stack_name = Ref("AWS:StackName")
 region = Ref("AWS::Region")
 
 def stack():
-    template = Template()
-    vpc = default_vpc.add_vpc(template, KEY_PAIR_NAME, NAT_IP)
-    security_group = template.add_resource(webserver_security_group(vpc))
-    template.add_resource(http_ingress(security_group))
-    template.add_resource(icmp_ingress(security_group))
-    template.add_resource(ssh_ingress(security_group))
-    template.add_resource(make_webserver(default_vpc.private_subnet(template), security_group))
-
+    template = SingleAZenv(KEY_PAIR_NAME)
+    template.add_resource(ec2.EIPAssociation(
+        template.nat.title + "IpAssociation",
+        EIP=NAT_IP,
+        InstanceId=Ref(template.nat.title)
+    ))
     with open("nat-init.sh", "r") as user_data:
-        default_vpc.nat_instance(template).UserData = Base64(user_data.read())
+        template.nat.UserData = Base64(user_data.read())
+
+    security_group = template.add_resource(webserver_security_group(template.vpc))
+    add_http_ingress(template, security_group)
+    add_icmp_ingress(template, security_group)
+    add_ssh_ingress(template, security_group)
+    template.add_resource(make_webserver(template.private_subnet, security_group))
+
     return template
 
 def geoscience_portal_version():
@@ -245,5 +251,26 @@ def webserver_security_group(vpc):
         ),
     )
     return security_group
+
+def add_ssh_ingress_from_ga(template, security_group):
+    """Return an ingress for the given security group to allow
+    SSH traffic from public.ga.gov.au."""
+    return add_ssh_ingress(template, security_group, PUBLIC_GA_GOV_AU_PTR + '/32')
+
+def add_ssh_ingress(template, security_group, cidr='0.0.0.0/0'):
+    """Return an ingress for the given security group to allow SSH traffic."""
+    return add_security_group_ingress(template, security_group, "tcp", "22", "22", cidr)
+
+def add_http_ingress(template, security_group, cidr='0.0.0.0/0'):
+    """Return an ingress for the given security group to allow HTTP traffic."""
+    return add_security_group_ingress(template, security_group, "tcp", "80", "80", cidr)
+
+def add_https_ingress(template, security_group, cidr='0.0.0.0/0'):
+    """Return an ingress for the given security group to allow HTTPS traffic."""
+    return add_security_group_ingress(template, security_group, "tcp", "443", "443", cidr)
+
+def add_icmp_ingress(template, security_group, cidr='0.0.0.0/0'):
+    """Return an ingress for the given security group to allow ICMP traffic."""
+    return add_security_group_ingress(template, security_group, "icmp", "-1", "-1", cidr)
 
 print(stack().to_json())
