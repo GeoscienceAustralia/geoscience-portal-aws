@@ -6,7 +6,8 @@ The functions in this module generate cloud formation scripts that install commo
 
 """
 
-from troposphere import Ref, Tags, Join, Base64, autoscaling
+from troposphere import Ref, Tags, Join, Base64
+from troposphere.autoscaling import AutoScalingGroup
 import troposphere.ec2 as ec2
 import troposphere.elasticloadbalancing as elb
 
@@ -21,7 +22,7 @@ WEB_INSTANCE_TYPE= "t2.small"
 
 #CIDRs
 PUBLIC_GA_GOV_AU_CIDR = '192.104.44.129/32'
-VPC_CIDR = "10.0.0.0/16" 
+VPC_CIDR = "10.0.0.0/16"
 PUBLIC_SUBNET_AZ1_CIDR = "10.0.0.0/24"
 PUBLIC_SUBNET_AZ2_CIDR = "10.0.10.0/24"
 PRIVATE_SUBNET_AZ1_CIDR = "10.0.1.0/24"
@@ -83,7 +84,7 @@ def add_vpc(template, cidr):
     vpc = template.add_resource(ec2.VPC(vpc_title,
                                         CidrBlock=cidr,
                                         Tags=Tags(Name=name_tag(vpc_title),
-                                        Environment=ENVIRONMENT_NAME)))  
+                                        Environment=ENVIRONMENT_NAME)))
     return vpc
 
 
@@ -99,7 +100,7 @@ def add_subnet(template, vpc, name, cidr):
                                                      Tags=Tags(Name=name_tag(title), Environment=ENVIRONMENT_NAME)))
     return public_subnet
 
-								
+
 def add_route_table(template, vpc, route_type=""):
 	global num_route_tables
 	num_route_tables = num_route_tables + 1
@@ -114,14 +115,14 @@ def add_route_table(template, vpc, route_type=""):
 def add_route_table_subnet_association(template, route_table, subnet):
     global num_route_table_associations
     num_route_table_associations += 1
-    
+
     # Associate the route table with the subnet
     template.add_resource(ec2.SubnetRouteTableAssociation(
 	route_table.title + "Association" + str(num_route_table_associations),
 	SubnetId=Ref(subnet.title),
 	RouteTableId=Ref(route_table.title),
     ))
-	
+
 
 def add_internet_gateway(template, vpc):
 	global num_internet_gateways
@@ -143,7 +144,7 @@ def add_internet_gateway(template, vpc):
 
 
 def add_route_ingress_via_gateway(template, route_table, internet_gateway, cidr):
-	global num_routes 
+	global num_routes
 	num_routes = num_routes + 1
 	template.add_resource(ec2.Route(
 		"InboundRoute" + str(num_routes),
@@ -153,7 +154,7 @@ def add_route_ingress_via_gateway(template, route_table, internet_gateway, cidr)
 
 
 def add_route_egress_via_NAT(template, route_table, nat):
-	global num_routes 
+	global num_routes
 	num_routes = num_routes + 1
 
         template.add_resource(ec2.Route("OutboundRoute" + str(num_routes),
@@ -162,9 +163,9 @@ def add_route_egress_via_NAT(template, route_table, nat):
                                         DestinationCidrBlock="0.0.0.0/0",
         ))
 
-        
+
 def add_security_group(template, vpc):
-    global num_security_groups 
+    global num_security_groups
     num_security_groups += 1
     sg_title = "SecurityGroup" + str(num_security_groups)
 
@@ -172,8 +173,8 @@ def add_security_group(template, vpc):
                                                  GroupDescription="Security group",
                                                  VpcId=Ref(vpc.title),
                                                  Tags=Tags(Name=name_tag(sg_title))))
-	
-    return sg     
+
+    return sg
 
 
 
@@ -242,15 +243,25 @@ def add_web_instance(template, key_pair_name, subnet, security_group, userdata):
     return instance
 
 
-def add_load_balancer(template, instances, subnets, healthcheck_target, security_groups):
+def add_load_balancer(template, resources, subnets, healthcheck_target, security_groups):
     global num_load_balancers
     num_load_balancers += 1
+
+    resource_refs = []
+    resource_types = []
+    subnet_refs = []
+
+    for resource in resources:
+        resource_refs.append("Ref('" + str(resource.title) + "')")
+        resource_types.append(str(resource.Type))
+
+    for subnet in subnets:
+        subnet_refs.append("Ref('" + str(subnet.title) + "')")
 
     elb_title = "ElasticLoadBalancer" + str(num_load_balancers)
     return_elb = template.add_resource(elb.LoadBalancer(
         elb_title,
         CrossZone=True,
-        Instances=[Ref(instances[0]),Ref(instances[1])],
         HealthCheck=elb.HealthCheck(
                                     Target=healthcheck_target,
                                     HealthyThreshold="10",
@@ -271,9 +282,10 @@ def add_load_balancer(template, instances, subnets, healthcheck_target, security
             Name=name_tag(elb_title),
         ),
     ))
+
     return return_elb
 
-def add_autoscaling_group(template, desired_capacity, dependency, health_check_type, launch_configuration_name):
+def add_auto_scaling_group(template, health_check_type, launch_configuration_name, min_instances, max_instances, load_balancer):
     global num_auto_scaling_groups
     num_auto_scaling_groups += 1
 
@@ -282,14 +294,15 @@ def add_autoscaling_group(template, desired_capacity, dependency, health_check_t
     asg = template.add_resource(AutoScalingGroup(
         auto_scaling_group_title,
         AvailabilityZones=AVAILABILITY_ZONES,
-        DependsOn=[dependency],
-        DesiredCapacity=desired_capacity,
         HealthCheckType=health_check_type,
         LaunchConfigurationName=Ref(launch_configuration_name),
+        MinSize=min_instances,
+        MaxSize=max_instances,
+        LoadBalancerNames=[Ref(load_balancer)]
     ))
 
 def stack_name_tag():
-    return "Ref('AWS::StackName')" 
+    return "Ref('AWS::StackName')"
 
 def name_tag(resource_name):
     """Prepend stack name to the given resource name."""
