@@ -1,4 +1,4 @@
-# pylint: disable=too-many-arguments
+# pylint: disable=too-many-arguments, wildcard-import, unused-wildcard-import
 
 """ Templates to implement common cloud formation configurations
 
@@ -6,7 +6,7 @@ The functions in this module generate cloud formation scripts that install commo
 
 """
 
-from amazonia_resources import *
+from amazonia.amazonia_resources import *
 from troposphere import Template
 
 
