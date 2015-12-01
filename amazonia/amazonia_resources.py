@@ -6,7 +6,7 @@ The functions in this module generate cloud formation scripts that install commo
 
 """
 
-from troposphere import Ref, Tags, Join, Base64
+from troposphere import Ref, Tags, Join, Base64, GetAtt
 from troposphere.autoscaling import AutoScalingGroup
 import troposphere.ec2 as ec2
 import troposphere.elasticloadbalancing as elb
@@ -60,6 +60,7 @@ num_routes = 0
 num_nats = 0
 num_security_groups = 0
 num_ingress_rules = 0
+num_egress_rules = 0
 num_load_balancers = 0
 num_web_instances = 0
 num_web_security_groups = 0
@@ -178,21 +179,48 @@ def add_security_group(template, vpc):
 
 
 
-def add_security_group_ingress(template, security_group, protocol, from_port, to_port, cidr):
+def add_security_group_ingress(template, security_group, protocol, from_port, to_port, cidr="", source_security_group=""):
 
     global num_ingress_rules
     num_ingress_rules += 1
     title = security_group.title + 'Ingress' + protocol + str(num_ingress_rules)
-    template.add_resource(ec2.SecurityGroupIngress(title,
+    sg_ingress = template.add_resource(ec2.SecurityGroupIngress(title,
                                                    IpProtocol=protocol,
                                                    FromPort=from_port,
                                                    ToPort=to_port,
-                                                   GroupId=Ref(security_group.title),
-                                                   CidrIp=cidr))
-    return template
+                                                   GroupId=Ref(security_group.title)
+                                                   ))
+
+    if not source_security_group == "":
+        sg_ingress.SourceSecurityGroupId = GetAtt(source_security_group.title, "GroupId")
+    else:
+        if not cidr == "":
+            sg_ingress.CidrIp = cidr
+
+    return sg_ingress
+
+def add_security_group_egress(template, security_group, protocol, from_port, to_port, cidr="", destination_security_group=""):
+
+    global num_egress_rules
+    num_egress_rules += 1
+    title = security_group.title + 'Egress' + protocol + str(num_egress_rules)
+    sg_egress = template.add_resource(ec2.SecurityGroupEgress(title,
+                                                                IpProtocol=protocol,
+                                                                FromPort=from_port,
+                                                                ToPort=to_port,
+                                                                GroupId=Ref(security_group.title)
+                                                                ))
+
+    if not destination_security_group == "":
+        sg_egress.DestinationSecurityGroupId = GetAtt(destination_security_group.title, "GroupId")
+    else:
+        if not cidr == "":
+            sg_egress.CidrIp = cidr
+
+    return sg_egress
 
 
-def add_nat(template, public_subnet, key_pair_name, security_group):
+def add_nat(template, public_subnet, key_pair_name, security_group, natIP=NAT_IP_ADDRESS):
     global num_nats
     num_nats += 1
     nat_title = "NAT" + str(num_nats)

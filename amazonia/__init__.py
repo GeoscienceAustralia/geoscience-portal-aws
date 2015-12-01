@@ -1,5 +1,7 @@
+#pylint: disable=wildcard-import
+
 """GA Amazonia Package that generates GA cloud formation templates"""
 
-import amazonia_resources
-import cftemplates
+from amazonia.amazonia_resources import *
+from amazonia.cftemplates import *
 
