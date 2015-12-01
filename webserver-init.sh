@@ -10,4 +10,4 @@ runcmd:
  - chmod 755 /usr/lib/python2.7/site-packages/aws_cfn_bootstrap-1.4-py2.7.egg/init/redhat/cfn-hup
  - mkdir -p /opt/aws/bin
  - ln -s /usr/bin/cfn-hup /opt/aws/bin/cfn-hup
- - cfn-init --region ap-southeast-2 -s GeosciencePortal -r Webserver
+ - cfn-init --region ap-southeast-2 -s GeosciencePortal2 -r Webserver

@@ -21,9 +21,9 @@ from amazonia.amazonia_resources import name_tag, add_security_group_ingress
 
 PUBLIC_GA_GOV_AU_PTR = '192.104.44.129'
 REDHAT_IMAGEID = "ami-d3daace9"
-SYSTEM_PREFIX = "GeosciencePortal"
+SYSTEM_PREFIX = "GeosciencePortal2"
 KEY_PAIR_NAME = "lazar@work"
-NAT_IP = "54.206.17.34"
+NAT_IP = "54.153.211.253"
 GA_PUBLIC_NEXUS = "http://maven-int.ga.gov.au/nexus/service/local/artifact/maven/redirect?r=public"
 
 def _generate_password():
