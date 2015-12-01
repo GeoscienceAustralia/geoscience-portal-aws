@@ -192,7 +192,7 @@ def add_security_group_ingress(template, security_group, protocol, from_port, to
     return template
 
 
-def add_nat(template, public_subnet, key_pair_name, security_group, natIP=NAT_IP_ADDRESS):
+def add_nat(template, public_subnet, key_pair_name, security_group):
     global num_nats
     num_nats += 1
     nat_title = "NAT" + str(num_nats)
@@ -209,7 +209,6 @@ def add_nat(template, public_subnet, key_pair_name, security_group, natIP=NAT_IP
                                                         SubnetId=Ref(public_subnet.title),
         )],
         SourceDestCheck=False,
-        #PrivateIpAddress=natIP,
         Tags=Tags(
             Name=name_tag(nat_title),
         ),
