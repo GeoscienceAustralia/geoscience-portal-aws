@@ -324,8 +324,13 @@ def add_auto_scaling_group(template, health_check_type, launch_configuration_nam
         LaunchConfigurationName=Ref(launch_configuration_name),
         MinSize=min_instances,
         MaxSize=max_instances,
-        LoadBalancerNames=[Ref(load_balancer)]
+        LoadBalancerNames=[Ref(load_balancer.title)],
+        Tags=Tags(
+            Name=name_tag(auto_scaling_group_title),
+        )
     ))
+
+    return asg
 
 def stack_name_tag():
     return "Ref('AWS::StackName')"
