@@ -1,4 +1,4 @@
-# pylint: disable=too-many-arguments
+# pylint: disable=too-many-arguments, line-too-long
 
 """
 
@@ -13,14 +13,14 @@ import troposphere.elasticloadbalancing as elb
 
 NAT_IMAGE_ID = "ami-893f53b3"
 NAT_INSTANCE_TYPE = "t2.micro"
-NAT_IP_ADDRESS="10.0.0.100"
-SYSTEM_NAME="TestApplication"
-ENVIRONMENT_NAME="Experimental"
+NAT_IP_ADDRESS = "10.0.0.100"
+SYSTEM_NAME = "TestApplication"
+ENVIRONMENT_NAME = "Experimental"
 AVAILABILITY_ZONES = ["ap-southeast-2a", "ap-southeast-2b"]
 WEB_IMAGE_ID = "ami-c11856fb"
-WEB_INSTANCE_TYPE= "t2.small"
+WEB_INSTANCE_TYPE = "t2.small"
 
-#CIDRs
+# CIDRs
 PUBLIC_GA_GOV_AU_CIDR = '192.104.44.129/32'
 VPC_CIDR = "10.0.0.0/16"
 PUBLIC_SUBNET_AZ1_CIDR = "10.0.0.0/24"
@@ -31,22 +31,18 @@ PUBLIC_CIDR = "0.0.0.0/0"
 PUBLIC_SUBNET_NAME = "PublicSubnet"
 PRIVATE_SUBNET_NAME = "PrivateSubnet"
 
-
-
 # WEB SERVER BOOTSTRAP SCRIPTS
-WEB_SERVER_AZ1_USER_DATA  ="#!/bin/sh\n"
+WEB_SERVER_AZ1_USER_DATA = "#!/bin/sh\n"
 WEB_SERVER_AZ1_USER_DATA += "yum -y install httpd && chkconfig httpd on\n"
 WEB_SERVER_AZ1_USER_DATA += "/etc/init.d/httpd start && yum -y install git\n"
 WEB_SERVER_AZ1_USER_DATA += "git clone https://github.com/budawangbill/webserverconfig.git\n"
 WEB_SERVER_AZ1_USER_DATA += "cp webserverconfig/testAZ1.html /var/www/html/test.html"
 
-WEB_SERVER_AZ2_USER_DATA  ="#!/bin/sh\n"
+WEB_SERVER_AZ2_USER_DATA = "#!/bin/sh\n"
 WEB_SERVER_AZ2_USER_DATA += "yum -y install httpd && chkconfig httpd on\n"
 WEB_SERVER_AZ2_USER_DATA += "/etc/init.d/httpd start && yum -y install git\n"
 WEB_SERVER_AZ2_USER_DATA += "git clone https://github.com/budawangbill/webserverconfig.git\n"
 WEB_SERVER_AZ2_USER_DATA += "cp webserverconfig/testAZ2.html /var/www/html/test.html"
-
-
 
 # Handler for switching Availability Zones
 current_az = 0
@@ -75,7 +71,6 @@ def switch_availability_zone():
     else:
         current_az = 0
 
-
 def add_vpc(template, cidr):
     """Create a VPC resource and add it to the given template."""
     global num_vpcs
@@ -85,7 +80,7 @@ def add_vpc(template, cidr):
     vpc = template.add_resource(ec2.VPC(vpc_title,
                                         CidrBlock=cidr,
                                         Tags=Tags(Name=name_tag(vpc_title),
-                                        Environment=ENVIRONMENT_NAME)))
+                                                  Environment=ENVIRONMENT_NAME)))
     return vpc
 
 
@@ -98,20 +93,22 @@ def add_subnet(template, vpc, name, cidr):
                                                      AvailabilityZone=AVAILABILITY_ZONES[current_az],
                                                      VpcId=Ref(vpc.title),
                                                      CidrBlock=cidr,
-                                                     Tags=Tags(Name=name_tag(title), Environment=ENVIRONMENT_NAME)))
+                                                     Tags=Tags(Name=name_tag(title),
+                                                               Environment=ENVIRONMENT_NAME)))
     return public_subnet
 
 
 def add_route_table(template, vpc, route_type=""):
-	global num_route_tables
-	num_route_tables = num_route_tables + 1
+    global num_route_tables
+    num_route_tables = num_route_tables + 1
 
-	# create the route table in the VPC
-	route_table_id = route_type + "RouteTable" + str(num_route_tables)
-	route_table = template.add_resource(ec2.RouteTable(route_table_id,
-                                                           VpcId=Ref(vpc.title),
-                                                           Tags=Tags(Name=name_tag(route_table_id)),))
-        return route_table
+    # create the route table in the VPC
+    route_table_id = route_type + "RouteTable" + str(num_route_tables)
+    route_table = template.add_resource(ec2.RouteTable(route_table_id,
+                                                       VpcId=Ref(vpc.title),
+                                                       Tags=Tags(Name=name_tag(route_table_id)),
+                                                      ))
+    return route_table
 
 def add_route_table_subnet_association(template, route_table, subnet):
     global num_route_table_associations
@@ -119,50 +116,50 @@ def add_route_table_subnet_association(template, route_table, subnet):
 
     # Associate the route table with the subnet
     template.add_resource(ec2.SubnetRouteTableAssociation(
-	route_table.title + "Association" + str(num_route_table_associations),
-	SubnetId=Ref(subnet.title),
-	RouteTableId=Ref(route_table.title),
+        route_table.title + "Association" + str(num_route_table_associations),
+        SubnetId=Ref(subnet.title),
+        RouteTableId=Ref(route_table.title),
     ))
 
 
 def add_internet_gateway(template, vpc):
-	global num_internet_gateways
-	num_internet_gateways = num_internet_gateways + 1
-	internet_gateway_title = "InternetGateway" + str(num_internet_gateways)
+    global num_internet_gateways
+    num_internet_gateways = num_internet_gateways + 1
+    internet_gateway_title = "InternetGateway" + str(num_internet_gateways)
 
-        internet_gateway = template.add_resource(ec2.InternetGateway(internet_gateway_title,
-                                                                     Tags=Tags(Name=name_tag(internet_gateway_title),
-                                                                               Environment=ENVIRONMENT_NAME)
+    internet_gateway = template.add_resource(ec2.InternetGateway(internet_gateway_title,
+                                                                 Tags=Tags(Name=name_tag(internet_gateway_title),
+                                                                           Environment=ENVIRONMENT_NAME)
+                                                                ))
 
-        ))
-
-        attachment_title = internet_gateway_title + "Attachment"
-        template.add_resource(ec2.VPCGatewayAttachment(attachment_title,
-                                                       VpcId=Ref(vpc.title),
-                                                       InternetGatewayId=Ref(internet_gateway.title),
-        ))
-        return internet_gateway
+    attachment_title = internet_gateway_title + "Attachment"
+    template.add_resource(ec2.VPCGatewayAttachment(attachment_title,
+                                                   VpcId=Ref(vpc.title),
+                                                   InternetGatewayId=Ref(internet_gateway.title),
+                                                  ))
+    return internet_gateway
 
 
 def add_route_ingress_via_gateway(template, route_table, internet_gateway, cidr):
-	global num_routes
-	num_routes = num_routes + 1
-	template.add_resource(ec2.Route(
-		"InboundRoute" + str(num_routes),
-		GatewayId=Ref(internet_gateway.title),
-		RouteTableId=Ref(route_table.title),
-		DestinationCidrBlock=cidr))
+    global num_routes
+    num_routes += 1
+    template.add_resource(ec2.Route(
+        "InboundRoute" + str(num_routes),
+        GatewayId=Ref(internet_gateway.title),
+        RouteTableId=Ref(route_table.title),
+        DestinationCidrBlock=cidr
+    ))
 
 
 def add_route_egress_via_NAT(template, route_table, nat):
-	global num_routes
-	num_routes = num_routes + 1
+    global num_routes
+    num_routes += 1
 
-        template.add_resource(ec2.Route("OutboundRoute" + str(num_routes),
-                                        InstanceId=Ref(nat.title),
-                                        RouteTableId=Ref(route_table.title),
-                                        DestinationCidrBlock="0.0.0.0/0",
-        ))
+    template.add_resource(ec2.Route("OutboundRoute" + str(num_routes),
+                                    InstanceId=Ref(nat.title),
+                                    RouteTableId=Ref(route_table.title),
+                                    DestinationCidrBlock="0.0.0.0/0",
+                                   ))
 
 
 def add_security_group(template, vpc):
@@ -185,11 +182,11 @@ def add_security_group_ingress(template, security_group, protocol, from_port, to
     num_ingress_rules += 1
     title = security_group.title + 'Ingress' + protocol + str(num_ingress_rules)
     sg_ingress = template.add_resource(ec2.SecurityGroupIngress(title,
-                                                   IpProtocol=protocol,
-                                                   FromPort=from_port,
-                                                   ToPort=to_port,
-                                                   GroupId=Ref(security_group.title)
-                                                   ))
+                                                                IpProtocol=protocol,
+                                                                FromPort=from_port,
+                                                                ToPort=to_port,
+                                                                GroupId=Ref(security_group.title)
+                                                               ))
 
     if not source_security_group == "":
         sg_ingress.SourceSecurityGroupId = GetAtt(source_security_group.title, "GroupId")
@@ -205,11 +202,11 @@ def add_security_group_egress(template, security_group, protocol, from_port, to_
     num_egress_rules += 1
     title = security_group.title + 'Egress' + protocol + str(num_egress_rules)
     sg_egress = template.add_resource(ec2.SecurityGroupEgress(title,
-                                                                IpProtocol=protocol,
-                                                                FromPort=from_port,
-                                                                ToPort=to_port,
-                                                                GroupId=Ref(security_group.title)
-                                                                ))
+                                                              IpProtocol=protocol,
+                                                              FromPort=from_port,
+                                                              ToPort=to_port,
+                                                              GroupId=Ref(security_group.title)
+                                                             ))
 
     if not destination_security_group == "":
         sg_egress.DestinationSecurityGroupId = GetAtt(destination_security_group.title, "GroupId")
@@ -230,11 +227,11 @@ def add_nat(template, public_subnet, key_pair_name, security_group, natIP=NAT_IP
         ImageId=NAT_IMAGE_ID,
         InstanceType=NAT_INSTANCE_TYPE,
         NetworkInterfaces=[ec2.NetworkInterfaceProperty(
-                                                        GroupSet=[Ref(security_group.title)],
-                                                        AssociatePublicIpAddress=True,
-                                                        DeviceIndex="0",
-                                                        DeleteOnTermination=True,
-                                                        SubnetId=Ref(public_subnet.title),
+            GroupSet=[Ref(security_group.title)],
+            AssociatePublicIpAddress=True,
+            DeviceIndex="0",
+            DeleteOnTermination=True,
+            SubnetId=Ref(public_subnet.title),
         )],
         SourceDestCheck=False,
         #PrivateIpAddress=natIP,
@@ -257,11 +254,11 @@ def add_web_instance(template, key_pair_name, subnet, security_group, userdata):
         SourceDestCheck=False,
         ImageId=WEB_IMAGE_ID,
         NetworkInterfaces=[ec2.NetworkInterfaceProperty(
-                                                        GroupSet=[Ref(security_group.title)],
-                                                        AssociatePublicIpAddress=True,
-                                                        DeviceIndex="0",
-                                                        DeleteOnTermination=True,
-                                                        SubnetId=Ref(subnet.title),
+            GroupSet=[Ref(security_group.title)],
+            AssociatePublicIpAddress=True,
+            DeviceIndex="0",
+            DeleteOnTermination=True,
+            SubnetId=Ref(subnet.title),
         )],
         Tags=Tags(
             Name=name_tag(instance_title),
@@ -291,21 +288,21 @@ def add_load_balancer(template, resources, subnets, healthcheck_target, security
         elb_title,
         CrossZone=True,
         HealthCheck=elb.HealthCheck(
-                                    Target=healthcheck_target,
-                                    HealthyThreshold="10",
-                                    UnhealthyThreshold="2",
-                                    Interval="30",
-                                    Timeout="5",
+            Target=healthcheck_target,
+            HealthyThreshold="10",
+            UnhealthyThreshold="2",
+            Interval="30",
+            Timeout="5",
         ),
         Listeners=[elb.Listener(
-                                LoadBalancerPort="80",
-                                Protocol="HTTP",
-                                InstancePort="80",
-                                InstanceProtocol="HTTP",
+            LoadBalancerPort="80",
+            Protocol="HTTP",
+            InstancePort="80",
+            InstanceProtocol="HTTP",
         )],
         Scheme="internet-facing",
         SecurityGroups=[Ref(security_groups[0])],
-        Subnets=[Ref(subnets[0]),Ref(subnets[1])],
+        Subnets=[Ref(subnets[0]), Ref(subnets[1])],
         Tags=Tags(
             Name=name_tag(elb_title),
         ),
