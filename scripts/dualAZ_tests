@@ -2,14 +2,10 @@
 
 # pylint: disable=missing-docstring, invalid-name, line-too-long, redefined-outer-name, too-many-arguments
 
-from troposphere import Template
-
-from amazonia.cftemplates import addVPC, addDualAZenv
+from amazonia.cftemplates import DualAZenv
 
 def main():
-    template = Template()
-    vpc = addVPC(template)
-    addDualAZenv(template, vpc, "ShaneBYOD")
+    template = DualAZenv("ShaneBYOD")
     print(template.to_json(indent=2, separators=(',', ': ')))
 
 if __name__ == "__main__":
