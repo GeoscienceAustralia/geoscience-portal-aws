@@ -7,7 +7,7 @@ The functions in this module generate cloud formation scripts that install commo
 """
 
 from troposphere import Ref, Tags, Join, Base64, GetAtt
-from troposphere.autoscaling import AutoScalingGroup
+from troposphere.autoscaling import AutoScalingGroup, LaunchConfiguration, Tag
 import troposphere.ec2 as ec2
 import troposphere.elasticloadbalancing as elb
 
@@ -19,6 +19,7 @@ ENVIRONMENT_NAME = "Experimental"
 AVAILABILITY_ZONES = ["ap-southeast-2a", "ap-southeast-2b"]
 WEB_IMAGE_ID = "ami-c11856fb"
 WEB_INSTANCE_TYPE = "t2.small"
+ASG_MIN_INSTANCES = 1
 
 # CIDRs
 PUBLIC_GA_GOV_AU_CIDR = '192.104.44.129/32'
@@ -58,6 +59,7 @@ num_security_groups = 0
 num_ingress_rules = 0
 num_egress_rules = 0
 num_load_balancers = 0
+num_launch_configs = 0
 num_web_instances = 0
 num_web_security_groups = 0
 num_route_table_associations = 0
@@ -274,12 +276,18 @@ def get_refs(items):
 
     return refs
 
+def get_titles(items):
+    titles = []
+    for item in items:
+        titles.append(item.title)
 
-def add_load_balancer(template, resources, subnets, healthcheck_target, security_groups):
+    return titles
+
+
+def add_load_balancer(template, subnets, healthcheck_target, security_groups, resources=""):
     global num_load_balancers
     num_load_balancers += 1
 
-    resource_refs = get_refs(resources)
     subnet_refs = get_refs(subnets)
     security_group_refs = get_refs(security_groups)
 
@@ -287,7 +295,6 @@ def add_load_balancer(template, resources, subnets, healthcheck_target, security
     return_elb = template.add_resource(elb.LoadBalancer(
         elb_title,
         CrossZone=True,
-        Instances=resource_refs,
         HealthCheck=elb.HealthCheck(
             Target=healthcheck_target,
             HealthyThreshold="10",
@@ -309,11 +316,17 @@ def add_load_balancer(template, resources, subnets, healthcheck_target, security
         ),
     ))
 
+    if not resources == "":
+        resource_refs = get_refs(resources)
+        return_elb.Instances = resource_refs
+
     return return_elb
 
-def add_auto_scaling_group(template, health_check_type, launch_configuration_name, min_instances, max_instances, load_balancer):
+def add_auto_scaling_group(template, health_check_type, launch_configuration, max_instances, load_balancer, subnets, dependson=""):
     global num_auto_scaling_groups
     num_auto_scaling_groups += 1
+
+    subnet_refs = get_refs(subnets)
 
     auto_scaling_group_title = "AutoScalingGroup" + str(num_auto_scaling_groups)
 
@@ -321,16 +334,46 @@ def add_auto_scaling_group(template, health_check_type, launch_configuration_nam
         auto_scaling_group_title,
         AvailabilityZones=AVAILABILITY_ZONES,
         HealthCheckType=health_check_type,
-        LaunchConfigurationName=Ref(launch_configuration_name),
-        MinSize=min_instances,
+        LaunchConfigurationName=Ref(launch_configuration.title),
+        MinSize=ASG_MIN_INSTANCES,
         MaxSize=max_instances,
         LoadBalancerNames=[Ref(load_balancer.title)],
-        Tags=Tags(
-            Name=name_tag(auto_scaling_group_title),
-        )
+        VPCZoneIdentifier=subnet_refs,
+        Tags=[
+            Tag("Name", name_tag(auto_scaling_group_title), True)
+        ],
     ))
 
+    if health_check_type == "ELB":
+        asg.HealthCheckGracePeriod = 600
+
+    if not dependson == "":
+        dependson_titles = get_titles(dependson)
+        asg.DependsOn = dependson_titles
+
     return asg
+
+def add_launch_config(template, key_pair_name, security_groups, userdata=""):
+    global num_launch_configs
+    num_launch_configs += 1
+
+    launch_config_title = "LaunchConfiguration" + str(num_launch_configs)
+
+    sg_refs = get_refs(security_groups)
+
+    lc = template.add_resource(LaunchConfiguration(
+        launch_config_title,
+        AssociatePublicIpAddress=True,
+        ImageId=WEB_IMAGE_ID,
+        InstanceMonitoring=False,
+        InstanceType=WEB_INSTANCE_TYPE,
+        KeyName=key_pair_name,
+        SecurityGroups=sg_refs,
+    ))
+
+    if not userdata == "":
+        lc.UserData = Base64(userdata)
+    return lc
 
 def stack_name_tag():
     return "Ref('AWS::StackName')"
