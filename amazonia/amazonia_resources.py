@@ -322,7 +322,7 @@ def add_load_balancer(template, subnets, healthcheck_target, security_groups, re
 
     return return_elb
 
-def add_auto_scaling_group(template, health_check_type, launch_configuration, max_instances, load_balancer, subnets, dependson=""):
+def add_auto_scaling_group(template, health_check_type, launch_configuration, max_instances, load_balancer, subnets, dependson="", multiAZ=False):
     global num_auto_scaling_groups
     num_auto_scaling_groups += 1
 
@@ -332,7 +332,6 @@ def add_auto_scaling_group(template, health_check_type, launch_configuration, ma
 
     asg = template.add_resource(AutoScalingGroup(
         auto_scaling_group_title,
-        AvailabilityZones=AVAILABILITY_ZONES,
         HealthCheckType=health_check_type,
         LaunchConfigurationName=Ref(launch_configuration.title),
         MinSize=ASG_MIN_INSTANCES,
@@ -343,6 +342,11 @@ def add_auto_scaling_group(template, health_check_type, launch_configuration, ma
             Tag("Name", name_tag(auto_scaling_group_title), True)
         ],
     ))
+
+    if multiAZ:
+        asg.AvailabilityZones = AVAILABILITY_ZONES
+    else:
+        asg.AvailabilityZones = [AVAILABILITY_ZONES[current_az]]
 
     if health_check_type == "ELB":
         asg.HealthCheckGracePeriod = 600
