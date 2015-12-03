@@ -108,8 +108,9 @@ def make_webserver(nat_wait, subnet, security_group):
                         "yum": {
                             "tomcat7": [],
                             "wget": [],
-                            "python34": [],
                             "postgresql92-server": [],
+                            # "python-pip": [], TODO: leave out for now
+                            # "python34": [],
                             "unzip": [],
                         }
                     },
