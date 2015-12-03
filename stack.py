@@ -38,15 +38,29 @@ region = Ref("AWS::Region")
 def stack():
     template = Template()
     vpc = default_vpc.add_vpc(template, KEY_PAIR_NAME, NAT_IP)
+    nat = default_vpc.nat_instance(template)
     security_group = template.add_resource(webserver_security_group(vpc))
     template.add_resource(http_ingress(security_group))
     template.add_resource(icmp_ingress(security_group))
     template.add_resource(ssh_ingress(security_group))
-    template.add_resource(make_webserver(default_vpc.private_subnet(template), security_group))
+
+    nat_wait_handle = template.add_resource(cf.WaitConditionHandle("natWaitHandle"))
+    wait_title = "WaitFor" + nat.title
+    nat_wait = template.add_resource(cf.WaitCondition(
+        wait_title,
+        Handle=Ref(nat_wait_handle),
+        DependsOn=nat.title,
+        Timeout="1200",
+    ))
+
+    webserver = make_webserver(nat_wait, default_vpc.private_subnet(template), security_group)
+    template.add_resource(webserver)
 
     with open("nat-init.sh", "r") as user_data:
-        default_vpc.nat_instance(template).UserData = Base64(user_data.read())
+        nat.UserData = Base64(Join("", ["#!/bin/bash\n", "signal_url='", Ref(nat_wait_handle), "'\n", user_data.read()]))
+
     return template
+
 
 def geoscience_portal_version():
     return sys.argv[1]
@@ -71,7 +85,7 @@ def get_geoscience_portal_war_url():
 def get_geoscience_portal_geonetwork_war_url():
     return get_nexus_artifact_url("au.gov.ga", "geoscience-portal-geonetwork", geoscience_portal_geonetwork_version())
 
-def make_webserver(subnet, security_group):
+def make_webserver(nat_wait, subnet, security_group):
     instance_id = "Webserver"
     instance = ec2.Instance(
         instance_id,
@@ -82,6 +96,7 @@ def make_webserver(subnet, security_group):
         SubnetId=Ref(subnet.title),
         SecurityGroupIds=[Ref(security_group.title)],
         PrivateIpAddress="10.0.1.100",
+        DependsOn=nat_wait.title,
         Metadata=cf.Metadata(
             cf.Init(
                 cf.InitConfigSets(
