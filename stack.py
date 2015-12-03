@@ -19,7 +19,7 @@ import troposphere.ec2 as ec2
 from   amazonia import http_ingress, icmp_ingress, ssh_ingress, name_tag
 import amazonia.default_vpc as default_vpc
 
-REDHAT_IMAGEID = "ami-d3daace9"
+IMAGE_ID = "ami-48d38c2b"
 SYSTEM_PREFIX = "GeosciencePortal"
 KEY_PAIR_NAME = "lazar@work"
 NAT_IP = "54.206.17.34"
@@ -38,15 +38,29 @@ region = Ref("AWS::Region")
 def stack():
     template = Template()
     vpc = default_vpc.add_vpc(template, KEY_PAIR_NAME, NAT_IP)
+    nat = default_vpc.nat_instance(template)
     security_group = template.add_resource(webserver_security_group(vpc))
     template.add_resource(http_ingress(security_group))
     template.add_resource(icmp_ingress(security_group))
     template.add_resource(ssh_ingress(security_group))
-    template.add_resource(make_webserver(default_vpc.private_subnet(template), security_group))
+
+    nat_wait_handle = template.add_resource(cf.WaitConditionHandle("natWaitHandle"))
+    wait_title = "WaitFor" + nat.title
+    nat_wait = template.add_resource(cf.WaitCondition(
+        wait_title,
+        Handle=Ref(nat_wait_handle),
+        DependsOn=nat.title,
+        Timeout="1200",
+    ))
+
+    webserver = make_webserver(nat_wait, default_vpc.private_subnet(template), security_group)
+    template.add_resource(webserver)
 
     with open("nat-init.sh", "r") as user_data:
-        default_vpc.nat_instance(template).UserData = Base64(user_data.read())
+        nat.UserData = Base64(Join("", ["#!/bin/bash\n", "signal_url='", Ref(nat_wait_handle), "'\n", user_data.read()]))
+
     return template
+
 
 def geoscience_portal_version():
     return sys.argv[1]
@@ -71,17 +85,18 @@ def get_geoscience_portal_war_url():
 def get_geoscience_portal_geonetwork_war_url():
     return get_nexus_artifact_url("au.gov.ga", "geoscience-portal-geonetwork", geoscience_portal_geonetwork_version())
 
-def make_webserver(subnet, security_group):
+def make_webserver(nat_wait, subnet, security_group):
     instance_id = "Webserver"
     instance = ec2.Instance(
         instance_id,
-        ImageId=REDHAT_IMAGEID,
+        ImageId=IMAGE_ID,
         InstanceType="t2.medium",
         Tags=Tags(Name=name_tag(instance_id)),
         KeyName=KEY_PAIR_NAME,
         SubnetId=Ref(subnet.title),
         SecurityGroupIds=[Ref(security_group.title)],
         PrivateIpAddress="10.0.1.100",
+        DependsOn=nat_wait.title,
         Metadata=cf.Metadata(
             cf.Init(
                 cf.InitConfigSets(
@@ -91,20 +106,15 @@ def make_webserver(subnet, security_group):
                 on_create=cf.InitConfig(
                     packages={
                         "yum": {
-                            "telnet": [],
-                            "tomcat": [],
-                            "java-1.7.0-openjdk.x86_64": [],
+                            "tomcat7": [],
                             "wget": [],
-                            "iptables-services": [],
-                            "postgresql-server": [],
-                            "python34": [],
+                            "postgresql92-server": [],
+                            # "python-pip": [], TODO: leave out for now
+                            # "python34": [],
                             "unzip": [],
                         }
                     },
                     files=cf.InitFiles({
-                        "/etc/cloud/cloud.cfg.d/99_hostname.cfg": cf.InitFile(
-                            content="preserve_hostname: true",
-                        ),
                         "/etc/cfn/cfn-hup.conf": cf.InitFile(
                             content=Join('', [
                                 "[main]\n",
@@ -120,7 +130,7 @@ def make_webserver(subnet, security_group):
                                 "[cfn-auto-reloader-hook]\n",
                                 "triggers=post.update\n",
                                 "path=Resources.", instance_id, ".Metadata.AWS::CloudFormation::Init\n",
-                                "action=/usr/bin/cfn-init",
+                                "action=/opt/aws/bin/cfn-init",
                                 " --stack ", stack_id,
                                 " --resource ", instance_id,
                                 " --region ", region,
@@ -132,7 +142,7 @@ def make_webserver(subnet, security_group):
                             content="localhost:5432:*:postgres:" + POSTGRES_SUPERUSER_PASSWORD,
                             mode="0600",
                         ),
-                        "/var/lib/pgsql/password": cf.InitFile(
+                        "/var/lib/pgsql92/password": cf.InitFile(
                             content=POSTGRES_SUPERUSER_PASSWORD,
                             owner="postgres",
                             mode="0600",
@@ -140,7 +150,7 @@ def make_webserver(subnet, security_group):
                     }),
                     commands={
                         "00-disable-webapp-auto-deployment": {
-                            "command": "sed -i 's/autoDeploy=\"true\"/autoDeploy=\"false\"/' /usr/share/tomcat/conf/server.xml"
+                            "command": "sed -i 's/autoDeploy=\"true\"/autoDeploy=\"false\"/' /usr/share/tomcat7/conf/server.xml"
                         },
                         "10-redirect-port-80-to-port-8080": {
                             "command": "iptables -A PREROUTING -t nat -i eth0 -p tcp --dport 80 -j REDIRECT --to-port 8080 && iptables-save > /etc/sysconfig/iptables"
@@ -149,26 +159,31 @@ def make_webserver(subnet, security_group):
                             "command": "sed -i '/Defaults    requiretty/s/^/#/g' /etc/sudoers"
                         },
                         "30-init-postgres": {
-                            "command": "sudo -u postgres initdb -D /var/lib/pgsql/data -A md5 --pwfile=/var/lib/pgsql/password"
+                            "command": "sudo -u postgres initdb -D /var/lib/pgsql92/data -A md5 --pwfile=/var/lib/pgsql92/password"
                         },
-                        "40-install-pip3": {
-                            "command": "wget -O - https://bootstrap.pypa.io/get-pip.py | python3.4 && ln -s /usr/bin/python3.4 /usr/bin/python3"
+                        "40-persist-hostname": {
+                            "command": "sed -i 's/HOSTNAME=localhost.localdomain/HOSTNAME=portal-dev.localdomain/' /etc/sysconfig/network"
                         },
-                        "42-install-python3-urllib3": {
-                            "command": "pip3 install urllib3"
+                        "50-set-hostname": {
+                            "command": "hostname portal-dev"
                         },
+                        "60-set-hostname-resolution": {
+                            "command": "echo '127.0.0.1   portal-dev portal-dev.localdomain localhost localhost.localdomain' > /etc/hosts"
+                        },
+                        # "40-install-pip3": {
+                        #     "command": "wget -O - https://bootstrap.pypa.io/get-pip.py | python3.4 && ln -s /usr/bin/python3.4 /usr/bin/python3"
+                        # },
+                        # "42-install-python3-urllib3": {
+                        #     "command": "pip3 install urllib3"
+                        # },
                     },
                     services={
                         "sysvinit": cf.InitServices({
-                            "postgresql": cf.InitService(
+                            "postgresql92": cf.InitService(
                                 enabled=True,
                                 ensureRunning=True,
                             ),
-                            "tomcat": cf.InitService(
-                                enabled=True,
-                                ensureRunning=True,
-                            ),
-                            "iptables": cf.InitService(
+                            "tomcat7": cf.InitService(
                                 enabled=True,
                                 ensureRunning=True,
                             ),
@@ -185,12 +200,12 @@ def make_webserver(subnet, security_group):
                 ),
                 on_update=cf.InitConfig(
                     files=cf.InitFiles({
-                        "/usr/share/tomcat/webapps/ROOT.war": cf.InitFile(
+                        "/usr/share/tomcat7/webapps/ROOT.war": cf.InitFile(
                             source=get_geoscience_portal_war_url(),
                             owner="tomcat",
                             group="tomcat",
                         ),
-                        "/usr/share/tomcat/webapps/geonetwork.war": cf.InitFile(
+                        "/usr/share/tomcat7/webapps/geonetwork.war": cf.InitFile(
                             source=get_geoscience_portal_geonetwork_war_url(),
                             owner="tomcat",
                             group="tomcat",
@@ -198,24 +213,24 @@ def make_webserver(subnet, security_group):
                     }),
                     commands={
                         "00-stop-tomcat": {
-                            "command": "service tomcat stop"
+                            "command": "service tomcat7 stop"
                         },
                         "10-setup-geonetwork-database": {
-                            "command": "unzip -p /usr/share/tomcat/webapps/geonetwork.war WEB-INF/classes/geonetwork-db.sql"
+                            "command": "unzip -p /usr/share/tomcat7/webapps/geonetwork.war WEB-INF/classes/geonetwork-db.sql"
                                        "| sed 's/${password}/" + GEONETWORK_DB_PASSWORD + "/' | psql -U postgres"
                         },
                         "20-undeploy-geonetwork": {
-                            "command": "rm -rf /usr/share/tomcat/webapps/geonetwork",
+                            "command": "rm -rf /usr/share/tomcat7/webapps/geonetwork",
                         },
                         "30-undeploy-geoscience-portal": {
-                            "command": "rm -rf /usr/share/tomcat/webapps/ROOT",
+                            "command": "rm -rf /usr/share/tomcat7/webapps/ROOT",
                         },
                         "35-set-geonetwork-password": {
-                            "command": "(cd /usr/share/tomcat/webapps && unzip -q geonetwork.war -d geonetwork && chown -R tomcat.tomcat geonetwork"
+                            "command": "(cd /usr/share/tomcat7/webapps && unzip -q geonetwork.war -d geonetwork && chown -R tomcat.tomcat geonetwork"
                                        " && sed -i 's/${password}/" + GEONETWORK_DB_PASSWORD + "/' geonetwork/WEB-INF/config-db/jdbc.properties)"
                         },
                         "40-start-tomcat": {
-                            "command": "service tomcat start"
+                            "command": "service tomcat7 start"
                         },
                     },
                 )
