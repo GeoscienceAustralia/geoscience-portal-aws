@@ -91,7 +91,6 @@ def make_webserver(subnet, security_group):
                 on_create=cf.InitConfig(
                     packages={
                         "yum": {
-                            "telnet": [],
                             "tomcat7": [],
                             "wget": [],
                             "python34": [],
