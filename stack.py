@@ -89,7 +89,7 @@ def stack():
                 InstanceProtocol="HTTP",
             ),
         ],
-        SecurityGroups=[Ref(template.nat_sg)],
+        SecurityGroups=[Ref(elb_security_group(template))],
         LoadBalancerName=load_balancer_title
     ))
 
@@ -286,6 +286,21 @@ def make_webserver(nat_wait, security_group):
         instance.UserData = Base64(user_data.read())
 
     return instance
+
+def elb_security_group(template):
+    title = "ELBSecurityGroup"
+    security_group = template.add_resource(ec2.SecurityGroup(
+        title,
+        GroupDescription="Allow web traffic from anywhere.",
+        VpcId=Ref(template.vpc.title),
+        SecurityGroupIngress=[],
+        Tags=Tags(
+            Name=name_tag(title),
+        ),
+    ))
+    add_http_ingress(template, security_group)
+    add_https_ingress(template, security_group)
+    return security_group
 
 def webserver_security_group(vpc):
     title = "WebserverSecurityGroup"
