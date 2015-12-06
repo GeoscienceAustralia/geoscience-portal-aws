@@ -54,7 +54,7 @@ def stack():
         wait_title,
         Handle=Ref(nat_wait_handle),
         DependsOn=template.nat.title,
-        Timeout="1200",
+        Timeout="300",
     ))
 
     webserver = make_webserver(nat_wait, template.private_subnet, security_group)
