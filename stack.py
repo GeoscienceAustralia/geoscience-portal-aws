@@ -200,9 +200,6 @@ def make_webserver(nat_wait, security_group):
                         "00-disable-webapp-auto-deployment": {
                             "command": "sed -i 's/autoDeploy=\"true\"/autoDeploy=\"false\"/' /usr/share/tomcat7/conf/server.xml"
                         },
-                        "10-redirect-port-80-to-port-8080": {
-                            "command": "iptables -A PREROUTING -t nat -i eth0 -p tcp --dport 80 -j REDIRECT --to-port 8080 && iptables-save > /etc/sysconfig/iptables"
-                        },
                         "20-allow-sudo-without-tty": {
                             "command": "sed -i '/Defaults    requiretty/s/^/#/g' /etc/sudoers"
                         },
