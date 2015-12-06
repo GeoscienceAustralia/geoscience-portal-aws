@@ -15,6 +15,8 @@ import boto3
 from   troposphere import Base64, Join, Ref, Tags
 from   troposphere import cloudformation as cf
 import troposphere.ec2 as ec2
+import troposphere.autoscaling as auto
+import troposphere.elasticloadbalancing as elb
 
 from amazonia.cftemplates import SingleAZenv
 from amazonia.amazonia_resources import name_tag, add_security_group_ingress
@@ -45,6 +47,7 @@ def stack():
     ))
     security_group = template.add_resource(webserver_security_group(template.vpc))
     add_http_ingress(template, security_group)
+    add_tomcat_ingress(template, security_group)
     add_icmp_ingress(template, security_group)
     add_ssh_ingress(template, security_group)
 
@@ -57,14 +60,53 @@ def stack():
         Timeout="300",
     ))
 
-    webserver = make_webserver(nat_wait, template.private_subnet, security_group)
-    template.add_resource(webserver)
+    webserver_launch_config = make_webserver(nat_wait, security_group)
+    template.add_resource(webserver_launch_config)
 
     with open("nat-init.sh", "r") as user_data:
         template.nat.UserData = Base64(Join("", ["#!/bin/bash\n", "signal_url='", Ref(nat_wait_handle), "'\n", user_data.read()]))
 
-    return template
+    load_balancer_title = "LoadBalancer"
+    load_balancer = template.add_resource(elb.LoadBalancer(
+        load_balancer_title,
+        # ConnectionDrainingPolicy=elb.ConnectionDrainingPolicy(
+        #     Enabled=True,
+        #     Timeout=120,
+        # ),
+        Subnets=[Ref(template.public_subnet)],
+        HealthCheck=elb.HealthCheck(
+            Target="HTTP:8080/gmap.html",
+            HealthyThreshold="5",
+            UnhealthyThreshold="2",
+            Interval="40",
+            Timeout="30",
+        ),
+        Listeners=[
+            elb.Listener(
+                LoadBalancerPort="80",
+                InstancePort="8080",
+                Protocol="HTTP",
+                InstanceProtocol="HTTP",
+            ),
+        ],
+        SecurityGroups=[Ref(template.nat_sg)],
+        LoadBalancerName=load_balancer_title
+    ))
 
+    ag_title = "Webserver"
+    template.add_resource(auto.AutoScalingGroup(
+        ag_title,
+        HealthCheckType="ELB",
+        HealthCheckGracePeriod="300",
+        LaunchConfigurationName=Ref(webserver_launch_config),
+        MinSize=1,
+        MaxSize=1,
+        VPCZoneIdentifier=[Ref(template.private_subnet)],
+        LoadBalancerNames=[Ref(load_balancer)],
+        Tags=[auto.Tag("Name", name_tag(ag_title), True)],
+    ))
+
+    return template
 
 def geoscience_portal_version():
     return sys.argv[1]
@@ -94,17 +136,14 @@ def get_geoscience_portal_war_url():
 def get_geoscience_portal_geonetwork_war_url():
     return get_nexus_artifact_url("au.gov.ga", "geoscience-portal-geonetwork", geoscience_portal_geonetwork_version())
 
-def make_webserver(nat_wait, subnet, security_group):
-    instance_id = "Webserver"
-    instance = ec2.Instance(
+def make_webserver(nat_wait, security_group):
+    instance_id = "WebserverLaunchConfig"
+    instance = auto.LaunchConfiguration(
         instance_id,
         ImageId=IMAGE_ID,
         InstanceType="t2.medium",
-        Tags=Tags(Name=name_tag(instance_id)),
         KeyName=KEY_PAIR_NAME,
-        SubnetId=Ref(subnet.title),
-        SecurityGroupIds=[Ref(security_group.title)],
-        PrivateIpAddress="10.0.1.100",
+        SecurityGroups=[Ref(security_group)],
         DependsOn=nat_wait.title,
         Metadata=cf.Metadata(
             cf.Init(
@@ -246,7 +285,6 @@ def make_webserver(nat_wait, subnet, security_group):
             )
         )
     )
-
     with open("webserver-init.sh", "r") as user_data:
         instance.UserData = Base64(user_data.read())
 
@@ -277,6 +315,10 @@ def add_ssh_ingress(template, security_group, cidr='0.0.0.0/0'):
 def add_http_ingress(template, security_group, cidr='0.0.0.0/0'):
     """Return an ingress for the given security group to allow HTTP traffic."""
     return add_security_group_ingress(template, security_group, "tcp", "80", "80", cidr)
+
+def add_tomcat_ingress(template, security_group, cidr='0.0.0.0/0'):
+    """Return an ingress for the given security group to allow tomcat traffic."""
+    return add_security_group_ingress(template, security_group, "tcp", "8080", "8080", cidr)
 
 def add_https_ingress(template, security_group, cidr='0.0.0.0/0'):
     """Return an ingress for the given security group to allow HTTPS traffic."""
