@@ -1,4 +1,4 @@
-# pylint: disable=missing-docstring, invalid-name, line-too-long
+# pylint: disable=missing-docstring, invalid-name, line-too-long, fixme
 
 """Geoscience Portal AWS CloudFormation Stack Definition
 """
@@ -127,7 +127,7 @@ def get_nexus_artifact_url(group_id, artifact_id, version):
             "Bucket": "ga-gov-au",
             "Key": "mvn-snapshot/" + war_filename,
         },
-        ExpiresIn=3600,
+        ExpiresIn=31622400, # TODO: a year
         )
 
 def get_geoscience_portal_war_url():
