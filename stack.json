@@ -1,0 +1,753 @@
+{
+    "Resources": {
+        "ELBSecurityGroup": {
+            "Properties": {
+                "GroupDescription": "Allow web traffic from anywhere.",
+                "SecurityGroupIngress": [],
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": {
+                            "Fn::Join": [
+                                "",
+                                [
+                                    {
+                                        "Ref": "AWS::StackName"
+                                    },
+                                    "-",
+                                    "ELBSecurityGroup"
+                                ]
+                            ]
+                        }
+                    }
+                ],
+                "VpcId": {
+                    "Ref": "VPC1"
+                }
+            },
+            "Type": "AWS::EC2::SecurityGroup"
+        },
+        "ELBSecurityGroupIngresstcp10": {
+            "Properties": {
+                "CidrIp": "0.0.0.0/0",
+                "FromPort": "443",
+                "GroupId": {
+                    "Ref": "ELBSecurityGroup"
+                },
+                "IpProtocol": "tcp",
+                "ToPort": "443"
+            },
+            "Type": "AWS::EC2::SecurityGroupIngress"
+        },
+        "ELBSecurityGroupIngresstcp9": {
+            "Properties": {
+                "CidrIp": "0.0.0.0/0",
+                "FromPort": "80",
+                "GroupId": {
+                    "Ref": "ELBSecurityGroup"
+                },
+                "IpProtocol": "tcp",
+                "ToPort": "80"
+            },
+            "Type": "AWS::EC2::SecurityGroupIngress"
+        },
+        "InboundRoute1": {
+            "Properties": {
+                "DestinationCidrBlock": "0.0.0.0/0",
+                "GatewayId": {
+                    "Ref": "InternetGateway1"
+                },
+                "RouteTableId": {
+                    "Ref": "PublicRouteTable1"
+                }
+            },
+            "Type": "AWS::EC2::Route"
+        },
+        "InternetGateway1": {
+            "Properties": {
+                "Tags": [
+                    {
+                        "Key": "Environment",
+                        "Value": "Experimental"
+                    },
+                    {
+                        "Key": "Name",
+                        "Value": {
+                            "Fn::Join": [
+                                "",
+                                [
+                                    {
+                                        "Ref": "AWS::StackName"
+                                    },
+                                    "-",
+                                    "InternetGateway1"
+                                ]
+                            ]
+                        }
+                    }
+                ]
+            },
+            "Type": "AWS::EC2::InternetGateway"
+        },
+        "InternetGateway1Attachment": {
+            "Properties": {
+                "InternetGatewayId": {
+                    "Ref": "InternetGateway1"
+                },
+                "VpcId": {
+                    "Ref": "VPC1"
+                }
+            },
+            "Type": "AWS::EC2::VPCGatewayAttachment"
+        },
+        "LoadBalancer": {
+            "Properties": {
+                "HealthCheck": {
+                    "HealthyThreshold": "5",
+                    "Interval": "40",
+                    "Target": "HTTP:8080/gmap.html",
+                    "Timeout": "30",
+                    "UnhealthyThreshold": "2"
+                },
+                "Listeners": [
+                    {
+                        "InstancePort": "8080",
+                        "InstanceProtocol": "HTTP",
+                        "LoadBalancerPort": "80",
+                        "Protocol": "HTTP"
+                    }
+                ],
+                "LoadBalancerName": "LoadBalancer",
+                "SecurityGroups": [
+                    {
+                        "Ref": "ELBSecurityGroup"
+                    }
+                ],
+                "Subnets": [
+                    {
+                        "Ref": "PublicSubnet1"
+                    }
+                ]
+            },
+            "Type": "AWS::ElasticLoadBalancing::LoadBalancer"
+        },
+        "NAT1": {
+            "Properties": {
+                "ImageId": "ami-893f53b3",
+                "InstanceType": "t2.micro",
+                "KeyName": "lazar@work",
+                "NetworkInterfaces": [
+                    {
+                        "AssociatePublicIpAddress": "true",
+                        "DeleteOnTermination": "true",
+                        "DeviceIndex": "0",
+                        "GroupSet": [
+                            {
+                                "Ref": "SecurityGroup1"
+                            }
+                        ],
+                        "SubnetId": {
+                            "Ref": "PublicSubnet1"
+                        }
+                    }
+                ],
+                "SourceDestCheck": "false",
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": {
+                            "Fn::Join": [
+                                "",
+                                [
+                                    {
+                                        "Ref": "AWS::StackName"
+                                    },
+                                    "-",
+                                    "NAT1"
+                                ]
+                            ]
+                        }
+                    }
+                ],
+                "UserData": {
+                    "Fn::Base64": {
+                        "Fn::Join": [
+                            "",
+                            [
+                                "#!/bin/bash\n",
+                                "signal_url='",
+                                {
+                                    "Ref": "natWaitHandle"
+                                },
+                                "'\n",
+                                "#direct external HTTP traffic to the webserver in the private subnet\nlocal_ip=`curl http://169.254.169.254/latest/meta-data/local-ipv4`\niptables -t nat -A PREROUTING -i eth0 -p tcp -d $local_ip --dport 80 -j DNAT --to 10.0.1.100:80 && iptables-save > /etc/sysconfig/iptables\ncurl -X PUT -H 'Content-Type:' --data-binary '{\"Status\" : \"SUCCESS\",\"Reason\" : \"Configuration Complete\",\"UniqueId\" : \"ID1234\",\"Data\" : \"NAT is ready\"}' \"$signal_url\"\n"
+                            ]
+                        ]
+                    }
+                }
+            },
+            "Type": "AWS::EC2::Instance"
+        },
+        "NAT1IpAssociation": {
+            "Properties": {
+                "EIP": "54.206.17.34",
+                "InstanceId": {
+                    "Ref": "NAT1"
+                }
+            },
+            "Type": "AWS::EC2::EIPAssociation"
+        },
+        "OutboundRoute2": {
+            "Properties": {
+                "DestinationCidrBlock": "0.0.0.0/0",
+                "InstanceId": {
+                    "Ref": "NAT1"
+                },
+                "RouteTableId": {
+                    "Ref": "PrivateRouteTable2"
+                }
+            },
+            "Type": "AWS::EC2::Route"
+        },
+        "PrivateRouteTable2": {
+            "Properties": {
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": {
+                            "Fn::Join": [
+                                "",
+                                [
+                                    {
+                                        "Ref": "AWS::StackName"
+                                    },
+                                    "-",
+                                    "PrivateRouteTable2"
+                                ]
+                            ]
+                        }
+                    }
+                ],
+                "VpcId": {
+                    "Ref": "VPC1"
+                }
+            },
+            "Type": "AWS::EC2::RouteTable"
+        },
+        "PrivateRouteTable2Association2": {
+            "Properties": {
+                "RouteTableId": {
+                    "Ref": "PrivateRouteTable2"
+                },
+                "SubnetId": {
+                    "Ref": "PrivateSubnet2"
+                }
+            },
+            "Type": "AWS::EC2::SubnetRouteTableAssociation"
+        },
+        "PrivateSubnet2": {
+            "Properties": {
+                "AvailabilityZone": "ap-southeast-2a",
+                "CidrBlock": "10.0.1.0/24",
+                "Tags": [
+                    {
+                        "Key": "Environment",
+                        "Value": "Experimental"
+                    },
+                    {
+                        "Key": "Name",
+                        "Value": {
+                            "Fn::Join": [
+                                "",
+                                [
+                                    {
+                                        "Ref": "AWS::StackName"
+                                    },
+                                    "-",
+                                    "PrivateSubnet2"
+                                ]
+                            ]
+                        }
+                    }
+                ],
+                "VpcId": {
+                    "Ref": "VPC1"
+                }
+            },
+            "Type": "AWS::EC2::Subnet"
+        },
+        "PublicRouteTable1": {
+            "Properties": {
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": {
+                            "Fn::Join": [
+                                "",
+                                [
+                                    {
+                                        "Ref": "AWS::StackName"
+                                    },
+                                    "-",
+                                    "PublicRouteTable1"
+                                ]
+                            ]
+                        }
+                    }
+                ],
+                "VpcId": {
+                    "Ref": "VPC1"
+                }
+            },
+            "Type": "AWS::EC2::RouteTable"
+        },
+        "PublicRouteTable1Association1": {
+            "Properties": {
+                "RouteTableId": {
+                    "Ref": "PublicRouteTable1"
+                },
+                "SubnetId": {
+                    "Ref": "PublicSubnet1"
+                }
+            },
+            "Type": "AWS::EC2::SubnetRouteTableAssociation"
+        },
+        "PublicSubnet1": {
+            "Properties": {
+                "AvailabilityZone": "ap-southeast-2a",
+                "CidrBlock": "10.0.0.0/24",
+                "Tags": [
+                    {
+                        "Key": "Environment",
+                        "Value": "Experimental"
+                    },
+                    {
+                        "Key": "Name",
+                        "Value": {
+                            "Fn::Join": [
+                                "",
+                                [
+                                    {
+                                        "Ref": "AWS::StackName"
+                                    },
+                                    "-",
+                                    "PublicSubnet1"
+                                ]
+                            ]
+                        }
+                    }
+                ],
+                "VpcId": {
+                    "Ref": "VPC1"
+                }
+            },
+            "Type": "AWS::EC2::Subnet"
+        },
+        "SecurityGroup1": {
+            "Properties": {
+                "GroupDescription": "Security group",
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": {
+                            "Fn::Join": [
+                                "",
+                                [
+                                    {
+                                        "Ref": "AWS::StackName"
+                                    },
+                                    "-",
+                                    "SecurityGroup1"
+                                ]
+                            ]
+                        }
+                    }
+                ],
+                "VpcId": {
+                    "Ref": "VPC1"
+                }
+            },
+            "Type": "AWS::EC2::SecurityGroup"
+        },
+        "SecurityGroup1Ingressicmp4": {
+            "Properties": {
+                "CidrIp": "0.0.0.0/0",
+                "FromPort": "-1",
+                "GroupId": {
+                    "Ref": "SecurityGroup1"
+                },
+                "IpProtocol": "icmp",
+                "ToPort": "-1"
+            },
+            "Type": "AWS::EC2::SecurityGroupIngress"
+        },
+        "SecurityGroup1Ingresstcp1": {
+            "Properties": {
+                "CidrIp": "0.0.0.0/0",
+                "FromPort": "80",
+                "GroupId": {
+                    "Ref": "SecurityGroup1"
+                },
+                "IpProtocol": "tcp",
+                "ToPort": "80"
+            },
+            "Type": "AWS::EC2::SecurityGroupIngress"
+        },
+        "SecurityGroup1Ingresstcp2": {
+            "Properties": {
+                "CidrIp": "0.0.0.0/0",
+                "FromPort": "443",
+                "GroupId": {
+                    "Ref": "SecurityGroup1"
+                },
+                "IpProtocol": "tcp",
+                "ToPort": "443"
+            },
+            "Type": "AWS::EC2::SecurityGroupIngress"
+        },
+        "SecurityGroup1Ingresstcp3": {
+            "Properties": {
+                "CidrIp": "192.104.44.129/32",
+                "FromPort": "22",
+                "GroupId": {
+                    "Ref": "SecurityGroup1"
+                },
+                "IpProtocol": "tcp",
+                "ToPort": "22"
+            },
+            "Type": "AWS::EC2::SecurityGroupIngress"
+        },
+        "VPC1": {
+            "Properties": {
+                "CidrBlock": "10.0.0.0/16",
+                "Tags": [
+                    {
+                        "Key": "Environment",
+                        "Value": "Experimental"
+                    },
+                    {
+                        "Key": "Name",
+                        "Value": {
+                            "Fn::Join": [
+                                "",
+                                [
+                                    {
+                                        "Ref": "AWS::StackName"
+                                    },
+                                    "-",
+                                    "VPC1"
+                                ]
+                            ]
+                        }
+                    }
+                ]
+            },
+            "Type": "AWS::EC2::VPC"
+        },
+        "WaitForNAT1": {
+            "DependsOn": "NAT1",
+            "Properties": {
+                "Handle": {
+                    "Ref": "natWaitHandle"
+                },
+                "Timeout": "300"
+            },
+            "Type": "AWS::CloudFormation::WaitCondition"
+        },
+        "Webserver": {
+            "Properties": {
+                "HealthCheckGracePeriod": "300",
+                "HealthCheckType": "ELB",
+                "LaunchConfigurationName": {
+                    "Ref": "WebserverLaunchConfig"
+                },
+                "LoadBalancerNames": [
+                    {
+                        "Ref": "LoadBalancer"
+                    }
+                ],
+                "MaxSize": 1,
+                "MinSize": 1,
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "PropagateAtLaunch": true,
+                        "Value": {
+                            "Fn::Join": [
+                                "",
+                                [
+                                    {
+                                        "Ref": "AWS::StackName"
+                                    },
+                                    "-",
+                                    "Webserver"
+                                ]
+                            ]
+                        }
+                    }
+                ],
+                "VPCZoneIdentifier": [
+                    {
+                        "Ref": "PrivateSubnet2"
+                    }
+                ]
+            },
+            "Type": "AWS::AutoScaling::AutoScalingGroup"
+        },
+        "WebserverLaunchConfig": {
+            "DependsOn": "WaitForNAT1",
+            "Metadata": {
+                "AWS::CloudFormation::Init": {
+                    "configSets": {
+                        "default": [
+                            "on_create",
+                            {
+                                "ConfigSet": "update"
+                            }
+                        ],
+                        "update": [
+                            "on_update"
+                        ]
+                    },
+                    "on_create": {
+                        "commands": {
+                            "00-disable-webapp-auto-deployment": {
+                                "command": "sed -i 's/autoDeploy=\"true\"/autoDeploy=\"false\"/' /usr/share/tomcat7/conf/server.xml"
+                            },
+                            "20-allow-sudo-without-tty": {
+                                "command": "sed -i '/Defaults    requiretty/s/^/#/g' /etc/sudoers"
+                            },
+                            "30-init-postgres": {
+                                "command": "sudo -u postgres initdb -D /var/lib/pgsql92/data -A md5 --pwfile=/var/lib/pgsql92/password"
+                            },
+                            "40-persist-hostname": {
+                                "command": "sed -i 's/HOSTNAME=localhost.localdomain/HOSTNAME=portal-dev.localdomain/' /etc/sysconfig/network"
+                            },
+                            "50-set-hostname": {
+                                "command": "hostname portal-dev"
+                            },
+                            "60-set-hostname-resolution": {
+                                "command": "echo '127.0.0.1   portal-dev portal-dev.localdomain localhost localhost.localdomain' > /etc/hosts"
+                            }
+                        },
+                        "files": {
+                            "/etc/cfn/cfn-hup.conf": {
+                                "content": {
+                                    "Fn::Join": [
+                                        "",
+                                        [
+                                            "[main]\n",
+                                            "stack=",
+                                            {
+                                                "Ref": "AWS::StackId"
+                                            },
+                                            "\n",
+                                            "region=",
+                                            {
+                                                "Ref": "AWS::Region"
+                                            },
+                                            "\n"
+                                        ]
+                                    ]
+                                },
+                                "group": "root",
+                                "mode": "000400",
+                                "owner": "root"
+                            },
+                            "/etc/cfn/hooks.d/cfn-auto-reloader.conf": {
+                                "content": {
+                                    "Fn::Join": [
+                                        "",
+                                        [
+                                            "[cfn-auto-reloader-hook]\n",
+                                            "triggers=post.update\n",
+                                            "path=Resources.",
+                                            "WebserverLaunchConfig",
+                                            ".Metadata.AWS::CloudFormation::Init\n",
+                                            "action=/opt/aws/bin/cfn-init",
+                                            " --stack ",
+                                            {
+                                                "Ref": "AWS::StackId"
+                                            },
+                                            " --resource ",
+                                            "WebserverLaunchConfig",
+                                            " --region ",
+                                            {
+                                                "Ref": "AWS::Region"
+                                            },
+                                            " -c update\n",
+                                            "runas=root\n"
+                                        ]
+                                    ]
+                                }
+                            },
+                            "/root/.pgpass": {
+                                "content": "localhost:5432:*:postgres:rxR4bNiMKl",
+                                "mode": "0600"
+                            },
+                            "/var/lib/pgsql92/password": {
+                                "content": "rxR4bNiMKl",
+                                "mode": "0600",
+                                "owner": "postgres"
+                            }
+                        },
+                        "packages": {
+                            "yum": {
+                                "postgresql92-server": [],
+                                "tomcat7": [],
+                                "unzip": [],
+                                "wget": []
+                            }
+                        },
+                        "services": {
+                            "sysvinit": {
+                                "cfn-hup": {
+                                    "enabled": "true",
+                                    "ensureRunning": "true",
+                                    "files": [
+                                        "/etc/cfn/cfn-hup.conf",
+                                        "/etc/cfn/hooks.d/cfn-auto-reloader.conf"
+                                    ]
+                                },
+                                "postgresql92": {
+                                    "enabled": "true",
+                                    "ensureRunning": "true"
+                                },
+                                "tomcat7": {
+                                    "enabled": "true",
+                                    "ensureRunning": "true"
+                                }
+                            }
+                        }
+                    },
+                    "on_update": {
+                        "commands": {
+                            "00-stop-tomcat": {
+                                "command": "service tomcat7 stop"
+                            },
+                            "10-setup-geonetwork-database": {
+                                "command": "unzip -p /usr/share/tomcat7/webapps/geonetwork.war WEB-INF/classes/geonetwork-db.sql| sed 's/${password}/QWDeOXc7GV/' | psql -U postgres"
+                            },
+                            "20-undeploy-geonetwork": {
+                                "command": "rm -rf /usr/share/tomcat7/webapps/geonetwork"
+                            },
+                            "30-undeploy-geoscience-portal": {
+                                "command": "rm -rf /usr/share/tomcat7/webapps/ROOT"
+                            },
+                            "35-set-geonetwork-password": {
+                                "command": "(cd /usr/share/tomcat7/webapps && unzip -q geonetwork.war -d geonetwork && chown -R tomcat.tomcat geonetwork && sed -i 's/${password}/QWDeOXc7GV/' geonetwork/WEB-INF/config-db/jdbc.properties)"
+                            },
+                            "40-start-tomcat": {
+                                "command": "service tomcat7 start"
+                            }
+                        },
+                        "files": {
+                            "/usr/share/tomcat7/webapps/ROOT.war": {
+                                "group": "tomcat",
+                                "owner": "tomcat",
+                                "source": "https://ga-gov-au.s3.amazonaws.com/mvn-snapshot/geoscience-portal-1.0.0-20151206.052358-140.war?Expires=1481056876&Signature=F71Rlgmmw4jkwJHZo1KZH5z09hw%3D&AWSAccessKeyId=AKIAITQ6YRXEB6SZGL5A"
+                            },
+                            "/usr/share/tomcat7/webapps/geonetwork.war": {
+                                "group": "tomcat",
+                                "owner": "tomcat",
+                                "source": "https://ga-gov-au.s3.amazonaws.com/mvn-snapshot/geoscience-portal-geonetwork-1.0.0-20151129.234805-68.war?Expires=1481056914&Signature=JV0thqRg%2F8D93pNuPQND4as9OOA%3D&AWSAccessKeyId=AKIAITQ6YRXEB6SZGL5A"
+                            }
+                        }
+                    }
+                }
+            },
+            "Properties": {
+                "ImageId": "ami-48d38c2b",
+                "InstanceType": "t2.medium",
+                "KeyName": "lazar@work",
+                "SecurityGroups": [
+                    {
+                        "Ref": "WebserverSecurityGroup"
+                    }
+                ],
+                "UserData": {
+                    "Fn::Base64": "#cloud-config\n\nhostname: portal-dev\n\nruncmd:\n - /opt/aws/bin/cfn-init --region ap-southeast-2 -s GeosciencePortal -r WebserverLaunchConfig\n"
+                }
+            },
+            "Type": "AWS::AutoScaling::LaunchConfiguration"
+        },
+        "WebserverSecurityGroup": {
+            "Properties": {
+                "GroupDescription": "Allow SSH from GA and HTTP from anywhere.",
+                "SecurityGroupIngress": [],
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": {
+                            "Fn::Join": [
+                                "",
+                                [
+                                    {
+                                        "Ref": "AWS::StackName"
+                                    },
+                                    "-",
+                                    "WebserverSecurityGroup"
+                                ]
+                            ]
+                        }
+                    }
+                ],
+                "VpcId": {
+                    "Ref": "VPC1"
+                }
+            },
+            "Type": "AWS::EC2::SecurityGroup"
+        },
+        "WebserverSecurityGroupIngressicmp7": {
+            "Properties": {
+                "CidrIp": "0.0.0.0/0",
+                "FromPort": "-1",
+                "GroupId": {
+                    "Ref": "WebserverSecurityGroup"
+                },
+                "IpProtocol": "icmp",
+                "ToPort": "-1"
+            },
+            "Type": "AWS::EC2::SecurityGroupIngress"
+        },
+        "WebserverSecurityGroupIngresstcp5": {
+            "Properties": {
+                "CidrIp": "0.0.0.0/0",
+                "FromPort": "80",
+                "GroupId": {
+                    "Ref": "WebserverSecurityGroup"
+                },
+                "IpProtocol": "tcp",
+                "ToPort": "80"
+            },
+            "Type": "AWS::EC2::SecurityGroupIngress"
+        },
+        "WebserverSecurityGroupIngresstcp6": {
+            "Properties": {
+                "CidrIp": "0.0.0.0/0",
+                "FromPort": "8080",
+                "GroupId": {
+                    "Ref": "WebserverSecurityGroup"
+                },
+                "IpProtocol": "tcp",
+                "ToPort": "8080"
+            },
+            "Type": "AWS::EC2::SecurityGroupIngress"
+        },
+        "WebserverSecurityGroupIngresstcp8": {
+            "Properties": {
+                "CidrIp": "0.0.0.0/0",
+                "FromPort": "22",
+                "GroupId": {
+                    "Ref": "WebserverSecurityGroup"
+                },
+                "IpProtocol": "tcp",
+                "ToPort": "22"
+            },
+            "Type": "AWS::EC2::SecurityGroupIngress"
+        },
+        "natWaitHandle": {
+            "Type": "AWS::CloudFormation::WaitConditionHandle"
+        }
+    }
+}
