@@ -25,7 +25,6 @@ PUBLIC_GA_GOV_AU_PTR = '192.104.44.129'
 SYSTEM_PREFIX = "GeosciencePortal"
 IMAGE_ID = "ami-48d38c2b"
 KEY_PAIR_NAME = "lazar@work"
-NAT_IP = "54.206.17.34"
 GA_PUBLIC_NEXUS = "http://maven-int.ga.gov.au/nexus/service/local/artifact/maven/redirect?r=public"
 
 def _generate_password():
@@ -40,11 +39,6 @@ region = Ref("AWS::Region")
 
 def stack():
     template = SingleAZenv(KEY_PAIR_NAME)
-    template.add_resource(ec2.EIPAssociation(
-        template.nat.title + "IpAssociation",
-        EIP=NAT_IP,
-        InstanceId=Ref(template.nat.title)
-    ))
     security_group = template.add_resource(webserver_security_group(template.vpc))
     add_http_ingress(template, security_group)
     add_tomcat_ingress(template, security_group)
