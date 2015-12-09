@@ -24,28 +24,28 @@ class SingleAZenv(Template):
 
     # configure network
     self.public_subnet = add_subnet(self, self.vpc, PUBLIC_SUBNET_NAME, PUBLIC_SUBNET_AZ1_CIDR)
-    public_route_table = add_route_table(self, self.vpc, "Public")
-    add_route_table_subnet_association (self, public_route_table, self.public_subnet)
+    self.public_route_table = add_route_table(self, self.vpc, "Public")
+    add_route_table_subnet_association(self, self.public_route_table, self.public_subnet)
 
-    internet_gateway = add_internet_gateway(self, self.vpc)
-    add_route_ingress_via_gateway(self, public_route_table, internet_gateway, PUBLIC_CIDR)
+    self.internet_gateway = add_internet_gateway(self)
+    self.internet_gateway_attachment = add_internet_gateway_attachment(self, self.vpc, self.internet_gateway)
+    add_route_ingress_via_gateway(self, self.public_route_table, self.internet_gateway, PUBLIC_CIDR)
     self.private_subnet = add_subnet(self, self.vpc, PRIVATE_SUBNET_NAME, PRIVATE_SUBNET_AZ1_CIDR)
-    private_route_table = add_route_table(self, self.vpc, "Private")
-    add_route_table_subnet_association (self, private_route_table, self.private_subnet)
+    self.private_route_table = add_route_table(self, self.vpc, "Private")
+    add_route_table_subnet_association (self, self.private_route_table, self.private_subnet)
 
-    #NAT Security Group
-    nat_sg = add_security_group(self, self.vpc)
+    self.nat_sg = add_security_group(self, self.vpc)
     # enable inbound http access to the NAT from anywhere
-    add_security_group_ingress(self, nat_sg, 'tcp', '80', '80', cidr=PUBLIC_CIDR)
+    # add_security_group_ingress(self, self.nat_sg, 'tcp', '80', '80', cidr=PUBLIC_CIDR)
     # enable inbound https access to the NAT from anywhere
-    add_security_group_ingress(self, nat_sg, 'tcp', '443', '443', cidr=PUBLIC_CIDR)
+    # add_security_group_ingress(self, self.nat_sg, 'tcp', '443', '443', cidr=PUBLIC_CIDR)
     # enable inbound SSH  access to the NAT from GA
-    add_security_group_ingress(self, nat_sg, 'tcp', '22', '22', cidr=PUBLIC_GA_GOV_AU_CIDR)
+    # add_security_group_ingress(self, self.nat_sg, 'tcp', '22', '22', cidr=PUBLIC_GA_GOV_AU_CIDR)
     # enable inbound ICMP access to the NAT from anywhere
-    add_security_group_ingress(self, nat_sg, 'icmp', '-1', '-1', cidr=PUBLIC_CIDR)
+    # add_security_group_ingress(self, self.nat_sg, 'icmp', '-1', '-1', cidr=PUBLIC_CIDR)
 
-    self.nat = add_nat(self, self.public_subnet, key_pair_name, nat_sg)
-    add_route_egress_via_NAT(self, private_route_table, self.nat)
+    self.nat = add_nat(self, self.public_subnet, key_pair_name, self.nat_sg)
+    add_route_egress_via_NAT(self, self.private_route_table, self.nat)
 
 class DualAZenv(Template):
 
@@ -58,7 +58,8 @@ class DualAZenv(Template):
         self.public_subnet1 = add_subnet(self, self.vpc, PUBLIC_SUBNET_NAME, PUBLIC_SUBNET_AZ1_CIDR)
         self.public_route_table1 = add_route_table(self, self.vpc, "Public")
         add_route_table_subnet_association(self, self.public_route_table1, self.public_subnet1)
-        self.internet_gateway = add_internet_gateway(self, self.vpc)
+        self.internet_gateway = add_internet_gateway(self)
+        self.internet_gateway_attachment = add_internet_gateway_attachment(self, self.vpc, self.internet_gateway)
         add_route_ingress_via_gateway(self, self.public_route_table1, self.internet_gateway, PUBLIC_CIDR)
         self.private_subnet1 = add_subnet(self, self.vpc, PRIVATE_SUBNET_NAME, PRIVATE_SUBNET_AZ1_CIDR)
         self.private_route_table1 = add_route_table(self, self.vpc, "Private")
@@ -101,4 +102,4 @@ class DualAZenv(Template):
         self.web_instance1 = add_web_instance(self, key_pair_name, self.public_subnet1, self.web_security_group, WEB_SERVER_AZ1_USER_DATA)
         self.web_instance2 = add_web_instance(self, key_pair_name, self.public_subnet2, self.web_security_group, WEB_SERVER_AZ2_USER_DATA)
 
-        self.load_balancer = add_load_balancer(self, [self.web_instance1, self.web_instance2], [self.public_subnet1, self.public_subnet2], "HTTP:80/error/noindex.html", [self.web_security_group])
+        self.load_balancer = add_load_balancer(self, [self.public_subnet1, self.public_subnet2], "HTTP:80/error/noindex.html", [self.web_security_group], resources=[self.web_instance1, self.web_instance2])
