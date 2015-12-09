@@ -87,7 +87,6 @@ def add_vpc(template, cidr):
                                                   Environment=ENVIRONMENT_NAME)))
     return vpc
 
-
 def add_subnet(template, vpc, name, cidr):
     global num_subnets
     num_subnets += 1
@@ -100,7 +99,6 @@ def add_subnet(template, vpc, name, cidr):
                                                      Tags=Tags(Name=name_tag(title),
                                                                Environment=ENVIRONMENT_NAME)))
     return public_subnet
-
 
 def add_route_table(template, vpc, route_type=""):
     global num_route_tables
@@ -125,7 +123,6 @@ def add_route_table_subnet_association(template, route_table, subnet):
         RouteTableId=Ref(route_table.title),
     ))
 
-
 def add_internet_gateway(template):
     global num_internet_gateways
     num_internet_gateways = num_internet_gateways + 1
@@ -147,7 +144,6 @@ def add_internet_gateway_attachment(template, vpc, internet_gateway):
 
     return gateway_attachment
 
-
 def add_route_ingress_via_gateway(template, route_table, internet_gateway, cidr):
     global num_routes
     num_routes += 1
@@ -158,7 +154,6 @@ def add_route_ingress_via_gateway(template, route_table, internet_gateway, cidr)
         DestinationCidrBlock=cidr
     ))
 
-
 def add_route_egress_via_NAT(template, route_table, nat):
     global num_routes
     num_routes += 1
@@ -168,7 +163,6 @@ def add_route_egress_via_NAT(template, route_table, nat):
                                     RouteTableId=Ref(route_table.title),
                                     DestinationCidrBlock="0.0.0.0/0",
                                    ))
-
 
 def add_security_group(template, vpc):
     global num_security_groups
@@ -181,8 +175,6 @@ def add_security_group(template, vpc):
                                                  Tags=Tags(Name=name_tag(sg_title))))
 
     return sg
-
-
 
 def add_security_group_ingress(template, security_group, protocol, from_port, to_port, cidr="", source_security_group=""):
 
@@ -234,7 +226,6 @@ def add_security_group_egress(template, security_group, protocol, from_port, to_
 
     return sg_egress
 
-
 def add_nat(template, public_subnet, key_pair_name, security_group, natIP=NAT_IP_ADDRESS):
     global num_nats
     num_nats += 1
@@ -284,7 +275,6 @@ def add_web_instance(template, key_pair_name, subnet, security_group, userdata):
     ))
     return instance
 
-
 def get_refs(items):
     refs = []
     for item in items:
@@ -298,7 +288,6 @@ def get_titles(items):
         titles.append(item.title)
 
     return titles
-
 
 def add_load_balancer(template, subnets, healthcheck_target, security_groups, resources=""):
     global num_load_balancers
