@@ -188,7 +188,12 @@ def add_security_group_ingress(template, security_group, protocol, from_port, to
 
     global num_ingress_rules
     num_ingress_rules += 1
-    title = security_group.title + 'Ingress' + protocol + str(num_ingress_rules)
+
+    if not protocol == "-1":
+        title = security_group.title + 'Ingress' + protocol + str(num_ingress_rules)
+    else:
+        title = security_group.title + 'IngressAll' + str(num_ingress_rules)
+
     sg_ingress = template.add_resource(ec2.SecurityGroupIngress(title,
                                                                 IpProtocol=protocol,
                                                                 FromPort=from_port,
@@ -208,7 +213,12 @@ def add_security_group_egress(template, security_group, protocol, from_port, to_
 
     global num_egress_rules
     num_egress_rules += 1
-    title = security_group.title + 'Egress' + protocol + str(num_egress_rules)
+
+    if not protocol == "-1":
+        title = security_group.title + 'Egress' + protocol + str(num_egress_rules)
+    else:
+        title = security_group.title + 'EgressAll' + str(num_egress_rules)
+
     sg_egress = template.add_resource(ec2.SecurityGroupEgress(title,
                                                               IpProtocol=protocol,
                                                               FromPort=from_port,
