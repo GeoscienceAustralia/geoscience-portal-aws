@@ -19,7 +19,7 @@ class SingleAZenv(Template):
 
    def __init__(self, key_pair_name):
     """ Public Class to create a single AZ environment in a vpc """
-    super(SingleAZenv,self).__init__()
+    super(SingleAZenv, self).__init__()
     self.vpc = addVPC(self)
 
     # configure network
@@ -34,15 +34,16 @@ class SingleAZenv(Template):
     self.private_route_table = add_route_table(self, self.vpc, "Private")
     add_route_table_subnet_association (self, self.private_route_table, self.private_subnet)
 
+    # NAT Security Group
     self.nat_sg = add_security_group(self, self.vpc)
     # enable inbound http access to the NAT from anywhere
-    # add_security_group_ingress(self, self.nat_sg, 'tcp', '80', '80', cidr=PUBLIC_CIDR)
+    add_security_group_ingress(self, self.nat_sg, 'tcp', '80', '80', cidr=PUBLIC_CIDR)
     # enable inbound https access to the NAT from anywhere
-    # add_security_group_ingress(self, self.nat_sg, 'tcp', '443', '443', cidr=PUBLIC_CIDR)
+    add_security_group_ingress(self, self.nat_sg, 'tcp', '443', '443', cidr=PUBLIC_CIDR)
     # enable inbound SSH  access to the NAT from GA
-    # add_security_group_ingress(self, self.nat_sg, 'tcp', '22', '22', cidr=PUBLIC_GA_GOV_AU_CIDR)
+    add_security_group_ingress(self, self.nat_sg, 'tcp', '22', '22', cidr=PUBLIC_GA_GOV_AU_CIDR)
     # enable inbound ICMP access to the NAT from anywhere
-    # add_security_group_ingress(self, self.nat_sg, 'icmp', '-1', '-1', cidr=PUBLIC_CIDR)
+    add_security_group_ingress(self, self.nat_sg, 'icmp', '-1', '-1', cidr=PUBLIC_CIDR)
 
     self.nat = add_nat(self, self.public_subnet, key_pair_name, self.nat_sg)
     add_route_egress_via_NAT(self, self.private_route_table, self.nat)
@@ -92,14 +93,3 @@ class DualAZenv(Template):
 
         self.nat = add_nat(self, self.public_subnet2, key_pair_name, self.nat_security_group)
         add_route_egress_via_NAT(self, self.private_route_table2, self.nat)
-
-        # Web Security Group
-        self.web_security_group = add_security_group(self, self.vpc)
-        add_security_group_ingress(self, self.web_security_group, 'tcp', '80', '80', cidr=PUBLIC_CIDR)
-        add_security_group_ingress(self, self.web_security_group, 'tcp', '443', '443', cidr=PUBLIC_CIDR)
-        add_security_group_ingress(self, self.web_security_group, 'tcp', '22', '22', cidr=PUBLIC_GA_GOV_AU_CIDR)
-
-        self.web_instance1 = add_web_instance(self, key_pair_name, self.public_subnet1, self.web_security_group, WEB_SERVER_AZ1_USER_DATA)
-        self.web_instance2 = add_web_instance(self, key_pair_name, self.public_subnet2, self.web_security_group, WEB_SERVER_AZ2_USER_DATA)
-
-        self.load_balancer = add_load_balancer(self, [self.public_subnet1, self.public_subnet2], "HTTP:80/error/noindex.html", [self.web_security_group], resources=[self.web_instance1, self.web_instance2])
