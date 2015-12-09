@@ -138,9 +138,9 @@ def add_internet_gateway_attachment(template, vpc, internet_gateway):
 
     attachment_title = internet_gateway.title + "Attachment"
     gateway_attachment = template.add_resource(ec2.VPCGatewayAttachment(attachment_title,
-                                                   VpcId=Ref(vpc.title),
-                                                   InternetGatewayId=Ref(internet_gateway.title),
-                                                   ))
+                                                                        VpcId=Ref(vpc.title),
+                                                                        InternetGatewayId=Ref(internet_gateway.title),
+                                                                       ))
 
     return gateway_attachment
 
@@ -336,7 +336,7 @@ def add_auto_scaling_group(template, max_instances, subnets, instance="", launch
     auto_scaling_group_title = "AutoScalingGroup" + str(num_auto_scaling_groups)
 
     asg = template.add_resource(AutoScalingGroup(
-        auto_scaling_group_title,
+        auto_scaling_group_title
         MinSize=ASG_MIN_INSTANCES,
         MaxSize=max_instances,
         VPCZoneIdentifier=subnet_refs,
