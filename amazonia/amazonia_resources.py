@@ -338,7 +338,7 @@ def add_load_balancer(template, subnets, healthcheck_target, security_groups, re
 
     return return_elb
 
-def add_auto_scaling_group(template, health_check_type, launch_configuration, max_instances, load_balancer, subnets, dependson="", multiAZ=False):
+def add_auto_scaling_group(template, max_instances, subnets, instance="", launch_configuration="", health_check_type="", dependson="", load_balancer="", multiAZ=False):
     global num_auto_scaling_groups
     num_auto_scaling_groups += 1
 
@@ -348,16 +348,19 @@ def add_auto_scaling_group(template, health_check_type, launch_configuration, ma
 
     asg = template.add_resource(AutoScalingGroup(
         auto_scaling_group_title,
-        HealthCheckType=health_check_type,
-        LaunchConfigurationName=Ref(launch_configuration.title),
         MinSize=ASG_MIN_INSTANCES,
         MaxSize=max_instances,
-        LoadBalancerNames=[Ref(load_balancer.title)],
         VPCZoneIdentifier=subnet_refs,
         Tags=[
             Tag("Name", name_tag(auto_scaling_group_title), True)
         ],
     ))
+
+    if not launch_configuration == "":
+        asg.LaunchConfigurationName = Ref(launch_configuration.title)
+
+    if not instance == "":
+        asg.InstanceId = Ref(instance.title)
 
     if multiAZ:
         asg.AvailabilityZones = AVAILABILITY_ZONES
@@ -365,7 +368,9 @@ def add_auto_scaling_group(template, health_check_type, launch_configuration, ma
         asg.AvailabilityZones = [AVAILABILITY_ZONES[current_az]]
 
     if health_check_type == "ELB":
-        asg.HealthCheckGracePeriod = 600
+        asg.LoadBalancerNames = [Ref(load_balancer.title)]
+        asg.HealthCheckType = health_check_type
+        asg.HealthCheckGracePeriod = 300
 
     if not dependson == "":
         dependson_titles = get_titles(dependson)
