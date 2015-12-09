@@ -336,7 +336,7 @@ def add_auto_scaling_group(template, max_instances, subnets, instance="", launch
     auto_scaling_group_title = "AutoScalingGroup" + str(num_auto_scaling_groups)
 
     asg = template.add_resource(AutoScalingGroup(
-        auto_scaling_group_title
+        auto_scaling_group_title,
         MinSize=ASG_MIN_INSTANCES,
         MaxSize=max_instances,
         VPCZoneIdentifier=subnet_refs,
