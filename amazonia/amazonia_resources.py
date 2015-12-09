@@ -126,7 +126,7 @@ def add_route_table_subnet_association(template, route_table, subnet):
     ))
 
 
-def add_internet_gateway(template, vpc):
+def add_internet_gateway(template):
     global num_internet_gateways
     num_internet_gateways = num_internet_gateways + 1
     internet_gateway_title = "InternetGateway" + str(num_internet_gateways)
@@ -135,13 +135,17 @@ def add_internet_gateway(template, vpc):
                                                                  Tags=Tags(Name=name_tag(internet_gateway_title),
                                                                            Environment=ENVIRONMENT_NAME)
                                                                 ))
+    return internet_gateway
 
-    attachment_title = internet_gateway_title + "Attachment"
-    template.add_resource(ec2.VPCGatewayAttachment(attachment_title,
+def add_internet_gateway_attachment(template, vpc, internet_gateway):
+
+    attachment_title = internet_gateway.title + "Attachment"
+    gateway_attachment = template.add_resource(ec2.VPCGatewayAttachment(attachment_title,
                                                    VpcId=Ref(vpc.title),
                                                    InternetGatewayId=Ref(internet_gateway.title),
-                                                  ))
-    return internet_gateway
+                                                   ))
+
+    return gateway_attachment
 
 
 def add_route_ingress_via_gateway(template, route_table, internet_gateway, cidr):
