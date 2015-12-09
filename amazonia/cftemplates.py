@@ -93,3 +93,4 @@ class DualAZenv(Template):
 
         self.nat = add_nat(self, self.public_subnet2, key_pair_name, self.nat_security_group)
         add_route_egress_via_NAT(self, self.private_route_table2, self.nat)
+        
