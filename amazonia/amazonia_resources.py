@@ -138,9 +138,9 @@ def add_internet_gateway_attachment(template, vpc, internet_gateway):
 
     attachment_title = internet_gateway.title + "Attachment"
     gateway_attachment = template.add_resource(ec2.VPCGatewayAttachment(attachment_title,
-                                                   VpcId=Ref(vpc.title),
-                                                   InternetGatewayId=Ref(internet_gateway.title),
-                                                   ))
+                                                                        VpcId=Ref(vpc.title),
+                                                                        InternetGatewayId=Ref(internet_gateway.title),
+                                                                       ))
 
     return gateway_attachment
 
