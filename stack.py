@@ -38,70 +38,73 @@ stack_id = Ref("AWS::StackId")
 stack_name = Ref("AWS:StackName")
 region = Ref("AWS::Region")
 
-def stack():
-    template = SingleAZenv(KEY_PAIR_NAME)
-    security_group = template.add_resource(webserver_security_group(template.vpc))
-    add_http_ingress(template, security_group)
-    add_tomcat_ingress(template, security_group)
-    add_icmp_ingress(template, security_group)
-    add_ssh_ingress(template, security_group)
+class GeosciencePortalStack(SingleAZenv):
+    def __init__(self):
+        super(GeosciencePortalStack, self).__init__(KEY_PAIR_NAME)
 
-    nat_wait_handle = template.add_resource(cf.WaitConditionHandle("natWaitHandle"))
-    wait_title = "WaitFor" + template.nat.title
-    nat_wait = template.add_resource(cf.WaitCondition(
-        wait_title,
-        Handle=Ref(nat_wait_handle),
-        DependsOn=template.nat.title,
-        Timeout="300",
-    ))
+        security_group = self.add_resource(webserver_security_group(self.vpc))
+        add_http_ingress(self, security_group)
+        add_tomcat_ingress(self, security_group)
+        add_icmp_ingress(self, security_group)
+        add_ssh_ingress(self, security_group)
 
-    webserver_launch_config = make_webserver(nat_wait, security_group)
-    template.add_resource(webserver_launch_config)
+        nat_wait_handle = self.add_resource(cf.WaitConditionHandle("natWaitHandle"))
+        wait_title = "WaitFor" + self.nat.title
+        nat_wait = self.add_resource(cf.WaitCondition(
+            wait_title,
+            Handle=Ref(nat_wait_handle),
+            DependsOn=self.nat.title,
+            Timeout="300",
+        ))
 
-    with open("nat-init.sh", "r") as user_data:
-        template.nat.UserData = Base64(Join("", ["#!/bin/bash\n", "signal_url='", Ref(nat_wait_handle), "'\n", user_data.read()]))
+        webserver_launch_config = make_webserver(nat_wait, security_group)
+        self.add_resource(webserver_launch_config)
 
-    load_balancer_title = "LoadBalancer"
-    load_balancer = template.add_resource(elb.LoadBalancer(
-        load_balancer_title,
-        # ConnectionDrainingPolicy=elb.ConnectionDrainingPolicy(
-        #     Enabled=True,
-        #     Timeout=120,
-        # ),
-        Subnets=[Ref(template.public_subnet)],
-        HealthCheck=elb.HealthCheck(
-            Target="HTTP:8080/gmap.html",
-            HealthyThreshold="2",
-            UnhealthyThreshold="5",
-            Interval="60",
-            Timeout="30",
-        ),
-        Listeners=[
-            elb.Listener(
-                LoadBalancerPort="80",
-                InstancePort="8080",
-                Protocol="HTTP",
-                InstanceProtocol="HTTP",
+        with open("nat-init.sh", "r") as user_data:
+            self.nat.UserData = Base64(Join("", ["#!/bin/bash\n", "signal_url='", Ref(nat_wait_handle), "'\n", user_data.read()]))
+
+        load_balancer_title = "LoadBalancer"
+        load_balancer = self.add_resource(elb.LoadBalancer(
+            load_balancer_title,
+            Tags=Tags(
+                Name=name_tag(load_balancer_title),
             ),
-        ],
-        SecurityGroups=[Ref(elb_security_group(template))],
-        LoadBalancerName=load_balancer_title
-    ))
+            # ConnectionDrainingPolicy=elb.ConnectionDrainingPolicy(
+            #     Enabled=True,
+            #     Timeout=120,
+            # ),
+            Subnets=[Ref(self.public_subnet)],
+            HealthCheck=elb.HealthCheck(
+                Target="HTTP:8080/gmap.html",
+                HealthyThreshold="2",
+                UnhealthyThreshold="5",
+                Interval="60",
+                Timeout="30",
+            ),
+            Listeners=[
+                elb.Listener(
+                    LoadBalancerPort="80",
+                    InstancePort="8080",
+                    Protocol="HTTP",
+                    InstanceProtocol="HTTP",
+                ),
+            ],
+            SecurityGroups=[Ref(elb_security_group(self))],
+            LoadBalancerName=load_balancer_title
+        ))
 
-    ag_title = "Webserver"
-    template.add_resource(auto.AutoScalingGroup(
-        ag_title,
-        HealthCheckType="ELB",
-        HealthCheckGracePeriod="300",
-        LaunchConfigurationName=Ref(webserver_launch_config),
-        MinSize=1,
-        MaxSize=1,
-        VPCZoneIdentifier=[Ref(template.private_subnet)],
-        LoadBalancerNames=[Ref(load_balancer)],
-        Tags=[auto.Tag("Name", name_tag(ag_title), True)],
-    ))
-
-    return template
+        ag_title = "Webserver"
+        self.add_resource(auto.AutoScalingGroup(
+            ag_title,
+            HealthCheckType="ELB",
+            HealthCheckGracePeriod="300",
+            LaunchConfigurationName=Ref(webserver_launch_config),
+            MinSize=1,
+            MaxSize=1,
+            VPCZoneIdentifier=[Ref(self.private_subnet)],
+            LoadBalancerNames=[Ref(load_balancer)],
+            Tags=[auto.Tag("Name", name_tag(ag_title), True)],
+        ))
 
 def geoscience_portal_version():
     return sys.argv[1]
@@ -336,4 +339,4 @@ def add_icmp_ingress(template, security_group, cidr='0.0.0.0/0'):
     """Return an ingress for the given security group to allow ICMP traffic."""
     return add_security_group_ingress(template, security_group, "icmp", "-1", "-1", cidr)
 
-print(stack().to_json())
+print(GeosciencePortalStack().to_json())
