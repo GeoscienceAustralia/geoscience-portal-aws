@@ -22,7 +22,6 @@ from amazonia.cftemplates import SingleAZenv
 from amazonia.amazonia_resources import name_tag, add_security_group_ingress
 
 PUBLIC_GA_GOV_AU_PTR = '192.104.44.129'
-SYSTEM_PREFIX = "GeosciencePortal2"
 IMAGE_ID = "ami-48d38c2b"
 KEY_PAIR_NAME = "lazar@work"
 GA_PUBLIC_NEXUS = "http://maven-int.ga.gov.au/nexus/service/local/artifact/maven/redirect?r=public"
@@ -63,7 +62,7 @@ class GeosciencePortalStack(SingleAZenv):
         with open("nat-init.sh", "r") as user_data:
             self.nat.UserData = Base64(Join("", ["#!/bin/bash\n", "signal_url='", Ref(nat_wait_handle), "'\n", user_data.read()]))
 
-        load_balancer_title = SYSTEM_PREFIX + "LoadBalancer"
+        load_balancer_title = system_prefix() + "LoadBalancer"
         load_balancer = self.add_resource(elb.LoadBalancer(
             load_balancer_title,
             Tags=Tags(
@@ -111,6 +110,12 @@ def geoscience_portal_version():
 
 def geoscience_portal_geonetwork_version():
     return sys.argv[2]
+
+def environment():
+    return sys.argv[3]
+
+def system_prefix():
+    return "GeosciencePortal" + environment()
 
 def get_nexus_artifact_url(group_id, artifact_id, version):
     arg = GA_PUBLIC_NEXUS + '&g=' + group_id + '&a=' + artifact_id + '&v=' + version + '&e=war'
@@ -282,7 +287,7 @@ def make_webserver(nat_wait, security_group):
         )
     )
     with open("webserver-init.sh", "r") as user_data:
-        instance.UserData = Base64(user_data.read())
+        instance.UserData = Base64(user_data.read() % {"env": environment()})
 
     return instance
 
