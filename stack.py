@@ -63,7 +63,7 @@ class GeosciencePortalStack(SingleAZenv):
         with open("nat-init.sh", "r") as user_data:
             self.nat.UserData = Base64(Join("", ["#!/bin/bash\n", "signal_url='", Ref(nat_wait_handle), "'\n", user_data.read()]))
 
-        load_balancer_title = "LoadBalancer"
+        load_balancer_title = SYSTEM_PREFIX + "LoadBalancer"
         load_balancer = self.add_resource(elb.LoadBalancer(
             load_balancer_title,
             Tags=Tags(
