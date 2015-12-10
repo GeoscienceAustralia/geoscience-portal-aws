@@ -2,8 +2,17 @@
 build:
 	python setup.py build
 
-default_vpc.json: amazonia/__init__.py amazonia/default_vpc.py
-	./scripts/viz > $@
+singleAZ.json: amazonia/__init__.py amazonia/cftemplates.py
+	python ./scripts/singleAZ > $@
+
+dualAZ.json: amazonia/__init__.py amazonia/cftemplates.py
+	python ./scripts/dualAZ_tests > $@
+
+cftemplate_tests.json: amazonia/__init__.py amazonia/cftemplates.py
+	source ./scripts/cftemplate_tests > $@
+
+default_vpc.json: amazonia/__init__.py amazonia/cftemplates.py
+	source ./scripts/viz > $@
 
 %.svg: %.json
 	cat $< | cfviz | dot -Tsvg -o$@
