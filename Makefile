@@ -6,15 +6,15 @@ stack.json: stack.py webserver-init.sh nat-init.sh
 
 .PHONEY:
 stack: stack.json
-	AWS_PROFILE=geoscience-portal aws cloudformation create-stack --stack-name GeosciencePortal --template-body file://stack.json
+	AWS_PROFILE=geoscience-portal aws cloudformation create-stack --stack-name GeosciencePortal2 --template-body file://stack.json
 
 .PHONEY:
 restack: stack.json
-	AWS_PROFILE=geoscience-portal aws cloudformation update-stack --stack-name GeosciencePortal --template-body file://stack.json
+	AWS_PROFILE=geoscience-portal aws cloudformation update-stack --stack-name GeosciencePortal2 --template-body file://stack.json
 
 .PHONEY:
 unstack:
-	AWS_PROFILE=geoscience-portal aws cloudformation delete-stack --stack-name GeosciencePortal
+	AWS_PROFILE=geoscience-portal aws cloudformation delete-stack --stack-name GeosciencePortal2
 
 .PHONEY:
 viz: stack.jpg
