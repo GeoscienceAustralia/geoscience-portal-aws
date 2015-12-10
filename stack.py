@@ -26,6 +26,7 @@ SYSTEM_PREFIX = "GeosciencePortal"
 IMAGE_ID = "ami-48d38c2b"
 KEY_PAIR_NAME = "lazar@work"
 GA_PUBLIC_NEXUS = "http://maven-int.ga.gov.au/nexus/service/local/artifact/maven/redirect?r=public"
+MVN_SNAPSHOTS = "geoscience-portal/mvn-snapshot/"
 
 def _generate_password():
     return ''.join(random.sample(string.ascii_letters + string.digits, 10))
@@ -112,14 +113,15 @@ def get_nexus_artifact_url(group_id, artifact_id, version):
     arg = GA_PUBLIC_NEXUS + '&g=' + group_id + '&a=' + artifact_id + '&v=' + version + '&e=war'
     call(["wget", arg, '--content-disposition', "--timestamping"])
     war_filename = max(glob.iglob(artifact_id + "*.war"), key=os.path.getctime)
-    call(["aws", "s3", "cp", war_filename, "s3://ga-gov-au/mvn-snapshot/", "--quiet", "--acl", "public-read"])
+    call(["aws", "s3", "cp", war_filename, "s3://" + MVN_SNAPSHOTS, "--quiet", "--acl", "public-read"])
     call(["rm", war_filename])
     s3 = boto3.client("s3")
+    bucket, folder = tuple(MVN_SNAPSHOTS.split("/", 1))
     return s3.generate_presigned_url(
         "get_object",
         Params={
-            "Bucket": "ga-gov-au",
-            "Key": "mvn-snapshot/" + war_filename,
+            "Bucket": bucket,
+            "Key": folder + war_filename,
         },
         ExpiresIn=31622400, # TODO: a year
         )
