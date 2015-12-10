@@ -172,6 +172,7 @@ def make_webserver(nat_wait, security_group):
                                 "[main]\n",
                                 "stack=", stack_id, "\n",
                                 "region=", region, "\n",
+                                "interval=1\n",
                             ]),
                             mode="000400",
                             owner="root",
