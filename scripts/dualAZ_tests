@@ -5,7 +5,7 @@
 from amazonia.cftemplates import DualAZenv
 
 def main():
-    template = DualAZenv("ShaneBYOD")
+    template = DualAZenv("Your Keypair name Here")
     print(template.to_json(indent=2, separators=(',', ': ')))
 
 if __name__ == "__main__":
