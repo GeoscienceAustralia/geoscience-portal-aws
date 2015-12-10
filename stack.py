@@ -113,7 +113,7 @@ def get_nexus_artifact_url(group_id, artifact_id, version):
     arg = GA_PUBLIC_NEXUS + '&g=' + group_id + '&a=' + artifact_id + '&v=' + version + '&e=war'
     call(["wget", arg, '--content-disposition', "--timestamping"])
     war_filename = max(glob.iglob(artifact_id + "*.war"), key=os.path.getctime)
-    call(["aws", "s3", "cp", war_filename, "s3://" + MVN_SNAPSHOTS, "--quiet", "--acl", "public-read"])
+    call(["aws", "s3", "cp", war_filename, "s3://" + MVN_SNAPSHOTS, "--profile", "geoscience-portal", "--quiet", "--acl", "public-read"])
     call(["rm", war_filename])
     s3 = boto3.client("s3")
     bucket, folder = tuple(MVN_SNAPSHOTS.split("/", 1))
