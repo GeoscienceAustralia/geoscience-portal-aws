@@ -71,9 +71,9 @@ def stack():
         Subnets=[Ref(template.public_subnet)],
         HealthCheck=elb.HealthCheck(
             Target="HTTP:8080/gmap.html",
-            HealthyThreshold="5",
-            UnhealthyThreshold="2",
-            Interval="40",
+            HealthyThreshold="2",
+            UnhealthyThreshold="5",
+            Interval="60",
             Timeout="30",
         ),
         Listeners=[
