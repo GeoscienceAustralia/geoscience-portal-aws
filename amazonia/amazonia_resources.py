@@ -304,9 +304,9 @@ def add_load_balancer(template, subnets, healthcheck_target, security_groups, re
         CrossZone=True,
         HealthCheck=elb.HealthCheck(
             Target=healthcheck_target,
-            HealthyThreshold="10",
-            UnhealthyThreshold="2",
-            Interval="30",
+            HealthyThreshold="2",
+            UnhealthyThreshold="5",
+            Interval="15",
             Timeout="5",
         ),
         Listeners=[elb.Listener(
