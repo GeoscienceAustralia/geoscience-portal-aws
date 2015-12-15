@@ -1,0 +1,44 @@
+#!/usr/bin/env python
+
+# pylint: disable=missing-docstring, invalid-name, line-too-long, redefined-outer-name, too-many-arguments
+
+from amazonia.cftemplates import DualAZenv
+from amazonia.amazonia_resources import *
+
+def main():
+    keypair = "Your Keypair name Here"
+    template = DualAZenv(keypair)
+
+    elb_sg = add_security_group(template, template.vpc)
+    web_sg = add_security_group(template, template.vpc)
+
+    # NAT Rules
+    # all from web security group
+    # all to public
+    add_security_group_ingress(template, template.nat_security_group, "-1", "-1", "-1", source_security_group=web_sg)
+    add_security_group_egress(template, template.nat_security_group, "-1", "-1", "-1", cidr=PUBLIC_CIDR)
+
+    # ELB Rules
+    # 80 and 443 from public
+    # all to public
+    add_security_group_ingress(template, elb_sg, "tcp", "80", "80", cidr=PUBLIC_CIDR)
+    add_security_group_ingress(template, elb_sg, "tcp", "443", "443", cidr=PUBLIC_CIDR)
+    add_security_group_egress(template, elb_sg, "-1", "-1", "-1", destination_security_group=web_sg)
+
+    # WEB Rules
+    # 80, 443, and 8080 from ELB security group
+    # all to NAT security group
+    add_security_group_ingress(template, web_sg, "tcp", "80", "80", source_security_group=elb_sg)
+    add_security_group_ingress(template, web_sg, "tcp", "8080", "8080", source_security_group=elb_sg)
+    add_security_group_ingress(template, web_sg, "tcp", "443", "443", source_security_group=elb_sg)
+    add_security_group_egress(template, web_sg, "-1", "-1", "-1", destination_security_group=template.nat_security_group)
+
+    web1 = add_web_instance(template, keypair, template.private_subnet1, web_sg, WEB_SERVER_AZ1_USER_DATA, public=False)
+    web2 = add_web_instance(template, keypair, template.private_subnet2, web_sg, WEB_SERVER_AZ2_USER_DATA, public=False)
+
+    elb = add_load_balancer(template, [template.public_subnet1, template.public_subnet2], 'HTTP:8080/error/noindex.html', [elb_sg], resources=[web1, web2])
+
+    print(template.to_json(indent=2, separators=(',', ': ')))
+
+if __name__ == "__main__":
+    main()
