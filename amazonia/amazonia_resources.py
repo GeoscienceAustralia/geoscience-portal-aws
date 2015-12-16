@@ -45,7 +45,9 @@ WEB_SERVER_AZ2_USER_DATA = "#!/bin/sh\n"
 WEB_SERVER_AZ2_USER_DATA += "yum -y install httpd && chkconfig httpd on\n"
 WEB_SERVER_AZ2_USER_DATA += "/etc/init.d/httpd start && yum -y install git\n"
 WEB_SERVER_AZ2_USER_DATA += "git clone https://github.com/budawangbill/webserverconfig.git\n"
-WEB_SERVER_AZ2_USER_DATA += "cp webserverconfig/testAZ2.html /var/www/html/test.html"
+WEB_SERVER_AZ2_USER_DATA += "cp webserverconfig/testAZ2.html /var/www/html/test.html\n"
+WEB_SERVER_AZ2_USER_DATA += "sed -i '/Listen 80/a Listen 8080' /etc/httpd/conf/httpd.conf\n"
+WEB_SERVER_AZ2_USER_DATA += "service httpd restart"
 
 # Handler for switching Availability Zones
 current_az = 0
@@ -249,7 +251,7 @@ def add_nat(template, public_subnet, key_pair_name, security_group, natIP=NAT_IP
     ))
     return nat
 
-def add_web_instance(template, key_pair_name, subnet, security_group, userdata):
+def add_web_instance(template, key_pair_name, subnet, security_group, userdata, public=True):
     global num_web_instances
     num_web_instances += 1
 
@@ -263,7 +265,7 @@ def add_web_instance(template, key_pair_name, subnet, security_group, userdata):
         ImageId=WEB_IMAGE_ID,
         NetworkInterfaces=[ec2.NetworkInterfaceProperty(
             GroupSet=[Ref(security_group.title)],
-            AssociatePublicIpAddress=True,
+            AssociatePublicIpAddress=public,
             DeviceIndex="0",
             DeleteOnTermination=True,
             SubnetId=Ref(subnet.title),
@@ -302,9 +304,9 @@ def add_load_balancer(template, subnets, healthcheck_target, security_groups, re
         CrossZone=True,
         HealthCheck=elb.HealthCheck(
             Target=healthcheck_target,
-            HealthyThreshold="10",
-            UnhealthyThreshold="2",
-            Interval="30",
+            HealthyThreshold="2",
+            UnhealthyThreshold="5",
+            Interval="15",
             Timeout="5",
         ),
         Listeners=[elb.Listener(

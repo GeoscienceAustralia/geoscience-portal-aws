@@ -64,11 +64,11 @@ class DualAZenv(Template):
 
         # AZ 1
         self.public_subnet1 = add_subnet(self, self.vpc, PUBLIC_SUBNET_NAME, PUBLIC_SUBNET_AZ1_CIDR)
-        self.public_route_table1 = add_route_table(self, self.vpc, "Public")
-        add_route_table_subnet_association(self, self.public_route_table1, self.public_subnet1)
+        self.public_route_table = add_route_table(self, self.vpc, "Public")
+        add_route_table_subnet_association(self, self.public_route_table, self.public_subnet1)
         self.internet_gateway = add_internet_gateway(self)
         self.internet_gateway_attachment = add_internet_gateway_attachment(self, self.vpc, self.internet_gateway)
-        add_route_ingress_via_gateway(self, self.public_route_table1, self.internet_gateway, PUBLIC_CIDR)
+        add_route_ingress_via_gateway(self, self.public_route_table, self.internet_gateway, PUBLIC_CIDR)
         self.private_subnet1 = add_subnet(self, self.vpc, PRIVATE_SUBNET_NAME, PRIVATE_SUBNET_AZ1_CIDR)
         self.private_route_table1 = add_route_table(self, self.vpc, "Private")
         add_route_table_subnet_association(self, self.private_route_table1, self.private_subnet1)
@@ -84,19 +84,19 @@ class DualAZenv(Template):
         # enable inbound ICMP access to the NAT from anywhere
         add_security_group_ingress(self, self.nat_security_group, 'icmp', '-1', '-1', cidr=PUBLIC_CIDR)
 
-        self.nat = add_nat(self, self.public_subnet1, key_pair_name, self.nat_security_group)
-        add_route_egress_via_NAT(self, self.private_route_table1, self.nat)
+        self.nat1 = add_nat(self, self.public_subnet1, key_pair_name, self.nat_security_group)
+        add_route_egress_via_NAT(self, self.private_route_table1, self.nat1)
 
         switch_availability_zone()
 
         # AZ 2
         self.public_subnet2 = add_subnet(self, self.vpc, PUBLIC_SUBNET_NAME, PUBLIC_SUBNET_AZ2_CIDR)
         # Note below how we associate public subnet 2 to the single public route table we create for the VPC
-        add_route_table_subnet_association(self, self.public_route_table1, self.public_subnet2)
+        add_route_table_subnet_association(self, self.public_route_table, self.public_subnet2)
 
         self.private_subnet2 = add_subnet(self, self.vpc, PRIVATE_SUBNET_NAME, PRIVATE_SUBNET_AZ2_CIDR)
         self.private_route_table2 = add_route_table(self, self.vpc, "Private")
         add_route_table_subnet_association(self, self.private_route_table2, self.private_subnet2)
 
-        self.nat = add_nat(self, self.public_subnet2, key_pair_name, self.nat_security_group)
-        add_route_egress_via_NAT(self, self.private_route_table2, self.nat)
+        self.nat2 = add_nat(self, self.public_subnet2, key_pair_name, self.nat_security_group)
+        add_route_egress_via_NAT(self, self.private_route_table2, self.nat2)

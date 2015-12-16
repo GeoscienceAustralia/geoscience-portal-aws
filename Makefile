@@ -6,7 +6,10 @@ singleAZ.json: amazonia/__init__.py amazonia/cftemplates.py
 	python ./examples/singleAZ > $@
 
 dualAZ.json: amazonia/__init__.py amazonia/cftemplates.py
-	python ./examples/dualAZ_tests > $@
+	python ./examples/dualAZ > $@
+
+dualAZwebenv.json: amazonia/__init__.py amazonia/cftemplates.py
+	python ./examples/dualAZwebenv > $@
 
 singleAZScalingWeb.json: amazonia/__init__.py amazonia/cftemplates.py
 	python ./examples/singleAZ_with_autoscaling_web_instance > $@
