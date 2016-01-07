@@ -14,5 +14,5 @@ setup(
     install_requires=[
         'troposphere'
     ],
-    scripts=['scripts/viz'],
+    scripts=['examples/viz'],
 )
