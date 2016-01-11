@@ -35,7 +35,7 @@ def main():
 
     elb = add_load_balancer(template, [template.public_subnet1, template.public_subnet2], 'HTTP:8080/error/noindex.html', [elb_sg])
 
-    web_launch_config = add_launch_config(template, keypair, [web_sg], "ami-ba6f4ad9", WEB_INSTANCE_TYPE, userdata=WEB_SERVER_AZ1_USER_DATA)
+    web_launch_config = add_launch_config(template, keypair, [web_sg], WEB_IMAGE_ID, WEB_INSTANCE_TYPE, userdata=WEB_SERVER_AZ1_USER_DATA)
     web_launch_config.AssociatePublicIpAddress = False
     web_asg = add_auto_scaling_group(template, 2, [template.private_subnet1, template.private_subnet2], launch_configuration=web_launch_config, health_check_type="ELB", load_balancer=elb, dependson=[template.internet_gateway], multiAZ=True)
 
