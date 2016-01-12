@@ -17,9 +17,9 @@ NAT_IP_ADDRESS = "10.0.0.100"
 SYSTEM_NAME = "TestApplication"
 ENVIRONMENT_NAME = "Experimental"
 AVAILABILITY_ZONES = ["ap-southeast-2a", "ap-southeast-2b"]
-WEB_IMAGE_ID = "ami-c11856fb"
+WEB_IMAGE_ID = "ami-ba6f4ad9"
 WEB_INSTANCE_TYPE = "t2.small"
-ASG_MIN_INSTANCES = 1
+ASG_MIN_INSTANCES = 2
 
 # CIDRs
 PUBLIC_GA_GOV_AU_CIDR = '192.104.44.129/32'
