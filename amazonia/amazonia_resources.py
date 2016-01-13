@@ -15,7 +15,7 @@ NAT_IMAGE_ID = "ami-893f53b3"
 NAT_INSTANCE_TYPE = "t2.micro"
 NAT_IP_ADDRESS = "10.0.0.100"
 SYSTEM_NAME = "TestApplication"
-ENVIRONMENT_NAME = "Experimental"
+ENVIRONMENT_NAME = "Dev"
 AVAILABILITY_ZONES = ["ap-southeast-2a", "ap-southeast-2b"]
 WEB_IMAGE_ID = "ami-ba6f4ad9"
 WEB_INSTANCE_TYPE = "t2.small"
@@ -342,7 +342,7 @@ def add_auto_scaling_group(template, max_instances, subnets, instance="", launch
 
     subnet_refs = get_refs(subnets)
 
-    auto_scaling_group_title = str(app_name) + "_AutoScalingGroup" + str(num_auto_scaling_groups)
+    auto_scaling_group_title = str(app_name) + "_" + ENVIRONMENT_NAME + "_AutoScalingGroup" + str(num_auto_scaling_groups)
 
     asg = template.add_resource(AutoScalingGroup(
         auto_scaling_group_title,
@@ -350,10 +350,11 @@ def add_auto_scaling_group(template, max_instances, subnets, instance="", launch
         MaxSize=max_instances,
         VPCZoneIdentifier=subnet_refs,
         Tags=[
-            Tag("Name", name_tag(auto_scaling_group_title), True),
+            Tag("Application", app_name, True),
             Tag("S3_DEPLOY_REPO", BOOTSTRAP_S3_DEPLOY_REPO, True),
             Tag("S3_DEPLOY_REPO_PATH", app_name, True),
-            Tag("SCRIPT_NAME", BOOTSTRAP_SCRIPT_NAME, True)
+            Tag("SCRIPT_NAME", BOOTSTRAP_SCRIPT_NAME, True),
+            Tag("Environment", ENVIRONMENT_NAME, True),
         ],
     ))
 
