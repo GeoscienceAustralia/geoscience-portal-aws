@@ -10,6 +10,7 @@ from troposphere import Ref, Tags, Join, Base64, GetAtt
 from troposphere.autoscaling import AutoScalingGroup, LaunchConfiguration, Tag
 import troposphere.ec2 as ec2
 import troposphere.elasticloadbalancing as elb
+import inflection
 
 NAT_IMAGE_ID = "ami-893f53b3"
 NAT_INSTANCE_TYPE = "t2.micro"
@@ -342,7 +343,8 @@ def add_auto_scaling_group(template, max_instances, subnets, instance="", launch
 
     subnet_refs = get_refs(subnets)
 
-    auto_scaling_group_title = str(app_name) + "_" + str(ENVIRONMENT_NAME) + "_AutoScalingGroup" + str(num_auto_scaling_groups)
+    non_alphanumeric_title = str(app_name) + str(ENVIRONMENT_NAME) + "AutoScalingGroup" + str(num_auto_scaling_groups)
+    auto_scaling_group_title = trimTitle(non_alphanumeric_title)
 
     asg = template.add_resource(AutoScalingGroup(
         auto_scaling_group_title,
@@ -412,3 +414,7 @@ def name_tag(resource_name):
 def private_subnet(template, name):
     """Extract and return the specified subnet resource from the given template."""
     return template.resources[name]
+
+def trimTitle(old_title):
+    new_title = inflection.camelize(old_title)
+    return new_title
