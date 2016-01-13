@@ -52,6 +52,11 @@ WEB_SERVER_AZ2_USER_DATA += "service httpd restart"
 # Handler for switching Availability Zones
 current_az = 0
 
+# Bootstrap variables for instances & auto scaling groups
+BOOTSTRAP_S3_DEPLOY_REPO = "smallest-bucket-in-history"
+BOOTSTRAP_S3_DEPLOY_REPO_PATH = "" # set from script?
+BOOTSTRAP_SCRIPT_NAME = "bootstrap_custom_script.sh"
+
 # numbers to count objects created
 num_vpcs = 0
 num_subnets = 0
@@ -251,7 +256,7 @@ def add_nat(template, public_subnet, key_pair_name, security_group, natIP=NAT_IP
     ))
     return nat
 
-def add_web_instance(template, key_pair_name, subnet, security_group, userdata, public=True):
+def add_web_instance(template, key_pair_name, subnet, security_group, userdata, public=True, app_name="default"):
     global num_web_instances
     num_web_instances += 1
 
@@ -272,6 +277,9 @@ def add_web_instance(template, key_pair_name, subnet, security_group, userdata, 
         )],
         Tags=Tags(
             Name=name_tag(instance_title),
+            S3_DEPLOY_REPO=BOOTSTRAP_S3_DEPLOY_REPO,
+            S3_DEPLOY_REPO_PATH=app_name,
+            SCRIPT_NAME=BOOTSTRAP_SCRIPT_NAME
         ),
         UserData=Base64(userdata),
     ))
@@ -329,7 +337,7 @@ def add_load_balancer(template, subnets, healthcheck_target, security_groups, re
 
     return return_elb
 
-def add_auto_scaling_group(template, max_instances, subnets, instance="", launch_configuration="", health_check_type="", dependson="", load_balancer="", multiAZ=False):
+def add_auto_scaling_group(template, max_instances, subnets, instance="", launch_configuration="", health_check_type="", dependson="", load_balancer="", multiAZ=False, app_name="default"):
     global num_auto_scaling_groups
     num_auto_scaling_groups += 1
 
@@ -343,7 +351,10 @@ def add_auto_scaling_group(template, max_instances, subnets, instance="", launch
         MaxSize=max_instances,
         VPCZoneIdentifier=subnet_refs,
         Tags=[
-            Tag("Name", name_tag(auto_scaling_group_title), True)
+            Tag("Name", name_tag(auto_scaling_group_title), True),
+            Tag("S3_DEPLOY_REPO", BOOTSTRAP_S3_DEPLOY_REPO, True),
+            Tag("S3_DEPLOY_REPO_PATH", app_name, True),
+            Tag("SCRIPT_NAME", BOOTSTRAP_SCRIPT_NAME, True)
         ],
     ))
 
