@@ -54,7 +54,6 @@ current_az = 0
 
 # Bootstrap variables for instances & auto scaling groups
 BOOTSTRAP_S3_DEPLOY_REPO = "smallest-bucket-in-history"
-BOOTSTRAP_S3_DEPLOY_REPO_PATH = "" # set from script?
 BOOTSTRAP_SCRIPT_NAME = "bootstrap_custom_script.sh"
 
 # numbers to count objects created
