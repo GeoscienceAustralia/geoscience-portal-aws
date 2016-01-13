@@ -416,5 +416,6 @@ def private_subnet(template, name):
     return template.resources[name]
 
 def trimTitle(old_title):
-    new_title = inflection.camelize(old_title)
+    title_midway = old_title.replace("-", "_")
+    new_title = inflection.camelize(title_midway)
     return new_title
