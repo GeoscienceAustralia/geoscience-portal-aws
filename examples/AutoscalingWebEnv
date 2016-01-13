@@ -6,6 +6,7 @@ from amazonia.cftemplates import DualAZenv
 from amazonia.amazonia_resources import *
 
 def main(args):
+    print(args)
     keypair = args[0]
     appname = args[1]
     bootstrap_location = args[2]
