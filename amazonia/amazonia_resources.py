@@ -342,7 +342,7 @@ def add_auto_scaling_group(template, max_instances, subnets, instance="", launch
 
     subnet_refs = get_refs(subnets)
 
-    auto_scaling_group_title = str(app_name) + "_" + ENVIRONMENT_NAME + "_AutoScalingGroup" + str(num_auto_scaling_groups)
+    auto_scaling_group_title = str(app_name) + "_" + str(ENVIRONMENT_NAME) + "_AutoScalingGroup" + str(num_auto_scaling_groups)
 
     asg = template.add_resource(AutoScalingGroup(
         auto_scaling_group_title,
