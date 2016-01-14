@@ -151,25 +151,35 @@ def add_internet_gateway_attachment(template, vpc, internet_gateway):
 
     return gateway_attachment
 
-def add_route_ingress_via_gateway(template, route_table, internet_gateway, cidr):
+def add_route_ingress_via_gateway(template, route_table, internet_gateway, cidr, dependson = ""):
     global num_routes
     num_routes += 1
-    template.add_resource(ec2.Route(
+    route = template.add_resource(ec2.Route(
         "InboundRoute" + str(num_routes),
         GatewayId=Ref(internet_gateway.title),
         RouteTableId=Ref(route_table.title),
         DestinationCidrBlock=cidr
     ))
 
-def add_route_egress_via_NAT(template, route_table, nat):
+    if not dependson == "":
+        route.DependsOn = get_titles(dependson)
+
+    return route
+
+def add_route_egress_via_NAT(template, route_table, nat, dependson=""):
     global num_routes
     num_routes += 1
 
-    template.add_resource(ec2.Route("OutboundRoute" + str(num_routes),
+    route = template.add_resource(ec2.Route("OutboundRoute" + str(num_routes),
                                     InstanceId=Ref(nat.title),
                                     RouteTableId=Ref(route_table.title),
                                     DestinationCidrBlock="0.0.0.0/0",
                                    ))
+
+    if not dependson == "":
+        route.DependsOn = get_titles(dependson)
+
+    return route
 
 def add_security_group(template, vpc):
     global num_security_groups
@@ -299,7 +309,7 @@ def get_titles(items):
 
     return titles
 
-def add_load_balancer(template, subnets, healthcheck_target, security_groups, resources=""):
+def add_load_balancer(template, subnets, healthcheck_target, security_groups, resources="", dependson= ""):
     global num_load_balancers
     num_load_balancers += 1
 
@@ -334,6 +344,9 @@ def add_load_balancer(template, subnets, healthcheck_target, security_groups, re
     if not resources == "":
         resource_refs = get_refs(resources)
         return_elb.Instances = resource_refs
+
+    if not dependson == "":
+        return_elb.DependsOn = get_titles(dependson)
 
     return return_elb
 
@@ -377,8 +390,7 @@ def add_auto_scaling_group(template, max_instances, subnets, instance="", launch
         asg.HealthCheckGracePeriod = 300
 
     if not dependson == "":
-        dependson_titles = get_titles(dependson)
-        asg.DependsOn = dependson_titles
+        asg.DependsOn = get_titles(dependson)
 
     return asg
 
