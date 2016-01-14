@@ -17,6 +17,7 @@ def main(args):
 
     HTTP_PORT="80"      # This variable is used to specify the port for general HTTP traffic
     HTTPS_PORT="443"    # This variable is used to specify the port for general HTTPS traffic
+    IAM_INSTANCE_PROFILE = "instance-iam-role-InstanceProfile-OGL42SZSIQRK"
 
     elb_sg = add_security_group(template, template.vpc)
     web_sg = add_security_group(template, template.vpc)
@@ -45,6 +46,7 @@ def main(args):
 
     web_launch_config = add_launch_config(template, keypair, [web_sg], WEB_IMAGE_ID, WEB_INSTANCE_TYPE, userdata=userdata)
     web_launch_config.AssociatePublicIpAddress = False
+    web_launch_config.IamInstanceProfile = IAM_INSTANCE_PROFILE
     web_asg = add_auto_scaling_group(template, 2, [template.private_subnet1, template.private_subnet2], launch_configuration=web_launch_config, health_check_type="ELB", load_balancer=elb, dependson=[template.internet_gateway], multiAZ=True, app_name=appname)
 
     print(template.to_json(indent=2, separators=(',', ': ')))
