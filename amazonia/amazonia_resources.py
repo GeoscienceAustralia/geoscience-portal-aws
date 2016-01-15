@@ -365,6 +365,7 @@ def add_auto_scaling_group(template, max_instances, subnets, instance="", launch
         MaxSize=max_instances,
         VPCZoneIdentifier=subnet_refs,
         Tags=[
+            Tag("Name", auto_scaling_group_title, True),
             Tag("Application", app_name, True),
             Tag("S3_DEPLOY_REPO", BOOTSTRAP_S3_DEPLOY_REPO, True),
             Tag("S3_DEPLOY_REPO_PATH", app_name, True),
