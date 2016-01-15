@@ -18,7 +18,7 @@ NAT_IP_ADDRESS = "10.0.0.100"
 SYSTEM_NAME = "TestApplication"
 ENVIRONMENT_NAME = "Dev"
 AVAILABILITY_ZONES = ["ap-southeast-2a", "ap-southeast-2b"]
-WEB_IMAGE_ID = "ami-68cd950b"
+WEB_IMAGE_ID = "ami-910623f2"
 WEB_INSTANCE_TYPE = "t2.small"
 ASG_MIN_INSTANCES = 2
 
