@@ -33,7 +33,7 @@ class SingleAZenv(Template):
 
         self.internet_gateway = add_internet_gateway(self)
         self.internet_gateway_attachment = add_internet_gateway_attachment(self, self.vpc, self.internet_gateway)
-        add_route_ingress_via_gateway(self, self.public_route_table, self.internet_gateway, PUBLIC_CIDR)
+        add_route_ingress_via_gateway(self, self.public_route_table, self.internet_gateway, PUBLIC_CIDR, dependson=[self.internet_gateway_attachment])
         self.private_subnet = add_subnet(self, self.vpc, PRIVATE_SUBNET_NAME, PRIVATE_SUBNET_AZ1_CIDR)
         self.private_route_table = add_route_table(self, self.vpc, "Private")
         add_route_table_subnet_association(self, self.private_route_table, self.private_subnet)
@@ -50,7 +50,7 @@ class SingleAZenv(Template):
         add_security_group_ingress(self, self.nat_sg, 'icmp', '-1', '-1', cidr=PUBLIC_CIDR)
 
         self.nat = add_nat(self, self.public_subnet, key_pair_name, self.nat_sg)
-        add_route_egress_via_NAT(self, self.private_route_table, self.nat)
+        add_route_egress_via_NAT(self, self.private_route_table, self.nat, dependson=[self.internet_gateway_attachment])
 
 class DualAZenv(Template):
     """
@@ -68,7 +68,7 @@ class DualAZenv(Template):
         add_route_table_subnet_association(self, self.public_route_table, self.public_subnet1)
         self.internet_gateway = add_internet_gateway(self)
         self.internet_gateway_attachment = add_internet_gateway_attachment(self, self.vpc, self.internet_gateway)
-        add_route_ingress_via_gateway(self, self.public_route_table, self.internet_gateway, PUBLIC_CIDR)
+        add_route_ingress_via_gateway(self, self.public_route_table, self.internet_gateway, PUBLIC_CIDR, dependson=[self.internet_gateway_attachment])
         self.private_subnet1 = add_subnet(self, self.vpc, PRIVATE_SUBNET_NAME, PRIVATE_SUBNET_AZ1_CIDR)
         self.private_route_table1 = add_route_table(self, self.vpc, "Private")
         add_route_table_subnet_association(self, self.private_route_table1, self.private_subnet1)
@@ -85,7 +85,7 @@ class DualAZenv(Template):
         add_security_group_ingress(self, self.nat_security_group, 'icmp', '-1', '-1', cidr=PUBLIC_CIDR)
 
         self.nat1 = add_nat(self, self.public_subnet1, key_pair_name, self.nat_security_group)
-        add_route_egress_via_NAT(self, self.private_route_table1, self.nat1)
+        add_route_egress_via_NAT(self, self.private_route_table1, self.nat1, dependson=[self.internet_gateway_attachment])
 
         switch_availability_zone()
 
@@ -99,4 +99,4 @@ class DualAZenv(Template):
         add_route_table_subnet_association(self, self.private_route_table2, self.private_subnet2)
 
         self.nat2 = add_nat(self, self.public_subnet2, key_pair_name, self.nat_security_group)
-        add_route_egress_via_NAT(self, self.private_route_table2, self.nat2)
+        add_route_egress_via_NAT(self, self.private_route_table2, self.nat2, dependson=[self.internet_gateway_attachment])

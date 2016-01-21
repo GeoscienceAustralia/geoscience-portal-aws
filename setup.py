@@ -12,7 +12,8 @@ setup(
     license="New BSD license",
     packages=['amazonia'],
     install_requires=[
-        'troposphere'
+        'troposphere',
+        'inflection'
     ],
     scripts=['examples/viz'],
 )
