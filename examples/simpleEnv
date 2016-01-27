@@ -19,7 +19,7 @@ from troposphere import Ref, ec2, Tags, Base64
 def main():
 
     SSH_KEY_PAIR="BILL_KEYPAIR"
-    EC2_IMAGE_ID = WEB_IMAGE_ID
+    EC2_IMAGE_ID = "ami-48d38c2b"
     EC2_INSTANCE_TYPE = "t2.small"
     EC2_INSTANCE_NAME = "MyEC2Instance"
     HTTP_PORT = "80"
