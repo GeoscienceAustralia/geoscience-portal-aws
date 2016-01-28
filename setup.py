@@ -4,16 +4,16 @@ from setuptools import setup
 
 setup(
     name='amazonia',
-    version='0.1.0',
+    version='0.2.0',
     description="GA AWS CloudFormation creation library",
-    author="Lazar Bodor",
-    author_email="lazar.bodor@ga.gov.au",
+    author="The Geoscience Australia Autobots, and Lazar Bodor",
+    author_email="autobots@ga.gov.au , lazar.bodor@ga.gov.au",
     url="https://github.com/GeoscienceAustralia/amazonia",
     license="New BSD license",
     packages=['amazonia'],
     install_requires=[
         'troposphere',
-        'inflection'
-    ],
-    scripts=['examples/viz'],
+        'inflection',
+        'nose'
+    ]
 )

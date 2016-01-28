@@ -6,9 +6,8 @@ The functions in this module generate cloud formation scripts that install commo
 
 """
 
-from troposphere import Ref, Tags, Join, Base64, GetAtt
+from troposphere import Ref, Tags, Join, Base64, GetAtt, ec2
 from troposphere.autoscaling import AutoScalingGroup, LaunchConfiguration, Tag
-import troposphere.ec2 as ec2
 import troposphere.elasticloadbalancing as elb
 import inflection
 
@@ -124,11 +123,13 @@ def add_route_table_subnet_association(template, route_table, subnet):
     num_route_table_associations += 1
 
     # Associate the route table with the subnet
-    template.add_resource(ec2.SubnetRouteTableAssociation(
+    route_table_association = template.add_resource(ec2.SubnetRouteTableAssociation(
         route_table.title + "Association" + str(num_route_table_associations),
         SubnetId=Ref(subnet.title),
         RouteTableId=Ref(route_table.title),
     ))
+
+    return route_table_association
 
 def add_internet_gateway(template):
     global num_internet_gateways
@@ -173,7 +174,7 @@ def add_route_egress_via_NAT(template, route_table, nat, dependson=""):
     route = template.add_resource(ec2.Route("OutboundRoute" + str(num_routes),
                                     InstanceId=Ref(nat.title),
                                     RouteTableId=Ref(route_table.title),
-                                    DestinationCidrBlock="0.0.0.0/0",
+                                    DestinationCidrBlock=PUBLIC_CIDR,
                                    ))
 
     if not dependson == "":
@@ -243,7 +244,7 @@ def add_security_group_egress(template, security_group, protocol, from_port, to_
 
     return sg_egress
 
-def add_nat(template, public_subnet, key_pair_name, security_group, natIP=NAT_IP_ADDRESS):
+def add_nat(template, public_subnet, key_pair_name, security_group):
     global num_nats
     num_nats += 1
     nat_title = "NAT" + str(num_nats)
@@ -429,6 +430,12 @@ def private_subnet(template, name):
     return template.resources[name]
 
 def trimTitle(old_title):
-    title_midway = old_title.replace("-", "_")
-    new_title = inflection.camelize(title_midway)
+    old_title = old_title.replace("-", "_")
+    old_title = old_title.replace("*", "_")
+    old_title = old_title.replace(" ", "_")
+    old_title = old_title.replace(".", "_")
+    old_title = old_title.replace(",", "_")
+    old_title = old_title.replace("/", "_")
+    old_title = old_title.replace("\\", "_")
+    new_title = inflection.camelize(old_title)
     return new_title
