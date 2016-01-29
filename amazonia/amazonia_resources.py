@@ -10,16 +10,17 @@ from troposphere import Ref, Tags, Join, Base64, GetAtt
 from troposphere.autoscaling import AutoScalingGroup, LaunchConfiguration, Tag
 import troposphere.ec2 as ec2
 import troposphere.elasticloadbalancing as elb
+import inflection
 
 NAT_IMAGE_ID = "ami-893f53b3"
 NAT_INSTANCE_TYPE = "t2.micro"
 NAT_IP_ADDRESS = "10.0.0.100"
 SYSTEM_NAME = "TestApplication"
-ENVIRONMENT_NAME = "Experimental"
+ENVIRONMENT_NAME = "EXPERIMENTAL"
 AVAILABILITY_ZONES = ["ap-southeast-2a", "ap-southeast-2b"]
-WEB_IMAGE_ID = "ami-910623f2" # GA prod AMI that is under development
+WEB_IMAGE_ID = "ami-910623f2" # OLD AMI: "ami-c11856fb"  # BASE AMI: "ami-ba6f4ad9"
 WEB_INSTANCE_TYPE = "t2.small"
-ASG_MIN_INSTANCES = 2
+ASG_MIN_INSTANCES = 1
 
 # CIDRs
 PUBLIC_GA_GOV_AU_CIDR = '192.104.44.129/32'
@@ -51,6 +52,10 @@ WEB_SERVER_AZ2_USER_DATA += "service httpd restart"
 
 # Handler for switching Availability Zones
 current_az = 0
+
+# Bootstrap variables for instances & auto scaling groups
+BOOTSTRAP_S3_DEPLOY_REPO = "smallest-bucket-in-history"
+BOOTSTRAP_SCRIPT_NAME = "bootstrap_custom_script.sh"
 
 # numbers to count objects created
 num_vpcs = 0
@@ -146,25 +151,35 @@ def add_internet_gateway_attachment(template, vpc, internet_gateway):
 
     return gateway_attachment
 
-def add_route_ingress_via_gateway(template, route_table, internet_gateway, cidr):
+def add_route_ingress_via_gateway(template, route_table, internet_gateway, cidr, dependson = ""):
     global num_routes
     num_routes += 1
-    template.add_resource(ec2.Route(
+    route = template.add_resource(ec2.Route(
         "InboundRoute" + str(num_routes),
         GatewayId=Ref(internet_gateway.title),
         RouteTableId=Ref(route_table.title),
         DestinationCidrBlock=cidr
     ))
 
-def add_route_egress_via_NAT(template, route_table, nat):
+    if not dependson == "":
+        route.DependsOn = get_titles(dependson)
+
+    return route
+
+def add_route_egress_via_NAT(template, route_table, nat, dependson=""):
     global num_routes
     num_routes += 1
 
-    template.add_resource(ec2.Route("OutboundRoute" + str(num_routes),
+    route = template.add_resource(ec2.Route("OutboundRoute" + str(num_routes),
                                     InstanceId=Ref(nat.title),
                                     RouteTableId=Ref(route_table.title),
                                     DestinationCidrBlock="0.0.0.0/0",
                                    ))
+
+    if not dependson == "":
+        route.DependsOn = get_titles(dependson)
+
+    return route
 
 def add_security_group(template, vpc):
     global num_security_groups
@@ -255,7 +270,7 @@ def add_nat(template, public_subnet, key_pair_name, security_group, natIP=NAT_IP
     ))
     return nat
 
-def add_web_instance(template, key_pair_name, subnet, security_group, userdata, public=True):
+def add_web_instance(template, key_pair_name, subnet, security_group, userdata, public=True, app_name="default"):
     global num_web_instances
     num_web_instances += 1
 
@@ -276,6 +291,9 @@ def add_web_instance(template, key_pair_name, subnet, security_group, userdata, 
         )],
         Tags=Tags(
             Name=name_tag(instance_title),
+            S3_DEPLOY_REPO=BOOTSTRAP_S3_DEPLOY_REPO,
+            S3_DEPLOY_REPO_PATH=app_name,
+            SCRIPT_NAME=BOOTSTRAP_SCRIPT_NAME
         ),
         UserData=Base64(userdata),
     ))
@@ -295,7 +313,7 @@ def get_titles(items):
 
     return titles
 
-def add_load_balancer(template, subnets, healthcheck_target, security_groups, resources=""):
+def add_load_balancer(template, subnets, healthcheck_target, security_groups, resources="", dependson= ""):
     global num_load_balancers
     num_load_balancers += 1
 
@@ -331,15 +349,19 @@ def add_load_balancer(template, subnets, healthcheck_target, security_groups, re
         resource_refs = get_refs(resources)
         return_elb.Instances = resource_refs
 
+    if not dependson == "":
+        return_elb.DependsOn = get_titles(dependson)
+
     return return_elb
 
-def add_auto_scaling_group(template, max_instances, subnets, instance="", launch_configuration="", health_check_type="", dependson="", load_balancer="", multiAZ=False):
+def add_auto_scaling_group(template, max_instances, subnets, instance="", launch_configuration="", health_check_type="", dependson="", load_balancer="", multiAZ=False, app_name="default"):
     global num_auto_scaling_groups
     num_auto_scaling_groups += 1
 
     subnet_refs = get_refs(subnets)
 
-    auto_scaling_group_title = "AutoScalingGroup" + str(num_auto_scaling_groups)
+    non_alphanumeric_title = str(app_name) + str(ENVIRONMENT_NAME) + "AutoScalingGroup" + str(num_auto_scaling_groups)
+    auto_scaling_group_title = trimTitle(non_alphanumeric_title)
 
     asg = template.add_resource(AutoScalingGroup(
         auto_scaling_group_title,
@@ -347,7 +369,12 @@ def add_auto_scaling_group(template, max_instances, subnets, instance="", launch
         MaxSize=max_instances,
         VPCZoneIdentifier=subnet_refs,
         Tags=[
-            Tag("Name", name_tag(auto_scaling_group_title), True)
+            Tag("Name", auto_scaling_group_title, True),
+            Tag("Application", app_name, True),
+            Tag("S3_DEPLOY_REPO", BOOTSTRAP_S3_DEPLOY_REPO, True),
+            Tag("S3_DEPLOY_REPO_PATH", app_name, True),
+            Tag("SCRIPT_NAME", BOOTSTRAP_SCRIPT_NAME, True),
+            Tag("Environment", ENVIRONMENT_NAME, True),
         ],
     ))
 
@@ -368,8 +395,7 @@ def add_auto_scaling_group(template, max_instances, subnets, instance="", launch
         asg.HealthCheckGracePeriod = 300
 
     if not dependson == "":
-        dependson_titles = get_titles(dependson)
-        asg.DependsOn = dependson_titles
+        asg.DependsOn = get_titles(dependson)
 
     return asg
 
@@ -405,3 +431,8 @@ def name_tag(resource_name):
 def private_subnet(template, name):
     """Extract and return the specified subnet resource from the given template."""
     return template.resources[name]
+
+def trimTitle(old_title):
+    title_midway = old_title.replace("-", "_")
+    new_title = inflection.camelize(title_midway)
+    return new_title
