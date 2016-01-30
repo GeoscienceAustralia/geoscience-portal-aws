@@ -1,35 +1,36 @@
 ####Usage
 
-To install library locally for the current user:
+To install library locally for the current user, from the amazonia root directory use:
 
 `make install`
 
-To generate the cloud formation JSON file for default_vpc:
+Alternatively, you can use:
 
-`make default_vpc.json`
+`pip install -e . --user`
 
-To generate an SVG dependency diagram for AWS resources used by default_vpc:
+Note: this will install all of the dependencies for the project. The dependencies list can be found in the setup.py file in the 'Install Requires:' section.
 
-`make default_vpc.svg`
+To generate cloud formation using this library, you can use make to refer to any of the existing examples:
 
-To generate and display `default_vpc.svg` (requires feh):
+`make AutoscalingWebEnv.json`
 
-`make viz`
+Alternatively, you can use:
 
-(Branch [`viz`](../tree/viz) contains the output of `make viz`.)
+`python ./examples/AutoscalingWebEnv > yourfilenamehere.template`
 
 To use in a downstream project:
 
 ```python
 from troposphere import Template
-import amazonia.default_vpc as default_vpc
+from amazonia.amazonia_resources import *
+from amazonia.cftemplates import *
 
 template = new Template()
-default_vpc.add_vpc(template,
-    key_pair_name="your-ssh-key-name",
-    nat_ip="nat.static.ip.address"
-private_subnet = default_vpc.private_subnet(template)
+vpc = add_vpc(template, "yourvpccidr")
+private_subnet = add_subnet(template, vpc, "yoursubnetname", "yoursubnetcidr")
 template.add_resource(...)
 template.add_resource(...)
 print(template.to_json())
 ```
+
+Note: amazonia classes (such as cftemplates.dualAZ) extend the troposphere.Template class. This means that any troposphere calls can be made to add resources. The amazonia_resources file contains functions that hope to provide somewhat of a 'shortcut' for users.
