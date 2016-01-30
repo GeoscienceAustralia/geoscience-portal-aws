@@ -191,8 +191,7 @@ def test_add_auto_scaling_group():
     subnet = add_subnet(template, myvpc, "Public", PUBLIC_SUBNET_AZ1_CIDR)
     lc = add_launch_config(template, "akeypair", [test_sg], WEB_IMAGE_ID, WEB_INSTANCE_TYPE)
 
-    asg = add_auto_scaling_group(template, 4 , [subnet], launch_configuration=lc)
-
+    asg = add_auto_scaling_group(template, 4, [subnet], launch_configuration=lc)
 
     assert_equals(asg.title,"Default" + str(ENVIRONMENT_NAME) + "AutoScalingGroup" + "1")
     assert_equals(asg.MinSize, ASG_MIN_INSTANCES)

@@ -163,7 +163,7 @@ def add_route_ingress_via_gateway(template, route_table, internet_gateway, cidr,
     ))
 
     if not dependson == "":
-        route.DependsOn = get_titles(dependson)
+        route.DependsOn = [x.title for x in dependson]
 
     return route
 
@@ -178,7 +178,7 @@ def add_route_egress_via_NAT(template, route_table, nat, dependson=""):
                                    ))
 
     if not dependson == "":
-        route.DependsOn = get_titles(dependson)
+        route.DependsOn = [x.title for x in dependson]
 
     return route
 
@@ -296,26 +296,9 @@ def add_web_instance(template, key_pair_name, subnet, security_group, userdata, 
     ))
     return instance
 
-def get_refs(items):
-    refs = []
-    for item in items:
-        refs.append(Ref(item.title))
-
-    return refs
-
-def get_titles(items):
-    titles = []
-    for item in items:
-        titles.append(item.title)
-
-    return titles
-
 def add_load_balancer(template, subnets, healthcheck_target, security_groups, resources="", dependson= ""):
     global num_load_balancers
     num_load_balancers += 1
-
-    subnet_refs = get_refs(subnets)
-    security_group_refs = get_refs(security_groups)
 
     elb_title = "ElasticLoadBalancer" + str(num_load_balancers)
     return_elb = template.add_resource(elb.LoadBalancer(
@@ -335,27 +318,24 @@ def add_load_balancer(template, subnets, healthcheck_target, security_groups, re
             InstanceProtocol="HTTP",
         )],
         Scheme="internet-facing",
-        SecurityGroups=security_group_refs,
-        Subnets=subnet_refs,
+        SecurityGroups=[Ref(x) for x in security_groups],
+        Subnets=[Ref(x) for x in subnets],
         Tags=Tags(
             Name=name_tag(elb_title),
         ),
     ))
 
     if not resources == "":
-        resource_refs = get_refs(resources)
-        return_elb.Instances = resource_refs
+        return_elb.Instances = [Ref(x) for x in resources]
 
     if not dependson == "":
-        return_elb.DependsOn = get_titles(dependson)
+        return_elb.DependsOn = [x.title for x in dependson]
 
     return return_elb
 
 def add_auto_scaling_group(template, max_instances, subnets, instance="", launch_configuration="", health_check_type="", dependson="", load_balancer="", multiAZ=False, app_name="default"):
     global num_auto_scaling_groups
     num_auto_scaling_groups += 1
-
-    subnet_refs = get_refs(subnets)
 
     non_alphanumeric_title = str(app_name) + str(ENVIRONMENT_NAME) + "AutoScalingGroup" + str(num_auto_scaling_groups)
     auto_scaling_group_title = trimTitle(non_alphanumeric_title)
@@ -364,7 +344,7 @@ def add_auto_scaling_group(template, max_instances, subnets, instance="", launch
         auto_scaling_group_title,
         MinSize=ASG_MIN_INSTANCES,
         MaxSize=max_instances,
-        VPCZoneIdentifier=subnet_refs,
+        VPCZoneIdentifier=[Ref(x) for x in subnets],
         Tags=[
             Tag("Name", auto_scaling_group_title, True),
             Tag("Application", app_name, True),
@@ -392,7 +372,7 @@ def add_auto_scaling_group(template, max_instances, subnets, instance="", launch
         asg.HealthCheckGracePeriod = 300
 
     if not dependson == "":
-        asg.DependsOn = get_titles(dependson)
+        asg.DependsOn = [x.title for x in dependson]
 
     return asg
 
@@ -400,9 +380,8 @@ def add_launch_config(template, key_pair_name, security_groups, image_id, instan
     global num_launch_configs
     num_launch_configs += 1
 
-    launch_config_title = "LaunchConfiguration" + str(num_launch_configs)
-
-    sg_refs = get_refs(security_groups)
+    non_alphanumeric_title = "LaunchConfiguration" + str(num_launch_configs)
+    launch_config_title = trimTitle(non_alphanumeric_title)
 
     lc = template.add_resource(LaunchConfiguration(
         launch_config_title,
@@ -411,7 +390,7 @@ def add_launch_config(template, key_pair_name, security_groups, image_id, instan
         InstanceMonitoring=False,
         InstanceType=instance_type,
         KeyName=key_pair_name,
-        SecurityGroups=sg_refs,
+        SecurityGroups=[Ref(x) for x in security_groups],
     ))
 
     if not userdata == "":
@@ -424,10 +403,6 @@ def stack_name_tag():
 def name_tag(resource_name):
     """Prepend stack name to the given resource name."""
     return Join("", [Ref('AWS::StackName'), '-', resource_name])
-
-def private_subnet(template, name):
-    """Extract and return the specified subnet resource from the given template."""
-    return template.resources[name]
 
 def trimTitle(old_title):
     old_title = old_title.replace("-", "_")
