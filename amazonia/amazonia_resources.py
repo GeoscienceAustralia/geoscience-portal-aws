@@ -396,7 +396,7 @@ def add_auto_scaling_group(template, max_instances, subnets, instance="", launch
 
     return asg
 
-def add_launch_config(template, key_pair_name, security_groups, instance_id, instance_type, userdata=""):
+def add_launch_config(template, key_pair_name, security_groups, image_id, instance_type, userdata=""):
     global num_launch_configs
     num_launch_configs += 1
 
@@ -407,7 +407,7 @@ def add_launch_config(template, key_pair_name, security_groups, instance_id, ins
     lc = template.add_resource(LaunchConfiguration(
         launch_config_title,
         AssociatePublicIpAddress=True,
-        ImageId=instance_id,
+        ImageId=image_id,
         InstanceMonitoring=False,
         InstanceType=instance_type,
         KeyName=key_pair_name,

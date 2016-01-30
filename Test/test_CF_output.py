@@ -150,4 +150,53 @@ def test_add_web_instance():
     assert_equals(web.ImageId, WEB_IMAGE_ID)
     assert_equals(web.NetworkInterfaces[0].AssociatePublicIpAddress, "true")
 
+def test_add_load_balancer():
+    template = Template()
+    myvpc = add_vpc(template, VPC_CIDR)
+    subnet = add_subnet(template, myvpc, "Public", PUBLIC_SUBNET_AZ1_CIDR)
+    test_sg = add_security_group(template, myvpc)
+    web = add_web_instance(template, "akeypair", subnet, test_sg, "test user data")
+
+    elb = add_load_balancer(template, [subnet], "HTTP:80/index.html", [test_sg], [web])
+
+    assert_equals(elb.CrossZone, "true")
+    assert_equals(elb.HealthCheck.Target, "HTTP:80/index.html")
+    assert_equals(elb.HealthCheck.HealthyThreshold, "2")
+    assert_equals(elb.HealthCheck.UnhealthyThreshold, "5")
+    assert_equals(elb.HealthCheck.Interval, "15")
+    assert_equals(elb.HealthCheck.Timeout, "5")
+    assert_equals(elb.Listeners[0].LoadBalancerPort, "80")
+    assert_equals(elb.Listeners[0].Protocol, "HTTP")
+    assert_equals(elb.Listeners[0].InstancePort, "80")
+    assert_equals(elb.Listeners[0].InstanceProtocol, "HTTP")
+    assert_equals(elb.Scheme, "internet-facing")
+
+def test_add_launch_config():
+    template = Template()
+    myvpc = add_vpc(template, VPC_CIDR)
+    test_sg = add_security_group(template, myvpc)
+
+    lc = add_launch_config(template, "akeypair", [test_sg], WEB_IMAGE_ID, WEB_INSTANCE_TYPE)
+
+    assert_equals(lc.AssociatePublicIpAddress, "true")
+    assert_equals(lc.ImageId, WEB_IMAGE_ID)
+    assert_equals(lc.InstanceMonitoring, "false")
+    assert_equals(lc.InstanceType, WEB_INSTANCE_TYPE)
+    assert_equals(lc.KeyName, "akeypair")
+
+def test_add_auto_scaling_group():
+    template = Template()
+    myvpc = add_vpc(template, VPC_CIDR)
+    test_sg = add_security_group(template, myvpc)
+    subnet = add_subnet(template, myvpc, "Public", PUBLIC_SUBNET_AZ1_CIDR)
+    lc = add_launch_config(template, "akeypair", [test_sg], WEB_IMAGE_ID, WEB_INSTANCE_TYPE)
+
+    asg = add_auto_scaling_group(template, 4 , [subnet], launch_configuration=lc)
+
+
+    assert_equals(asg.title,"Default" + str(ENVIRONMENT_NAME) + "AutoScalingGroup" + "1")
+    assert_equals(asg.MinSize, ASG_MIN_INSTANCES)
+    assert_equals(asg.MaxSize, 4)
+    assert_equals(asg.AvailabilityZones, [AVAILABILITY_ZONES[current_az]])
+
 # TODO Test classes from ctemplates to ensure certain objects exist? eg publicsubnet1, publicsubnet2, internetgateway etc etc
