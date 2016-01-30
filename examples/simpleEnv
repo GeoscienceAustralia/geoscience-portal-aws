@@ -1,0 +1,75 @@
+#!/usr/bin/env python
+
+# This script is for educational and for example purposes only as it only creates a single availability zone.
+# Operational systems should make use of dual availability zones and use one of the example scripts for that purpose.
+# This script demonstrates how to create a cloud environment using Amazonia and how to extend that with
+# a customised EC2 instance and finally how to run your own custom boot strap script on that EC2 instance.
+
+# pylint: disable=missing-docstring, invalid-name, line-too-long, redefined-outer-name, too-many-arguments
+
+# This is the name of the AWS key pair that will be used to allow you to log onto your ec2 instances
+# You can create an AWS SSH Key pair from within the AWS console EC2 dashboard
+
+from amazonia.cftemplates import SingleAZenv, add_security_group, add_security_group_ingress
+from amazonia.amazonia_resources import name_tag, WEB_IMAGE_ID
+from troposphere import Ref, ec2, Tags, Base64
+
+
+
+def main():
+
+    SSH_KEY_PAIR="BILL_KEYPAIR"
+    EC2_IMAGE_ID = "ami-48d38c2b"
+    EC2_INSTANCE_TYPE = "t2.small"
+    EC2_INSTANCE_NAME = "MyEC2Instance"
+    HTTP_PORT = "80"
+    PUBLIC_CIDR="0.0.0.0/0"
+    MACHINE_BOOT_STRAP = "#!/bin/sh\n"
+    MACHINE_BOOT_STRAP += "yum -y install httpd && chkconfig httpd on\n"
+    MACHINE_BOOT_STRAP += "/etc/init.d/httpd start && yum -y install git\n"
+    MACHINE_BOOT_STRAP += "git clone https://github.com/budawangbill/webserverconfig.git\n"
+    MACHINE_BOOT_STRAP += "cp webserverconfig/testAZ1.html /var/www/html/test.html\n"
+    MACHINE_BOOT_STRAP += "sed -i '/Listen 80/a Listen 8080' /etc/httpd/conf/httpd.conf\n"
+    MACHINE_BOOT_STRAP += "service httpd restart"
+
+    template = SingleAZenv(SSH_KEY_PAIR)
+
+    # get a handle on the private subnet that we will create EC2 instances in. This is a Troposphere object
+    public_subnet = template.public_subnet
+
+    sg = add_security_group(template, template.vpc)
+
+    add_security_group_ingress(template, sg, "tcp", HTTP_PORT, HTTP_PORT, cidr=PUBLIC_CIDR)
+
+
+    MyEC2machine = template.add_resource(ec2.Instance(
+        "MyMachine",
+        InstanceType=EC2_INSTANCE_TYPE,
+        KeyName=SSH_KEY_PAIR,
+        SourceDestCheck=False,
+        ImageId=EC2_IMAGE_ID,
+        NetworkInterfaces=[ec2.NetworkInterfaceProperty(
+            GroupSet=[Ref(sg.title)],
+            AssociatePublicIpAddress=True,
+            DeviceIndex="0",
+            DeleteOnTermination=True,
+            SubnetId=Ref(public_subnet.title)
+        )],
+        Tags=Tags(
+            Name=name_tag(EC2_INSTANCE_NAME),
+       ),
+        UserData=Base64(MACHINE_BOOT_STRAP),
+    ))
+
+
+    # The below is an example of using troposphere to extend an ec2 instance
+    # NOTE: The DeviceName here can be the root device (as we've used in this case) to increase the capacity of the root device.
+    #       Or a different device name can be specified to attempt to add a secondary drive to your instance.
+    MyEC2machine.BlockDeviceMappings = [ec2.BlockDeviceMapping(DeviceName="/dev/xvda",
+                                                               Ebs=ec2.EBSBlockDevice(VolumeSize="40",
+                                                                                      VolumeType="gp2",
+                                                                                      DeleteOnTermination="true"))]
+    print(template.to_json(indent=2, separators=(',', ': ')))
+
+if __name__ == "__main__":
+    main()

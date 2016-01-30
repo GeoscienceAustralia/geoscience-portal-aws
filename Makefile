@@ -1,6 +1,19 @@
+#
+# This makefile installs the amazonia package and its dependencies
+#
+# 1. to install Amazonia run "make install" 
+# 2. to run one of the examples run "make xxx.json" where xxx is the name of the example
+# 3. to make your own automated scripts, copy one of the examples and extend it using Amazonia helper functions and the troposhpere library
+# Have fun!
+
+
 .PHONEY:
 build:
 	python setup.py build
+
+
+simpleEnv.json: amazonia/__init__.py amazonia/cftemplates.py
+	python ./examples/simpleEnv > $@
 
 singleAZ.json: amazonia/__init__.py amazonia/cftemplates.py
 	python ./examples/singleAZ > $@
