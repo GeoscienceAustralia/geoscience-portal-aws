@@ -1,9 +1,5 @@
-.PHONEY:
-build:
-	python setup.py build
-
-singleAZ.json: amazonia/__init__.py amazonia/cftemplates.py
-	python ./examples/singleAZ > $@
+AutoscalingWebEnv.json: amazonia/__init__.py amazonia/cftemplates.py
+	python ./examples/AutoscalingWebEnv > $@
 
 dualAZ.json: amazonia/__init__.py amazonia/cftemplates.py
 	python ./examples/dualAZ > $@
@@ -11,18 +7,18 @@ dualAZ.json: amazonia/__init__.py amazonia/cftemplates.py
 dualAZwebenv.json: amazonia/__init__.py amazonia/cftemplates.py
 	python ./examples/dualAZwebenv > $@
 
-singleAZScalingWeb.json: amazonia/__init__.py amazonia/cftemplates.py
+ExtensionExample.json: amazonia/__init__.py amazonia/cftemplates.py
+	python ./examples/dualAZwebenv > $@
+
+singleAZ.json: amazonia/__init__.py amazonia/cftemplates.py
+	python ./examples/singleAZ > $@
+
+singleAZ_with_autoscaling_web_instance.json: amazonia/__init__.py amazonia/cftemplates.py
 	python ./examples/singleAZ_with_autoscaling_web_instance > $@
 
-default_vpc.json: amazonia/__init__.py amazonia/cftemplates.py
-	python ./examples/viz > $@
-
-%.svg: %.json
-	cat $< | cfviz | dot -Tsvg -o$@
-
 .PHONEY:
-viz: default_vpc.svg
-	feh --magick-timeout 1 $< &
+build:
+	python setup.py build
 
 .PHONEY:
 install:
