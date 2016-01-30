@@ -3,12 +3,15 @@ from amazonia import *
 from troposphere import Template
 
 
-def test_only_two_AZs():
+def test_only_two_sydney_AZs():
     assert_equals(amazonia_resources.current_az, 0)
+    assert_equals(amazonia_resources.AVAILABILITY_ZONES[amazonia_resources.current_az], "ap-southeast-2a")
     switch_availability_zone()
     assert_equals(amazonia_resources.current_az, 1)
+    assert_equals(amazonia_resources.AVAILABILITY_ZONES[amazonia_resources.current_az], "ap-southeast-2b")
     switch_availability_zone()
     assert_equals(amazonia_resources.current_az, 0)
+    assert_equals(amazonia_resources.AVAILABILITY_ZONES[amazonia_resources.current_az], "ap-southeast-2a")
 
 def test_titles_are_alphanumeric():
     title = "abc_bcde-c,d.e*f/g\h_i-j,k.l*m/n\o.p,q.r,s_t-u/v.w_x*y,z"

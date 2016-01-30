@@ -74,7 +74,9 @@ num_route_table_associations = 0
 num_auto_scaling_groups = 0
 
 def switch_availability_zone():
-    """ A simple function to switch Availability zones. """
+    """
+        A simple function to switch Availability zones.
+    """
     global current_az
     if current_az == 0:
         current_az = 1
@@ -82,10 +84,15 @@ def switch_availability_zone():
         current_az = 0
 
 def add_vpc(template, cidr):
-    """Create a VPC resource and add it to the given template."""
+    """
+        Creates a VPC resource and adds it to the given template object.
+    """
+
     global num_vpcs
     num_vpcs += 1
-    vpc_title = "VPC" + str(num_vpcs)
+
+    non_alphanumeric_title = "VPC" + str(num_vpcs)
+    vpc_title = trimTitle(non_alphanumeric_title)
 
     vpc = template.add_resource(ec2.VPC(vpc_title,
                                         CidrBlock=cidr,
@@ -97,12 +104,14 @@ def add_subnet(template, vpc, name, cidr):
     global num_subnets
     num_subnets += 1
 
-    title = name + str(num_subnets)
-    public_subnet = template.add_resource(ec2.Subnet(title,
+    non_alphanumeric_title = name + str(num_subnets)
+    subnet_title = trimTitle(non_alphanumeric_title)
+
+    public_subnet = template.add_resource(ec2.Subnet(subnet_title,
                                                      AvailabilityZone=AVAILABILITY_ZONES[current_az],
                                                      VpcId=Ref(vpc.title),
                                                      CidrBlock=cidr,
-                                                     Tags=Tags(Name=name_tag(title),
+                                                     Tags=Tags(Name=name_tag(subnet_title),
                                                                Environment=ENVIRONMENT_NAME)))
     return public_subnet
 
@@ -110,11 +119,12 @@ def add_route_table(template, vpc, route_type=""):
     global num_route_tables
     num_route_tables = num_route_tables + 1
 
-    # create the route table in the VPC
-    route_table_id = route_type + "RouteTable" + str(num_route_tables)
-    route_table = template.add_resource(ec2.RouteTable(route_table_id,
+    non_alphanumeric_title = route_type + "RouteTable" + str(num_route_tables)
+    route_table_title = trimTitle(non_alphanumeric_title)
+
+    route_table = template.add_resource(ec2.RouteTable(route_table_title,
                                                        VpcId=Ref(vpc.title),
-                                                       Tags=Tags(Name=name_tag(route_table_id)),
+                                                       Tags=Tags(Name=name_tag(route_table_title)),
                                                       ))
     return route_table
 
@@ -134,7 +144,9 @@ def add_route_table_subnet_association(template, route_table, subnet):
 def add_internet_gateway(template):
     global num_internet_gateways
     num_internet_gateways = num_internet_gateways + 1
-    internet_gateway_title = "InternetGateway" + str(num_internet_gateways)
+
+    non_alphanumeric_title = "InternetGateway" + str(num_internet_gateways)
+    internet_gateway_title = trimTitle(non_alphanumeric_title)
 
     internet_gateway = template.add_resource(ec2.InternetGateway(internet_gateway_title,
                                                                  Tags=Tags(Name=name_tag(internet_gateway_title),
@@ -185,7 +197,9 @@ def add_route_egress_via_NAT(template, route_table, nat, dependson=""):
 def add_security_group(template, vpc):
     global num_security_groups
     num_security_groups += 1
-    sg_title = "SecurityGroup" + str(num_security_groups)
+
+    non_alphanumeric_title = "SecurityGroup" + str(num_security_groups)
+    sg_title = trimTitle(non_alphanumeric_title)
 
     sg = template.add_resource(ec2.SecurityGroup(sg_title,
                                                  GroupDescription="Security group",
@@ -200,11 +214,13 @@ def add_security_group_ingress(template, security_group, protocol, from_port, to
     num_ingress_rules += 1
 
     if not protocol == "-1":
-        title = security_group.title + 'Ingress' + protocol + str(num_ingress_rules)
+        non_alphanumeric_title = security_group.title + 'Ingress' + protocol + str(num_ingress_rules)
     else:
-        title = security_group.title + 'IngressAll' + str(num_ingress_rules)
+        non_alphanumeric_title = security_group.title + 'IngressAll' + str(num_ingress_rules)
 
-    sg_ingress = template.add_resource(ec2.SecurityGroupIngress(title,
+    ingress_title = trimTitle(non_alphanumeric_title)
+
+    sg_ingress = template.add_resource(ec2.SecurityGroupIngress(ingress_title,
                                                                 IpProtocol=protocol,
                                                                 FromPort=from_port,
                                                                 ToPort=to_port,
@@ -225,11 +241,13 @@ def add_security_group_egress(template, security_group, protocol, from_port, to_
     num_egress_rules += 1
 
     if not protocol == "-1":
-        title = security_group.title + 'Egress' + protocol + str(num_egress_rules)
+        non_alphanumeric_title = security_group.title + 'Egress' + protocol + str(num_egress_rules)
     else:
-        title = security_group.title + 'EgressAll' + str(num_egress_rules)
+        non_alphanumeric_title = security_group.title + 'EgressAll' + str(num_egress_rules)
 
-    sg_egress = template.add_resource(ec2.SecurityGroupEgress(title,
+    egress_title = trimTitle(non_alphanumeric_title)
+
+    sg_egress = template.add_resource(ec2.SecurityGroupEgress(egress_title,
                                                               IpProtocol=protocol,
                                                               FromPort=from_port,
                                                               ToPort=to_port,
@@ -247,7 +265,10 @@ def add_security_group_egress(template, security_group, protocol, from_port, to_
 def add_nat(template, public_subnet, key_pair_name, security_group):
     global num_nats
     num_nats += 1
-    nat_title = "NAT" + str(num_nats)
+
+    non_aplhanumeric_title = "NAT" + str(num_nats)
+    nat_title = trimTitle(non_aplhanumeric_title)
+
     nat = template.add_resource(ec2.Instance(
         nat_title,
         KeyName=key_pair_name,
@@ -271,7 +292,8 @@ def add_web_instance(template, key_pair_name, subnet, security_group, userdata, 
     global num_web_instances
     num_web_instances += 1
 
-    instance_title = "WebServer" + str(num_web_instances)
+    non_alphanumeric_title = "WebServer" + str(num_web_instances)
+    instance_title = trimTitle(non_alphanumeric_title)
 
     instance = template.add_resource(ec2.Instance(
         instance_title,
@@ -300,7 +322,9 @@ def add_load_balancer(template, subnets, healthcheck_target, security_groups, re
     global num_load_balancers
     num_load_balancers += 1
 
-    elb_title = "ElasticLoadBalancer" + str(num_load_balancers)
+    non_alphanumeric_title = "ElasticLoadBalancer" + str(num_load_balancers)
+    elb_title = trimTitle(non_alphanumeric_title)
+
     return_elb = template.add_resource(elb.LoadBalancer(
         elb_title,
         CrossZone=True,
