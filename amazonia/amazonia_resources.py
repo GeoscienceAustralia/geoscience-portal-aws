@@ -73,6 +73,13 @@ num_web_security_groups = 0
 num_route_table_associations = 0
 num_auto_scaling_groups = 0
 
+def isCfObject(object):
+    if type(object) is str:
+        returnObject = object
+    else:
+        returnObject = Ref(object)
+
+    return returnObject
 
 def switch_availability_zone():
     """
@@ -112,7 +119,7 @@ def add_subnet(template, vpc, name, cidr):
 
     subnet = template.add_resource(ec2.Subnet(subnet_title,
                                                      AvailabilityZone=AVAILABILITY_ZONES[current_az],
-                                                     VpcId=Ref(vpc),
+                                                     VpcId=isCfObject(vpc),
                                                      CidrBlock=cidr,
                                                      Tags=Tags(Name=name_tag(subnet_title),
                                                                Environment=ENVIRONMENT_NAME)))
@@ -127,7 +134,7 @@ def add_route_table(template, vpc, route_type=""):
     route_table_title = trimTitle(non_alphanumeric_title)
 
     route_table = template.add_resource(ec2.RouteTable(route_table_title,
-                                                       VpcId=Ref(vpc),
+                                                       VpcId=isCfObject(vpc),
                                                        Tags=Tags(Name=name_tag(route_table_title)),
                                                       ))
     return route_table
@@ -165,7 +172,7 @@ def add_internet_gateway_attachment(template, vpc, internet_gateway):
 
     attachment_title = internet_gateway.title + "Attachment"
     gateway_attachment = template.add_resource(ec2.VPCGatewayAttachment(attachment_title,
-                                                                        VpcId=Ref(vpc),
+                                                                        VpcId=isCfObject(vpc),
                                                                         InternetGatewayId=Ref(internet_gateway.title),
                                                                        ))
 
@@ -213,7 +220,7 @@ def add_security_group(template, vpc):
 
     sg = template.add_resource(ec2.SecurityGroup(sg_title,
                                                  GroupDescription="Security group",
-                                                 VpcId=Ref(vpc),
+                                                 VpcId=isCfObject(vpc),
                                                  Tags=Tags(Name=name_tag(sg_title))))
 
     return sg
