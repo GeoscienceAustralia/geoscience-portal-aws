@@ -219,8 +219,15 @@ def add_security_group(template, vpc):
     return sg
 
 
+# Add a rule to security group that allows incoming traffic to any resources (e.g. EC2 instances)
+# assigned to the security group.
+#   security_group: the security group to add the rule to
+#   protocol: the protocol to allow eg. tcp
+#   from_port: the origin port
+#   to_port: the destination port (this allows port conversion?)
+#   cidr: the cidr range that is allowed to send traffic
+#   source_security_group: to receive traffic from other resources allocated to source_security_group
 def add_security_group_ingress(template, security_group, protocol, from_port, to_port, cidr="", source_security_group=""):
-
     global num_ingress_rules
     num_ingress_rules += 1
 
@@ -237,13 +244,11 @@ def add_security_group_ingress(template, security_group, protocol, from_port, to
                                                                 ToPort=to_port,
                                                                 GroupId=Ref(security_group.title)
                                                                ))
-
     if not source_security_group == "":
         sg_ingress.SourceSecurityGroupId = GetAtt(source_security_group.title, "GroupId")
     else:
         if not cidr == "":
             sg_ingress.CidrIp = cidr
-
     return sg_ingress
 
 
