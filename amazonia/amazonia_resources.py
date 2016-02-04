@@ -73,6 +73,7 @@ num_web_security_groups = 0
 num_route_table_associations = 0
 num_auto_scaling_groups = 0
 
+
 def switch_availability_zone():
     """
         A simple function to switch Availability zones.
@@ -82,6 +83,7 @@ def switch_availability_zone():
         current_az = 1
     else:
         current_az = 0
+
 
 def add_vpc(template, cidr):
     """
@@ -100,6 +102,7 @@ def add_vpc(template, cidr):
                                                   Environment=ENVIRONMENT_NAME)))
     return vpc
 
+
 def add_subnet(template, vpc, name, cidr):
     global num_subnets
     num_subnets += 1
@@ -109,11 +112,12 @@ def add_subnet(template, vpc, name, cidr):
 
     public_subnet = template.add_resource(ec2.Subnet(subnet_title,
                                                      AvailabilityZone=AVAILABILITY_ZONES[current_az],
-                                                     VpcId=Ref(vpc.title),
+                                                     VpcId=Ref(vpc),
                                                      CidrBlock=cidr,
                                                      Tags=Tags(Name=name_tag(subnet_title),
                                                                Environment=ENVIRONMENT_NAME)))
     return public_subnet
+
 
 def add_route_table(template, vpc, route_type=""):
     global num_route_tables
@@ -123,10 +127,11 @@ def add_route_table(template, vpc, route_type=""):
     route_table_title = trimTitle(non_alphanumeric_title)
 
     route_table = template.add_resource(ec2.RouteTable(route_table_title,
-                                                       VpcId=Ref(vpc.title),
+                                                       VpcId=Ref(vpc),
                                                        Tags=Tags(Name=name_tag(route_table_title)),
                                                       ))
     return route_table
+
 
 def add_route_table_subnet_association(template, route_table, subnet):
     global num_route_table_associations
@@ -141,6 +146,7 @@ def add_route_table_subnet_association(template, route_table, subnet):
 
     return route_table_association
 
+
 def add_internet_gateway(template):
     global num_internet_gateways
     num_internet_gateways = num_internet_gateways + 1
@@ -154,15 +160,17 @@ def add_internet_gateway(template):
                                                                 ))
     return internet_gateway
 
+
 def add_internet_gateway_attachment(template, vpc, internet_gateway):
 
     attachment_title = internet_gateway.title + "Attachment"
     gateway_attachment = template.add_resource(ec2.VPCGatewayAttachment(attachment_title,
-                                                                        VpcId=Ref(vpc.title),
+                                                                        VpcId=Ref(vpc),
                                                                         InternetGatewayId=Ref(internet_gateway.title),
                                                                        ))
 
     return gateway_attachment
+
 
 def add_route_ingress_via_gateway(template, route_table, internet_gateway, cidr, dependson = ""):
     global num_routes
@@ -179,6 +187,7 @@ def add_route_ingress_via_gateway(template, route_table, internet_gateway, cidr,
 
     return route
 
+
 def add_route_egress_via_NAT(template, route_table, nat, dependson=""):
     global num_routes
     num_routes += 1
@@ -194,6 +203,7 @@ def add_route_egress_via_NAT(template, route_table, nat, dependson=""):
 
     return route
 
+
 def add_security_group(template, vpc):
     global num_security_groups
     num_security_groups += 1
@@ -203,10 +213,11 @@ def add_security_group(template, vpc):
 
     sg = template.add_resource(ec2.SecurityGroup(sg_title,
                                                  GroupDescription="Security group",
-                                                 VpcId=Ref(vpc.title),
+                                                 VpcId=Ref(vpc),
                                                  Tags=Tags(Name=name_tag(sg_title))))
 
     return sg
+
 
 def add_security_group_ingress(template, security_group, protocol, from_port, to_port, cidr="", source_security_group=""):
 
@@ -235,6 +246,7 @@ def add_security_group_ingress(template, security_group, protocol, from_port, to
 
     return sg_ingress
 
+
 def add_security_group_egress(template, security_group, protocol, from_port, to_port, cidr="", destination_security_group=""):
 
     global num_egress_rules
@@ -262,6 +274,7 @@ def add_security_group_egress(template, security_group, protocol, from_port, to_
 
     return sg_egress
 
+
 def add_nat(template, public_subnet, key_pair_name, security_group):
     global num_nats
     num_nats += 1
@@ -287,6 +300,7 @@ def add_nat(template, public_subnet, key_pair_name, security_group):
         ),
     ))
     return nat
+
 
 def add_web_instance(template, key_pair_name, subnet, security_group, userdata, public=True, app_name="default"):
     global num_web_instances
@@ -317,6 +331,7 @@ def add_web_instance(template, key_pair_name, subnet, security_group, userdata, 
         UserData=Base64(userdata),
     ))
     return instance
+
 
 def add_load_balancer(template, subnets, healthcheck_target, security_groups, resources="", dependson= ""):
     global num_load_balancers
@@ -356,6 +371,7 @@ def add_load_balancer(template, subnets, healthcheck_target, security_groups, re
         return_elb.DependsOn = [x.title for x in dependson]
 
     return return_elb
+
 
 def add_auto_scaling_group(template, max_instances, subnets, instance="", launch_configuration="", health_check_type="", dependson="", load_balancer="", multiAZ=False, app_name="default"):
     global num_auto_scaling_groups
@@ -400,6 +416,7 @@ def add_auto_scaling_group(template, max_instances, subnets, instance="", launch
 
     return asg
 
+
 def add_launch_config(template, key_pair_name, security_groups, image_id, instance_type, userdata=""):
     global num_launch_configs
     num_launch_configs += 1
@@ -421,12 +438,15 @@ def add_launch_config(template, key_pair_name, security_groups, image_id, instan
         lc.UserData = Base64(userdata)
     return lc
 
+
 def stack_name_tag():
     return "Ref('AWS::StackName')"
+
 
 def name_tag(resource_name):
     """Prepend stack name to the given resource name."""
     return Join("", [Ref('AWS::StackName'), '-', resource_name])
+
 
 def trimTitle(old_title):
     old_title = old_title.replace("-", "_")

@@ -21,10 +21,13 @@ class SingleAZenv(Template):
     A working 'default' single AZ environment. Completely editable via troposphere commands.
     """
 
-    def __init__(self, key_pair_name):
+    def __init__(self, key_pair_name, invpc=""):
         """ Public Class to create a single AZ environment in a vpc """
         super(SingleAZenv, self).__init__()
-        self.vpc = addVPC(self)
+        if invpc == "":
+            self.vpc = addVPC(self)
+        else:
+            self.vpc = invpc
 
         # configure network
         self.public_subnet = add_subnet(self, self.vpc, PUBLIC_SUBNET_NAME, PUBLIC_SUBNET_AZ1_CIDR)
@@ -57,10 +60,13 @@ class DualAZenv(Template):
     A working 'default' dual AZ environment. Completely editable via troposphere commands.
     """
 
-    def __init__(self, key_pair_name):
+    def __init__(self, key_pair_name, invpc=""):
         """ Public Class to create a dual AZ environment in a vpc """
-        super(DualAZenv, self).__init__()
-        self.vpc = addVPC(self)
+        super(DualAZenv, self,).__init__()
+        if invpc == "":
+            self.vpc = addVPC(self)
+        else:
+            self.vpc = invpc
 
         # AZ 1
         self.public_subnet1 = add_subnet(self, self.vpc, PUBLIC_SUBNET_NAME, PUBLIC_SUBNET_AZ1_CIDR)
