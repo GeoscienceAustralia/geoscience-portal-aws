@@ -16,6 +16,7 @@ def main(args):
     template = SingleAZenv(keypair)
 
     HTTP_PORT="80"      # This variable is used to specify the port for general HTTP traffic
+    HTTP_PORT_TC="8080"      # This variable is used to specify the port for general HTTP traffic
     HTTPS_PORT="443"    # This variable is used to specify the port for general HTTPS traffic
     IAM_INSTANCE_PROFILE = "instance-iam-role-InstanceProfile-OGL42SZSIQRK"
     SSH_PORT="22"       # SSH Port
@@ -26,6 +27,7 @@ def main(args):
     # 80, 443, and 8080 from ELB security group
     # all to NAT security group
     add_security_group_ingress(template, web_sg, "tcp", HTTP_PORT, HTTP_PORT, cidr=PUBLIC_CIDR)
+    add_security_group_ingress(template, web_sg, "tcp", HTTP_PORT_TC, HTTP_PORT_TC, cidr=PUBLIC_CIDR)
     add_security_group_ingress(template, web_sg, "tcp", HTTPS_PORT, HTTPS_PORT, cidr=PUBLIC_CIDR)
     add_security_group_ingress(template, web_sg, "tcp", SSH_PORT, SSH_PORT, cidr=PUBLIC_CIDR)
     add_security_group_egress(template, web_sg, "-1", "-1", "-1", cidr=PUBLIC_CIDR)

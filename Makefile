@@ -1,9 +1,13 @@
-.PHONEY:
-build:
-	python setup.py build
+#
+# This makefile installs the amazonia package and its dependencies
+#
+# 1. to install Amazonia run "make install"
+# 2. to run one of the examples run "make xxx.json" where xxx is the name of the example
+# 3. to make your own automated scripts, copy one of the examples and extend it using Amazonia helper functions and the troposhpere library
+# Have fun!
 
-singleAZ.json: amazonia/__init__.py amazonia/cftemplates.py
-	python ./examples/singleAZ > $@
+AutoscalingWebEnv.json: amazonia/__init__.py amazonia/cftemplates.py
+	python ./examples/AutoscalingWebEnv > $@
 
 dualAZ.json: amazonia/__init__.py amazonia/cftemplates.py
 	python ./examples/dualAZ > $@
@@ -11,18 +15,18 @@ dualAZ.json: amazonia/__init__.py amazonia/cftemplates.py
 dualAZwebenv.json: amazonia/__init__.py amazonia/cftemplates.py
 	python ./examples/dualAZwebenv > $@
 
-singleAZScalingWeb.json: amazonia/__init__.py amazonia/cftemplates.py
+ExtensionExample.json: amazonia/__init__.py amazonia/cftemplates.py
+	python ./examples/dualAZwebenv > $@
+
+singleAZ.json: amazonia/__init__.py amazonia/cftemplates.py
+	python ./examples/singleAZ > $@
+
+singleAZ_with_autoscaling_web_instance.json: amazonia/__init__.py amazonia/cftemplates.py
 	python ./examples/singleAZ_with_autoscaling_web_instance > $@
 
-default_vpc.json: amazonia/__init__.py amazonia/cftemplates.py
-	python ./examples/viz > $@
-
-%.svg: %.json
-	cat $< | cfviz | dot -Tsvg -o$@
-
 .PHONEY:
-viz: default_vpc.svg
-	feh --magick-timeout 1 $< &
+build:
+	python setup.py build
 
 .PHONEY:
 install:
