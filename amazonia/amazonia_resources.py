@@ -110,13 +110,13 @@ def add_subnet(template, vpc, name, cidr):
     non_alphanumeric_title = name + str(num_subnets)
     subnet_title = trimTitle(non_alphanumeric_title)
 
-    public_subnet = template.add_resource(ec2.Subnet(subnet_title,
+    subnet = template.add_resource(ec2.Subnet(subnet_title,
                                                      AvailabilityZone=AVAILABILITY_ZONES[current_az],
                                                      VpcId=Ref(vpc),
                                                      CidrBlock=cidr,
                                                      Tags=Tags(Name=name_tag(subnet_title),
                                                                Environment=ENVIRONMENT_NAME)))
-    return public_subnet
+    return subnet
 
 
 def add_route_table(template, vpc, route_type=""):
@@ -219,15 +219,19 @@ def add_security_group(template, vpc):
     return sg
 
 
-# Add a rule to security group that allows incoming traffic to any resources (e.g. EC2 instances)
-# assigned to the security group.
-#   security_group: the security group to add the rule to
-#   protocol: the protocol to allow eg. tcp
-#   from_port: the origin port
-#   to_port: the destination port (this allows port conversion?)
-#   cidr: the cidr range that is allowed to send traffic
-#   source_security_group: to receive traffic from other resources allocated to source_security_group
 def add_security_group_ingress(template, security_group, protocol, from_port, to_port, cidr="", source_security_group=""):
+    """
+        Add a rule to security group that allows incoming traffic to any resources (e.g. EC2 instances)
+            assigned to the security group.
+
+        security_group: the security group to add the rule to
+        protocol: the protocol to allow eg. tcp
+        from_port: the origin port
+        to_port: the destination port (this allows port conversion)
+        cidr: the cidr range that is allowed to send traffic
+        source_security_group: to receive traffic from other resources allocated to source_security_group
+    """
+
     global num_ingress_rules
     num_ingress_rules += 1
 
@@ -280,7 +284,7 @@ def add_security_group_egress(template, security_group, protocol, from_port, to_
     return sg_egress
 
 
-def add_nat(template, public_subnet, key_pair_name, security_group):
+def add_nat(template, subnet, key_pair_name, security_group):
     global num_nats
     num_nats += 1
 
@@ -297,7 +301,7 @@ def add_nat(template, public_subnet, key_pair_name, security_group):
             AssociatePublicIpAddress=True,
             DeviceIndex="0",
             DeleteOnTermination=True,
-            SubnetId=Ref(public_subnet.title),
+            SubnetId=Ref(subnet.title),
         )],
         SourceDestCheck=False,
         Tags=Tags(
@@ -454,12 +458,9 @@ def name_tag(resource_name):
 
 
 def trimTitle(old_title):
-    old_title = old_title.replace("-", "_")
-    old_title = old_title.replace("*", "_")
-    old_title = old_title.replace(" ", "_")
-    old_title = old_title.replace(".", "_")
-    old_title = old_title.replace(",", "_")
-    old_title = old_title.replace("/", "_")
-    old_title = old_title.replace("\\", "_")
+    badsymbols = ["-", "*", " ", ".", ",", "/", "\\"]
+    for var in badsymbols:
+        old_title = old_title.replace(var, "_")
+
     new_title = inflection.camelize(old_title)
     return new_title
