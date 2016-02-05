@@ -147,8 +147,8 @@ def add_route_table_subnet_association(template, route_table, subnet):
     # Associate the route table with the subnet
     route_table_association = template.add_resource(ec2.SubnetRouteTableAssociation(
         route_table.title + "Association" + str(num_route_table_associations),
-        SubnetId=Ref(subnet.title),
-        RouteTableId=Ref(route_table.title),
+        SubnetId=isCfObject(subnet),
+        RouteTableId=isCfObject(route_table),
     ))
 
     return route_table_association
@@ -173,7 +173,7 @@ def add_internet_gateway_attachment(template, vpc, internet_gateway):
     attachment_title = internet_gateway.title + "Attachment"
     gateway_attachment = template.add_resource(ec2.VPCGatewayAttachment(attachment_title,
                                                                         VpcId=isCfObject(vpc),
-                                                                        InternetGatewayId=Ref(internet_gateway.title),
+                                                                        InternetGatewayId=isCfObject(internet_gateway),
                                                                        ))
 
     return gateway_attachment
@@ -184,8 +184,8 @@ def add_route_ingress_via_gateway(template, route_table, internet_gateway, cidr,
     num_routes += 1
     route = template.add_resource(ec2.Route(
         "InboundRoute" + str(num_routes),
-        GatewayId=Ref(internet_gateway.title),
-        RouteTableId=Ref(route_table.title),
+        GatewayId=isCfObject(internet_gateway),
+        RouteTableId=isCfObject(route_table),
         DestinationCidrBlock=cidr
     ))
 
@@ -200,8 +200,8 @@ def add_route_egress_via_NAT(template, route_table, nat, dependson=""):
     num_routes += 1
 
     route = template.add_resource(ec2.Route("OutboundRoute" + str(num_routes),
-                                    InstanceId=Ref(nat.title),
-                                    RouteTableId=Ref(route_table.title),
+                                    InstanceId=isCfObject(nat),
+                                    RouteTableId=isCfObject(route_table),
                                     DestinationCidrBlock=PUBLIC_CIDR,
                                    ))
 
@@ -253,7 +253,7 @@ def add_security_group_ingress(template, security_group, protocol, from_port, to
                                                                 IpProtocol=protocol,
                                                                 FromPort=from_port,
                                                                 ToPort=to_port,
-                                                                GroupId=Ref(security_group.title)
+                                                                GroupId=isCfObject(security_group)
                                                                ))
     if not source_security_group == "":
         sg_ingress.SourceSecurityGroupId = GetAtt(source_security_group.title, "GroupId")
@@ -279,7 +279,7 @@ def add_security_group_egress(template, security_group, protocol, from_port, to_
                                                               IpProtocol=protocol,
                                                               FromPort=from_port,
                                                               ToPort=to_port,
-                                                              GroupId=Ref(security_group.title)
+                                                              GroupId=isCfObject(security_group)
                                                              ))
 
     if not destination_security_group == "":
@@ -304,11 +304,11 @@ def add_nat(template, subnet, key_pair_name, security_group):
         ImageId=NAT_IMAGE_ID,
         InstanceType=NAT_INSTANCE_TYPE,
         NetworkInterfaces=[ec2.NetworkInterfaceProperty(
-            GroupSet=[Ref(security_group.title)],
+            GroupSet=[isCfObject(security_group)],
             AssociatePublicIpAddress=True,
             DeviceIndex="0",
             DeleteOnTermination=True,
-            SubnetId=Ref(subnet.title),
+            SubnetId=isCfObject(subnet),
         )],
         SourceDestCheck=False,
         Tags=Tags(
@@ -332,11 +332,11 @@ def add_web_instance(template, key_pair_name, subnet, security_group, userdata, 
         SourceDestCheck=False,
         ImageId=WEB_IMAGE_ID,
         NetworkInterfaces=[ec2.NetworkInterfaceProperty(
-            GroupSet=[Ref(security_group.title)],
+            GroupSet=[isCfObject(security_group)],
             AssociatePublicIpAddress=public,
             DeviceIndex="0",
             DeleteOnTermination=True,
-            SubnetId=Ref(subnet.title),
+            SubnetId=isCfObject(subnet),
         )],
         Tags=Tags(
             Name=name_tag(instance_title),
@@ -373,15 +373,15 @@ def add_load_balancer(template, subnets, healthcheck_target, security_groups, re
             InstanceProtocol="HTTP",
         )],
         Scheme="internet-facing",
-        SecurityGroups=[Ref(x) for x in security_groups],
-        Subnets=[Ref(x) for x in subnets],
+        SecurityGroups=[isCfObject(x) for x in security_groups],
+        Subnets=[isCfObject(x) for x in subnets],
         Tags=Tags(
             Name=name_tag(elb_title),
         ),
     ))
 
     if not resources == "":
-        return_elb.Instances = [Ref(x) for x in resources]
+        return_elb.Instances = [isCfObject(x) for x in resources]
 
     if not dependson == "":
         return_elb.DependsOn = [x.title for x in dependson]
@@ -400,7 +400,7 @@ def add_auto_scaling_group(template, max_instances, subnets, instance="", launch
         auto_scaling_group_title,
         MinSize=ASG_MIN_INSTANCES,
         MaxSize=max_instances,
-        VPCZoneIdentifier=[Ref(x) for x in subnets],
+        VPCZoneIdentifier=[isCfObject(x) for x in subnets],
         Tags=[
             Tag("Name", auto_scaling_group_title, True),
             Tag("Application", app_name, True),
@@ -412,10 +412,10 @@ def add_auto_scaling_group(template, max_instances, subnets, instance="", launch
     ))
 
     if not launch_configuration == "":
-        asg.LaunchConfigurationName = Ref(launch_configuration.title)
+        asg.LaunchConfigurationName = isCfObject(launch_configuration)
 
     if not instance == "":
-        asg.InstanceId = Ref(instance.title)
+        asg.InstanceId = isCfObject(instance)
 
     if multiAZ:
         asg.AvailabilityZones = AVAILABILITY_ZONES
@@ -423,7 +423,7 @@ def add_auto_scaling_group(template, max_instances, subnets, instance="", launch
         asg.AvailabilityZones = [AVAILABILITY_ZONES[current_az]]
 
     if health_check_type == "ELB":
-        asg.LoadBalancerNames = [Ref(load_balancer.title)]
+        asg.LoadBalancerNames = [isCfObject(load_balancer)]
         asg.HealthCheckType = health_check_type
         asg.HealthCheckGracePeriod = 300
 
@@ -447,7 +447,7 @@ def add_launch_config(template, key_pair_name, security_groups, image_id, instan
         InstanceMonitoring=False,
         InstanceType=instance_type,
         KeyName=key_pair_name,
-        SecurityGroups=[Ref(x) for x in security_groups],
+        SecurityGroups=[isCfObject(x) for x in security_groups],
     ))
 
     if not userdata == "":
