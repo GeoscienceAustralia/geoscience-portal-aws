@@ -332,11 +332,11 @@ def add_web_instance(template, key_pair_name, subnet, security_group, userdata, 
         SourceDestCheck=False,
         ImageId=WEB_IMAGE_ID,
         NetworkInterfaces=[ec2.NetworkInterfaceProperty(
-            GroupSet=[Ref(security_group.title)],
+            GroupSet=[isCfObject(security_group)],
             AssociatePublicIpAddress=public,
             DeviceIndex="0",
             DeleteOnTermination=True,
-            SubnetId=Ref(subnet.title),
+            SubnetId=isCfObject(subnet),
         )],
         Tags=Tags(
             Name=name_tag(instance_title),
@@ -349,7 +349,7 @@ def add_web_instance(template, key_pair_name, subnet, security_group, userdata, 
     return instance
 
 
-def add_load_balancer(template, subnets, healthcheck_target, security_groups, resources="", dependson= ""):
+def add_load_balancer(template, subnets, healthcheck_target, security_groups, resources="", dependson=""):
     global num_load_balancers
     num_load_balancers += 1
 
@@ -373,8 +373,8 @@ def add_load_balancer(template, subnets, healthcheck_target, security_groups, re
             InstanceProtocol="HTTP",
         )],
         Scheme="internet-facing",
-        SecurityGroups=[Ref(x) for x in security_groups],
-        Subnets=[Ref(x) for x in subnets],
+        SecurityGroups=[isCfObject(x) for x in security_groups],
+        Subnets=[isCfObject(x) for x in subnets],
         Tags=Tags(
             Name=name_tag(elb_title),
         ),
