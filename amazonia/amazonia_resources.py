@@ -241,11 +241,14 @@ def add_security_group_ingress(template, security_group, protocol, from_port, to
 
     global num_ingress_rules
     num_ingress_rules += 1
-
-    if not protocol == "-1":
-        non_alphanumeric_title = security_group.title + 'Ingress' + protocol + str(num_ingress_rules)
+    if type(security_group) is str:
+        security_group_name = security_group
     else:
-        non_alphanumeric_title = security_group.title + 'IngressAll' + str(num_ingress_rules)
+        security_group_name = security_group.title
+    if not protocol == "-1":
+        non_alphanumeric_title = security_group_name + 'Ingress' + protocol + str(num_ingress_rules)
+    else:
+        non_alphanumeric_title = security_group_name + 'IngressAll' + str(num_ingress_rules)
 
     ingress_title = trimTitle(non_alphanumeric_title)
 
@@ -253,7 +256,7 @@ def add_security_group_ingress(template, security_group, protocol, from_port, to
                                                                 IpProtocol=protocol,
                                                                 FromPort=from_port,
                                                                 ToPort=to_port,
-                                                                GroupId=Ref(security_group.title)
+                                                                GroupId=isCfObject(security_group)
                                                                ))
     if not source_security_group == "":
         sg_ingress.SourceSecurityGroupId = GetAtt(source_security_group.title, "GroupId")
@@ -267,11 +270,14 @@ def add_security_group_egress(template, security_group, protocol, from_port, to_
 
     global num_egress_rules
     num_egress_rules += 1
-
-    if not protocol == "-1":
-        non_alphanumeric_title = security_group.title + 'Egress' + protocol + str(num_egress_rules)
+    if type(security_group) is str:
+        security_group_name = security_group
     else:
-        non_alphanumeric_title = security_group.title + 'EgressAll' + str(num_egress_rules)
+        security_group_name = security_group.title
+    if not protocol == "-1":
+        non_alphanumeric_title = security_group_name + 'Egress' + protocol + str(num_egress_rules)
+    else:
+        non_alphanumeric_title = security_group_name + 'EgressAll' + str(num_egress_rules)
 
     egress_title = trimTitle(non_alphanumeric_title)
 
@@ -279,11 +285,14 @@ def add_security_group_egress(template, security_group, protocol, from_port, to_
                                                               IpProtocol=protocol,
                                                               FromPort=from_port,
                                                               ToPort=to_port,
-                                                              GroupId=Ref(security_group.title)
+                                                              GroupId=isCfObject(security_group)
                                                              ))
 
     if not destination_security_group == "":
-        sg_egress.DestinationSecurityGroupId = GetAtt(destination_security_group.title, "GroupId")
+        if type(destination_security_group) == str:
+            sg_egress.DestinationSecurityGroupId = destination_security_group
+        else:
+            sg_egress.DestinationSecurityGroupId = GetAtt(destination_security_group, "GroupId")
     else:
         if not cidr == "":
             sg_egress.CidrIp = cidr
@@ -349,7 +358,7 @@ def add_web_instance(template, key_pair_name, subnet, security_group, userdata, 
     return instance
 
 
-def add_load_balancer(template, subnets, healthcheck_target, security_groups, resources="", dependson=""):
+def add_load_balancer(template, subnets, healthcheck_target, security_groups, resources="", dependson= ""):
     global num_load_balancers
     num_load_balancers += 1
 
@@ -381,7 +390,7 @@ def add_load_balancer(template, subnets, healthcheck_target, security_groups, re
     ))
 
     if not resources == "":
-        return_elb.Instances = [Ref(x) for x in resources]
+        return_elb.Instances = [isCfObject(x) for x in resources]
 
     if not dependson == "":
         return_elb.DependsOn = [x.title for x in dependson]
