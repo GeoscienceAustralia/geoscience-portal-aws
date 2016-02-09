@@ -190,7 +190,7 @@ def add_route_ingress_via_gateway(template, route_table, internet_gateway, cidr,
     ))
 
     if not dependson == "":
-        route.DependsOn = [x.title for x in dependson]
+        route.DependsOn = [isCfObject(x) for x in dependson]
 
     return route
 
@@ -206,7 +206,7 @@ def add_route_egress_via_NAT(template, route_table, nat, dependson=""):
                                    ))
 
     if not dependson == "":
-        route.DependsOn = [x.title for x in dependson]
+        route.DependsOn = [isCfObject(x) for x in dependson]
 
     return route
 
@@ -393,7 +393,7 @@ def add_load_balancer(template, subnets, healthcheck_target, security_groups, re
         return_elb.Instances = [isCfObject(x) for x in resources]
 
     if not dependson == "":
-        return_elb.DependsOn = [x.title for x in dependson]
+        return_elb.DependsOn = [isCfObject(x) for x in dependson]
 
     return return_elb
 
@@ -437,7 +437,7 @@ def add_auto_scaling_group(template, max_instances, subnets, instance="", launch
         asg.HealthCheckGracePeriod = 300
 
     if not dependson == "":
-        asg.DependsOn = [x.title for x in dependson]
+        asg.DependsOn = [isCfObject(x) for x in dependson]
 
     return asg
 
