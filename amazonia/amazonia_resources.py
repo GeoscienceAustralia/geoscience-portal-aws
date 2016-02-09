@@ -144,9 +144,14 @@ def add_route_table_subnet_association(template, route_table, subnet):
     global num_route_table_associations
     num_route_table_associations += 1
 
+    if type(route_table) is str:
+        route_table_name = route_table
+    else:
+        route_table_name = route_table.title
+
     # Associate the route table with the subnet
     route_table_association = template.add_resource(ec2.SubnetRouteTableAssociation(
-        route_table.title + "Association" + str(num_route_table_associations),
+        route_table_name + "Association" + str(num_route_table_associations),
         SubnetId=isCfObject(subnet),
         RouteTableId=isCfObject(route_table),
     ))
@@ -170,7 +175,12 @@ def add_internet_gateway(template):
 
 def add_internet_gateway_attachment(template, vpc, internet_gateway):
 
-    attachment_title = internet_gateway.title + "Attachment"
+    if type(internet_gateway) is str:
+        internet_gateway_name = internet_gateway
+    else:
+        internet_gateway_name = internet_gateway.title
+
+    attachment_title = internet_gateway_name + "Attachment"
     gateway_attachment = template.add_resource(ec2.VPCGatewayAttachment(attachment_title,
                                                                         VpcId=isCfObject(vpc),
                                                                         InternetGatewayId=isCfObject(internet_gateway),
