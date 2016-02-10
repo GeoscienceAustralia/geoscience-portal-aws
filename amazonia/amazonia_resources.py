@@ -72,6 +72,8 @@ num_web_instances = 0
 num_web_security_groups = 0
 num_route_table_associations = 0
 num_auto_scaling_groups = 0
+num_rds = 0
+num_rds_subnet_group = 0
 
 def isCfObject(object):
     if type(object) is str:
