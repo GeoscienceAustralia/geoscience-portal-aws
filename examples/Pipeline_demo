@@ -34,7 +34,7 @@ def main(args):
 
     web_launch_config = add_launch_config(template, keypair, [web_sg], WEB_IMAGE_ID, WEB_INSTANCE_TYPE, userdata=userdata)
     web_launch_config.IamInstanceProfile = IAM_INSTANCE_PROFILE
-    web_asg = add_auto_scaling_group(template, 1, [template.public_subnet], launch_configuration=web_launch_config, dependson=[template.internet_gateway], app_name=appname)
+    web_asg = add_auto_scaling_group(template, 1, [template.public_subnet], launch_configuration=web_launch_config, dependson=[template.internet_gateway.title], app_name=appname)
 
     print(template.to_json(indent=2, separators=(',', ': ')))
 
