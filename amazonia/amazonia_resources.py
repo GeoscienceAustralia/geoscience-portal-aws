@@ -72,8 +72,9 @@ num_web_instances = 0
 num_web_security_groups = 0
 num_route_table_associations = 0
 num_auto_scaling_groups = 0
-num_rds = 0
+num_db = 0
 num_db_subnet_group = 0
+num_db_instance = 0
 
 def isCfObject(object):
     if type(object) is str:
@@ -497,16 +498,70 @@ def trimTitle(old_title):
 def add_db_subnet_group(template, raw_subnets):
     global num_db_subnet_group
     num_db_subnet_group += 1
-    subnets = []
-    for subnet in raw_subnets:
-        subnets.append(isCfObject(subnet))
 
     non_alphanumeric_title = "DBSubnetGroup" + str(num_db_subnet_group)
     db_subnet_group_title = trimTitle(non_alphanumeric_title)
 
+    subnets = []
+    for subnet in raw_subnets:
+        subnets.append(isCfObject(subnet))
+
     db_subnet_group = template.add_resource(rds.DBSubnetGroup(db_subnet_group_title,
                                                               DBSubnetGroupDescription=db_subnet_group_title,
-                                                              SubnetIds=[subnets],
+                                                              SubnetIds=subnets,
                                                               Tags=Tags(Name=name_tag(db_subnet_group_title))))
 
     return db_subnet_group
+
+
+def add_db(db_subnet_group, db_snapshot="", engine, db_security_group="", username, password):
+    global num_db
+    num_db += 1
+
+    db_non_alphanumeric_title = "DB" + str(num_db)
+    db_title = trimTitle(db_non_alphanumeric_title)
+
+    db_instance_non_alphanumeric_title = "DBInstance" + str(num_db_instance)
+    db_instance = trimTitle(db_instance_non_alphanumeric_title)
+
+    # if db_security_group="" then db_security_group=add_security_group() + add_security_group_ingress()
+
+    # Engine matching
+    # If engine = postgress then: port = blah
+    # Elif engine = mysql then: port = blah
+    port = 8
+    db = template.add_resource(rds.DBSubnetGroup(db_title,
+                                                 AllocatedStorage=5,
+                                                 AllowMajorVersionUpgrade=True,
+                                                 AutoMinorVersionUpgrade=True,
+                                                 AvailabilityZone=AVAILABILITY_ZONES[0],
+                                                 BackupRetentionPeriod=0,
+                                                 #CharacterSetName= (basestring, False),
+                                                 #DBClusterIdentifier= (basestring, False),
+                                                 DBInstanceClass= "db.t2.micro",
+                                                 DBInstanceIdentifier= db_instance,
+                                                 DBName=db_title,
+                                                 #DBParameterGroupName= (basestring, False),
+                                                 #DBSecurityGroups=isCfObject(db_security_group),
+                                                 DBSnapshotIdentifier=db_snapshot,
+                                                 DBSubnetGroupName=isCfObject(db_subnet_group),
+                                                 Engine=engine,
+                                                 #EngineVersion= (basestring, False),
+                                                 #Iops= (validate_iops, False),
+                                                 #KmsKeyId= (basestring, False),
+                                                 #LicenseModel= (validate_license_model, False),
+                                                 MasterUsername=username,
+                                                 MasterUserPassword=password,
+                                                 MultiAZ=False,
+                                                 #OptionGroupName= (basestring, False),
+                                                 Port=port,
+                                                 #PreferredBackupWindow= (validate_backup_window, False),
+                                                 #PreferredMaintenanceWindow= (basestring, False),
+                                                 PubliclyAccessible=False,
+                                                 #SourceDBInstanceIdentifier= (basestring, False),
+                                                 #StorageEncrypted= (boolean, False),
+                                                 StorageType="standard",
+                                                 VPCSecurityGroups=isCfObject(db_security_group),
+                                                 Tags=Tags(Name=name_tag(db_title))))
+
+    return db
