@@ -6,7 +6,7 @@ The functions in this module generate cloud formation scripts that install commo
 
 """
 
-from troposphere import Ref, Tags, Join, Base64, GetAtt, ec2
+from troposphere import Ref, Tags, Join, Base64, GetAtt, ec2, rds
 from troposphere.autoscaling import AutoScalingGroup, LaunchConfiguration, Tag
 import troposphere.elasticloadbalancing as elb
 import inflection
@@ -73,7 +73,7 @@ num_web_security_groups = 0
 num_route_table_associations = 0
 num_auto_scaling_groups = 0
 num_rds = 0
-num_rds_subnet_group = 0
+num_db_subnet_group = 0
 
 def isCfObject(object):
     if type(object) is str:
@@ -492,3 +492,21 @@ def trimTitle(old_title):
 
     new_title = inflection.camelize(old_title)
     return new_title
+
+
+def add_db_subnet_group(template, raw_subnets):
+    global num_db_subnet_group
+    num_db_subnet_group += 1
+    subnets = []
+    for subnet in raw_subnets:
+        subnets.append(isCfObject(subnet))
+
+    non_alphanumeric_title = "DBSubnetGroup" + str(num_db_subnet_group)
+    db_subnet_group_title = trimTitle(non_alphanumeric_title)
+
+    db_subnet_group = template.add_resource(rds.DBSubnetGroup(db_subnet_group_title,
+                                                              DBSubnetGroupDescription=db_subnet_group_title,
+                                                              SubnetIds=[subnets],
+                                                              Tags=Tags(Name=name_tag(db_subnet_group_title))))
+
+    return db_subnet_group
