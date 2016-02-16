@@ -84,6 +84,7 @@ def isCfObject(object):
 
     return returnObject
 
+
 def switch_availability_zone():
     """
         A simple function to switch Availability zones.
@@ -503,6 +504,7 @@ def add_db_subnet_group(template, raw_subnets):
     db_subnet_group_title = trimTitle(non_alphanumeric_title)
 
     subnets = []
+
     for subnet in raw_subnets:
         subnets.append(isCfObject(subnet))
 
@@ -514,54 +516,58 @@ def add_db_subnet_group(template, raw_subnets):
     return db_subnet_group
 
 
-def add_db(db_subnet_group, db_snapshot="", engine, db_security_group="", username, password):
+def add_db(template, engine, db_subnet_group, username, password, db_security_groups, db_port="", db_snapshot=""):
     global num_db
     num_db += 1
+    global num_db_instance
+    num_db_instance += 1
 
-    db_non_alphanumeric_title = "DB" + str(num_db)
+    db_non_alphanumeric_title = "DB" + engine + str(num_db)
     db_title = trimTitle(db_non_alphanumeric_title)
 
-    db_instance_non_alphanumeric_title = "DBInstance" + str(num_db_instance)
-    db_instance = trimTitle(db_instance_non_alphanumeric_title)
+    db_instance_non_alphanumeric_title = "DBInstance" + engine + str(num_db_instance)
+    db_instance_title = trimTitle(db_instance_non_alphanumeric_title)
 
-    # if db_security_group="" then db_security_group=add_security_group() + add_security_group_ingress()
+    # Engine matching:mariadb, oracle-se1, oracle-se, oracle-ee, sqlserver-ee, sqlserver-se, sqlserver-ex, sqlserver-web
+    if db_port == "":
+        if engine == "postgres":
+            db_port = 5432
+        elif engine == "MySQL":
+            db_port = 3306
+        elif engine == "aurora":
+            db_port = 3306
 
-    # Engine matching
-    # If engine = postgress then: port = blah
-    # Elif engine = mysql then: port = blah
-    port = 8
-    db = template.add_resource(rds.DBSubnetGroup(db_title,
-                                                 AllocatedStorage=5,
-                                                 AllowMajorVersionUpgrade=True,
-                                                 AutoMinorVersionUpgrade=True,
-                                                 AvailabilityZone=AVAILABILITY_ZONES[0],
-                                                 BackupRetentionPeriod=0,
-                                                 #CharacterSetName= (basestring, False),
-                                                 #DBClusterIdentifier= (basestring, False),
-                                                 DBInstanceClass= "db.t2.micro",
-                                                 DBInstanceIdentifier= db_instance,
-                                                 DBName=db_title,
-                                                 #DBParameterGroupName= (basestring, False),
-                                                 #DBSecurityGroups=isCfObject(db_security_group),
-                                                 DBSnapshotIdentifier=db_snapshot,
-                                                 DBSubnetGroupName=isCfObject(db_subnet_group),
-                                                 Engine=engine,
-                                                 #EngineVersion= (basestring, False),
-                                                 #Iops= (validate_iops, False),
-                                                 #KmsKeyId= (basestring, False),
-                                                 #LicenseModel= (validate_license_model, False),
-                                                 MasterUsername=username,
-                                                 MasterUserPassword=password,
-                                                 MultiAZ=False,
-                                                 #OptionGroupName= (basestring, False),
-                                                 Port=port,
-                                                 #PreferredBackupWindow= (validate_backup_window, False),
-                                                 #PreferredMaintenanceWindow= (basestring, False),
-                                                 PubliclyAccessible=False,
-                                                 #SourceDBInstanceIdentifier= (basestring, False),
-                                                 #StorageEncrypted= (boolean, False),
-                                                 StorageType="standard",
-                                                 VPCSecurityGroups=isCfObject(db_security_group),
-                                                 Tags=Tags(Name=name_tag(db_title))))
-
+    db = template.add_resource(rds.DBInstance(db_title,
+                                              AllocatedStorage=5,
+                                              AllowMajorVersionUpgrade=True,
+                                              AutoMinorVersionUpgrade=True,
+                                              AvailabilityZone=AVAILABILITY_ZONES[0],
+                                              BackupRetentionPeriod=0,
+                                              # CharacterSetName= (basestring, False),
+                                              # DBClusterIdentifier= (basestring, False),
+                                              DBInstanceClass="db.t2.micro",
+                                              DBInstanceIdentifier=db_instance_title,
+                                              DBName=db_title,
+                                              # DBParameterGroupName= (basestring, False),
+                                              # DBSecurityGroups=isCfObject(db_security_group),
+                                              DBSnapshotIdentifier=db_snapshot,
+                                              DBSubnetGroupName=isCfObject(db_subnet_group),
+                                              Engine=engine,
+                                              # EngineVersion= (basestring, False),
+                                              # Iops= (validate_iops, False),
+                                              # KmsKeyId= (basestring, False),
+                                              # LicenseModel= (validate_license_model, False),
+                                              MasterUsername=username,
+                                              MasterUserPassword=password,
+                                              # MultiAZ=False,
+                                              # OptionGroupName= (basestring, False),
+                                              Port=db_port,
+                                              # PreferredBackupWindow= (validate_backup_window, False),
+                                              # PreferredMaintenanceWindow= (basestring, False),
+                                              PubliclyAccessible=False,
+                                              # SourceDBInstanceIdentifier= (basestring, False),
+                                              # StorageEncrypted= (boolean, False),
+                                              StorageType="standard",
+                                              VPCSecurityGroups=[isCfObject(db_security_groups)],
+                                              Tags=Tags(Name=name_tag(db_title))))
     return db
