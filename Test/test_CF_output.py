@@ -236,3 +236,44 @@ def test_add_auto_scaling_group():
     assert_equals(asg.MinSize, ASG_MIN_INSTANCES)
     assert_equals(asg.MaxSize, 4)
     assert_equals(asg.AvailabilityZones, [AVAILABILITY_ZONES[current_az]])
+
+def test_add_db_subnet_group():
+    template = Template()
+    myvpc = add_vpc(template, VPC_CIDR)
+    subnet1 = add_subnet(template, myvpc, "subnet1", PUBLIC_SUBNET_AZ1_CIDR)
+    subnet2 = 'subnet-ab12a1abc'
+
+    dbsubnetgroup = add_db_subnet_group(template, [subnet1, subnet2])
+
+    assert_equals(dbsubnetgroup.title, "DBSubnetGroup1")
+    assert_equals(dbsubnetgroup.SubnetIds[1], subnet2)  # unable to test subnet1 here due to difficulties testing Ref.
+
+def test_add_db():
+    template = Template()
+    myvpc = add_vpc(template, VPC_CIDR)
+    subnet1 = add_subnet(template, myvpc, "subnet1", PUBLIC_SUBNET_AZ1_CIDR)
+    subnet2 = 'subnet-ab12a1abc'
+    dbsubnetgroup = add_db_subnet_group(template, [subnet1, subnet2])
+    sg1 = add_security_group(template, myvpc)
+    sg2 = add_security_group(template, myvpc)
+
+    db = add_db(template, "postgres", dbsubnetgroup, "testuser", "testpassword", [sg1, sg2])
+
+    assert_equals(db.title, "DBpostgres1")
+    assert_equals(db.AllocatedStorage, 5)
+    assert_equals(db.AllowMajorVersionUpgrade, "true")
+    assert_equals(db.AutoMinorVersionUpgrade, "true")
+    assert_equals(db.AvailabilityZone, AVAILABILITY_ZONES[current_az])
+    assert_equals(db.BackupRetentionPeriod, 0)
+    assert_equals(db.DBInstanceClass, "db.t2.micro")
+    assert_equals(db.DBInstanceIdentifier, "DBInstancepostgres1")
+    assert_equals(db.DBName, db.title)
+    assert_equals(db.DBSnapshotIdentifier, "")
+    # cannot test dbsubnetgroupname due to difficulties testing Ref
+    assert_equals(db.Engine, "postgres")
+    assert_equals(db.MasterUsername, "testuser")
+    assert_equals(db.MasterUserPassword, "testpassword")
+    assert_equals(db.Port, 5432)
+    assert_equals(db.PubliclyAccessible, "false")
+    assert_equals(db.StorageType, "standard")
+    # Cannot test VPCSecurityGroups due to difficulties testing Ref

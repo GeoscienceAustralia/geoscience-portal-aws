@@ -6,7 +6,7 @@ The functions in this module generate cloud formation scripts that install commo
 
 """
 
-from troposphere import Ref, Tags, Join, Base64, GetAtt, ec2
+from troposphere import Ref, Tags, Join, Base64, GetAtt, ec2, rds
 from troposphere.autoscaling import AutoScalingGroup, LaunchConfiguration, Tag
 import troposphere.elasticloadbalancing as elb
 import inflection
@@ -72,6 +72,9 @@ num_web_instances = 0
 num_web_security_groups = 0
 num_route_table_associations = 0
 num_auto_scaling_groups = 0
+num_db = 0
+num_db_subnet_group = 0
+num_db_instance = 0
 
 def isCfObject(object):
     if type(object) is str:
@@ -80,6 +83,7 @@ def isCfObject(object):
         returnObject = Ref(object)
 
     return returnObject
+
 
 def switch_availability_zone():
     """
@@ -490,3 +494,75 @@ def trimTitle(old_title):
 
     new_title = inflection.camelize(old_title)
     return new_title
+
+
+def add_db_subnet_group(template, raw_subnets):
+    global num_db_subnet_group
+    num_db_subnet_group += 1
+
+    non_alphanumeric_title = "DBSubnetGroup" + str(num_db_subnet_group)
+    db_subnet_group_title = trimTitle(non_alphanumeric_title)
+
+    db_subnet_group = template.add_resource(rds.DBSubnetGroup(db_subnet_group_title,
+                                                              DBSubnetGroupDescription=db_subnet_group_title,
+                                                              SubnetIds=[isCfObject(subnet) for subnet in raw_subnets],
+                                                              Tags=Tags(Name=name_tag(db_subnet_group_title))))
+
+    return db_subnet_group
+
+
+def add_db(template, engine, db_subnet_group, username, password, db_security_groups, db_port="", db_snapshot=""):
+    global num_db
+    num_db += 1
+    global num_db_instance
+    num_db_instance += 1
+
+    db_non_alphanumeric_title = "DB" + engine + str(num_db)
+    db_title = trimTitle(db_non_alphanumeric_title)
+
+    db_instance_non_alphanumeric_title = "DBInstance" + engine + str(num_db_instance)
+    db_instance_title = trimTitle(db_instance_non_alphanumeric_title)
+
+    # Engine matching:mariadb, oracle-se1, oracle-se, oracle-ee, sqlserver-ee, sqlserver-se, sqlserver-ex, sqlserver-web
+    if db_port == "":
+        if engine == "postgres":
+            db_port = 5432
+        elif engine == "MySQL":
+            db_port = 3306
+        elif engine == "aurora":
+            db_port = 3306
+
+    db = template.add_resource(rds.DBInstance(db_title,
+                                              AllocatedStorage=5,
+                                              AllowMajorVersionUpgrade=True,
+                                              AutoMinorVersionUpgrade=True,
+                                              AvailabilityZone=AVAILABILITY_ZONES[current_az],
+                                              BackupRetentionPeriod=0,
+                                              # CharacterSetName= (basestring, False),
+                                              # DBClusterIdentifier= (basestring, False),
+                                              DBInstanceClass="db.t2.micro",
+                                              DBInstanceIdentifier=db_instance_title,
+                                              DBName=db_title,
+                                              # DBParameterGroupName= (basestring, False),
+                                              # DBSecurityGroups=isCfObject(db_security_group),
+                                              DBSnapshotIdentifier=db_snapshot,
+                                              DBSubnetGroupName=isCfObject(db_subnet_group),
+                                              Engine=engine,
+                                              # EngineVersion= (basestring, False),
+                                              # Iops= (validate_iops, False),
+                                              # KmsKeyId= (basestring, False),
+                                              # LicenseModel= (validate_license_model, False),
+                                              MasterUsername=username,
+                                              MasterUserPassword=password,
+                                              # MultiAZ=False,
+                                              # OptionGroupName= (basestring, False),
+                                              Port=db_port,
+                                              # PreferredBackupWindow= (validate_backup_window, False),
+                                              # PreferredMaintenanceWindow= (basestring, False),
+                                              PubliclyAccessible=False,
+                                              # SourceDBInstanceIdentifier= (basestring, False),
+                                              # StorageEncrypted= (boolean, False),
+                                              StorageType="standard",
+                                              VPCSecurityGroups=[isCfObject(sg) for sg in db_security_groups],
+                                              Tags=Tags(Name=name_tag(db_title))))
+    return db
