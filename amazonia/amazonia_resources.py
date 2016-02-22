@@ -467,7 +467,7 @@ def name_tag(resource_name):
 def trimTitle(old_title):
     badsymbols = ["-", "*", " ", ".", ",", "/", "\\"]
     for var in badsymbols:
-        old_title = old_title.replace(var, "asd")
+        old_title = old_title.replace(var, "_")
 
     new_title = inflection.camelize(old_title)
     return new_title
