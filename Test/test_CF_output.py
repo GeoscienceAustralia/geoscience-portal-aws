@@ -194,7 +194,7 @@ def test_add_load_balancer():
     test_sg = add_security_group(template, myvpc)
     web = add_web_instance(template, "akeypair", subnet, test_sg, "test user data")
 
-    this_elb = add_load_balancer(template, [subnet], "HTTP:80/index.html", [test_sg], [web])
+    this_elb = add_load_balancer(template, [subnet], "HTTP:80/index.html", [test_sg], resources=[web])
 
     assert_equals(this_elb.CrossZone, "true")
     assert_equals(this_elb.HealthCheck.Target, "HTTP:80/index.html")
