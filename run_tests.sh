@@ -1,6 +1,6 @@
 #!/bin/sh
 
 make install
-RESULTS=$(nosetests ./test/*)
+RESULTS=$(nosetests ./Test/*)
 
 exit $?
