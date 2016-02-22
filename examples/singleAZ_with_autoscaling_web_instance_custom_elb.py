@@ -38,8 +38,8 @@ def main():
 
     #elb = add_load_balancer(template, [template.public_subnet], 'HTTP:8080/error/noindex.html', [elb_sg])
     elb = add_load_balancer(template, [template.public_subnet], 'HTTP:8080/error/noindex.html', [elb_sg], 
-             loadbalancerport = "443", protocol = "HTTPS", 
-             instanceport = "8080"   , instanceprotocol = "HTTP")    
+             loadbalancerport = "443"   , protocol          = "HTTPS", 
+             instanceport     = "8080"  , instanceprotocol  = "HTTP")    
 
     web_launch_config = add_launch_config(template, keypair, [web_sg], WEB_IMAGE_ID, WEB_INSTANCE_TYPE, userdata=WEB_SERVER_AZ1_USER_DATA)
     web_launch_config.AssociatePublicIpAddress = False
