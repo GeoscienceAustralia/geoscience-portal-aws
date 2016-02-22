@@ -503,14 +503,9 @@ def add_db_subnet_group(template, raw_subnets):
     non_alphanumeric_title = "DBSubnetGroup" + str(num_db_subnet_group)
     db_subnet_group_title = trimTitle(non_alphanumeric_title)
 
-    subnets = []
-
-    for subnet in raw_subnets:
-        subnets.append(isCfObject(subnet))
-
     db_subnet_group = template.add_resource(rds.DBSubnetGroup(db_subnet_group_title,
                                                               DBSubnetGroupDescription=db_subnet_group_title,
-                                                              SubnetIds=subnets,
+                                                              SubnetIds=[isCfObject(subnet) for subnet in raw_subnets],
                                                               Tags=Tags(Name=name_tag(db_subnet_group_title))))
 
     return db_subnet_group
@@ -541,7 +536,7 @@ def add_db(template, engine, db_subnet_group, username, password, db_security_gr
                                               AllocatedStorage=5,
                                               AllowMajorVersionUpgrade=True,
                                               AutoMinorVersionUpgrade=True,
-                                              AvailabilityZone=AVAILABILITY_ZONES[0],
+                                              AvailabilityZone=AVAILABILITY_ZONES[current_az],
                                               BackupRetentionPeriod=0,
                                               # CharacterSetName= (basestring, False),
                                               # DBClusterIdentifier= (basestring, False),
@@ -568,6 +563,6 @@ def add_db(template, engine, db_subnet_group, username, password, db_security_gr
                                               # SourceDBInstanceIdentifier= (basestring, False),
                                               # StorageEncrypted= (boolean, False),
                                               StorageType="standard",
-                                              VPCSecurityGroups=[isCfObject(db_security_groups)],
+                                              VPCSecurityGroups=[isCfObject(sg) for sg in db_security_groups],
                                               Tags=Tags(Name=name_tag(db_title))))
     return db
