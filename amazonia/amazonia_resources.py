@@ -10,51 +10,42 @@ from troposphere import Ref, Tags, Join, Base64, GetAtt, ec2, rds
 from troposphere.autoscaling import AutoScalingGroup, LaunchConfiguration, Tag
 import troposphere.elasticloadbalancing as elb
 import inflection
+import hiera
+import os
 
-NAT_IMAGE_ID = "ami-893f53b3"
-NAT_INSTANCE_TYPE = "t2.micro"
-NAT_IP_ADDRESS = "10.0.0.100"
-SYSTEM_NAME = "TestApplication"
-ENVIRONMENT_NAME = "EXPERIMENTAL"
-AVAILABILITY_ZONES = ["ap-southeast-2a", "ap-southeast-2b"]
-WEB_IMAGE_ID = "ami-910623f2" # OLD AMI: "ami-c11856fb"  # BASE AMI: "ami-ba6f4ad9"
-WEB_INSTANCE_TYPE = "t2.small"
-ASG_MIN_INSTANCES = 1
+hiera_directory = os.getenv('HIERA_PATH', "/etc/puppet/hieradata/")
+hiera_file = hiera_directory + "hiera.yaml"
+hiera_client = hiera.HieraClient(hiera_file, hiera_path=hiera_directory, application='amazonia')
+
+NAT_IMAGE_ID = hiera_client.get('amazonia::nat_image_id')
+NAT_INSTANCE_TYPE = hiera_client.get('amazonia::nat_instance_type')
+ENVIRONMENT_NAME = hiera_client.get('amazonia::environment')
+AVAILABILITY_ZONES = [hiera_client.get('amazonia::availability_zone1'), hiera_client.get('amazonia::availability_zone2')]
+WEB_IMAGE_ID = hiera_client.get('amazonia::web_image_id') # OLD AMI: "ami-c11856fb"  # BASE AMI: "ami-ba6f4ad9"
+WEB_INSTANCE_TYPE = hiera_client.get('amazonia::web_instance_type')
+ASG_MIN_INSTANCES = int(hiera_client.get('amazonia::asg_min_instances'))
 
 # CIDRs
-PUBLIC_GA_GOV_AU_CIDR = '192.104.44.129/32'
-VPC_CIDR = "10.0.0.0/16"
-PUBLIC_SUBNET_AZ1_CIDR = "10.0.0.0/24"
-PUBLIC_SUBNET_AZ2_CIDR = "10.0.10.0/24"
-PRIVATE_SUBNET_AZ1_CIDR = "10.0.1.0/24"
-PRIVATE_SUBNET_AZ2_CIDR = "10.0.11.0/24"
-PUBLIC_CIDR = "0.0.0.0/0"
-PUBLIC_SUBNET_NAME = "PublicSubnet"
-PRIVATE_SUBNET_NAME = "PrivateSubnet"
+PUBLIC_GA_GOV_AU_CIDR = hiera_client.get('amazonia::public_ga_gov_au_cidr')
+VPC_CIDR = hiera_client.get('amazonia::vpc_cidr')
+PUBLIC_SUBNET_AZ1_CIDR = hiera_client.get('amazonia::public_subnet_az1_cidr')
+PUBLIC_SUBNET_AZ2_CIDR = hiera_client.get('amazonia::public_subnet_az2_cidr')
+PRIVATE_SUBNET_AZ1_CIDR = hiera_client.get('amazonia::private_subnet_az1_cidr')
+PRIVATE_SUBNET_AZ2_CIDR = hiera_client.get('amazonia::private_subnet_az2_cidr')
+PUBLIC_CIDR = hiera_client.get('amazonia::public_cidr')
+PUBLIC_SUBNET_NAME = hiera_client.get('amazonia::public_subnet_name')
+PRIVATE_SUBNET_NAME = hiera_client.get('amazonia::private_subnet_name')
 
 # WEB SERVER BOOTSTRAP SCRIPTS
-WEB_SERVER_AZ1_USER_DATA = "#!/bin/sh\n"
-WEB_SERVER_AZ1_USER_DATA += "yum -y install httpd && chkconfig httpd on\n"
-WEB_SERVER_AZ1_USER_DATA += "/etc/init.d/httpd start && yum -y install git\n"
-WEB_SERVER_AZ1_USER_DATA += "git clone https://github.com/budawangbill/webserverconfig.git\n"
-WEB_SERVER_AZ1_USER_DATA += "cp webserverconfig/testAZ1.html /var/www/html/test.html\n"
-WEB_SERVER_AZ1_USER_DATA += "sed -i '/Listen 80/a Listen 8080' /etc/httpd/conf/httpd.conf\n"
-WEB_SERVER_AZ1_USER_DATA += "service httpd restart"
-
-WEB_SERVER_AZ2_USER_DATA = "#!/bin/sh\n"
-WEB_SERVER_AZ2_USER_DATA += "yum -y install httpd && chkconfig httpd on\n"
-WEB_SERVER_AZ2_USER_DATA += "/etc/init.d/httpd start && yum -y install git\n"
-WEB_SERVER_AZ2_USER_DATA += "git clone https://github.com/budawangbill/webserverconfig.git\n"
-WEB_SERVER_AZ2_USER_DATA += "cp webserverconfig/testAZ2.html /var/www/html/test.html\n"
-WEB_SERVER_AZ2_USER_DATA += "sed -i '/Listen 80/a Listen 8080' /etc/httpd/conf/httpd.conf\n"
-WEB_SERVER_AZ2_USER_DATA += "service httpd restart"
+WEB_SERVER_AZ1_USER_DATA = hiera_client.get('amazonia::web_server_az1_user_data')
+WEB_SERVER_AZ2_USER_DATA = hiera_client.get('amazonia::web_server_az2_user_data')
 
 # Handler for switching Availability Zones
 current_az = 0
 
 # Bootstrap variables for instances & auto scaling groups
-BOOTSTRAP_S3_DEPLOY_REPO = "smallest-bucket-in-history"
-BOOTSTRAP_SCRIPT_NAME = "bootstrap_custom_script.sh"
+BOOTSTRAP_S3_DEPLOY_REPO = hiera_client.get('amazonia::bootstrap_s3_deploy_repo')
+BOOTSTRAP_SCRIPT_NAME = hiera_client.get('amazonia::bootstrap_script_name')
 
 # numbers to count objects created
 num_vpcs = 0
