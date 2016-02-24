@@ -12,40 +12,80 @@ import troposphere.elasticloadbalancing as elb
 import inflection
 import hiera
 import os
+import yaml
 
-hiera_directory = os.getenv('HIERA_PATH', "/etc/puppet/hieradata/")
-hiera_file = hiera_directory + "hiera.yaml"
-hiera_client = hiera.HieraClient(hiera_file, hiera_path=hiera_directory, application='amazonia')
+try:
+    hiera_directory = os.getenv('HIERA_PATH', "/etc/puppet/hieradata/")
+    hiera_file = hiera_directory + "hiera.yaml"
+    hiera_client = hiera.HieraClient(hiera_file, hiera_path=hiera_directory, application='amazonia')
 
-NAT_IMAGE_ID = hiera_client.get('amazonia::nat_image_id')
-NAT_INSTANCE_TYPE = hiera_client.get('amazonia::nat_instance_type')
-ENVIRONMENT_NAME = hiera_client.get('amazonia::environment')
-AVAILABILITY_ZONES = [hiera_client.get('amazonia::availability_zone1'), hiera_client.get('amazonia::availability_zone2')]
-WEB_IMAGE_ID = hiera_client.get('amazonia::web_image_id') # OLD AMI: "ami-c11856fb"  # BASE AMI: "ami-ba6f4ad9"
-WEB_INSTANCE_TYPE = hiera_client.get('amazonia::web_instance_type')
-ASG_MIN_INSTANCES = int(hiera_client.get('amazonia::asg_min_instances'))
+    NAT_IMAGE_ID = hiera_client.get('amazonia::nat_image_id')
+    NAT_INSTANCE_TYPE = hiera_client.get('amazonia::nat_instance_type')
+    ENVIRONMENT_NAME = hiera_client.get('amazonia::environment')
+    AVAILABILITY_ZONES = [hiera_client.get('amazonia::availability_zone1'), hiera_client.get('amazonia::availability_zone2')]
+    WEB_IMAGE_ID = hiera_client.get('amazonia::web_image_id') # OLD AMI: "ami-c11856fb"  # BASE AMI: "ami-ba6f4ad9"
+    WEB_INSTANCE_TYPE = hiera_client.get('amazonia::web_instance_type')
+    ASG_MIN_INSTANCES = int(hiera_client.get('amazonia::asg_min_instances'))
 
-# CIDRs
-PUBLIC_GA_GOV_AU_CIDR = hiera_client.get('amazonia::public_ga_gov_au_cidr')
-VPC_CIDR = hiera_client.get('amazonia::vpc_cidr')
-PUBLIC_SUBNET_AZ1_CIDR = hiera_client.get('amazonia::public_subnet_az1_cidr')
-PUBLIC_SUBNET_AZ2_CIDR = hiera_client.get('amazonia::public_subnet_az2_cidr')
-PRIVATE_SUBNET_AZ1_CIDR = hiera_client.get('amazonia::private_subnet_az1_cidr')
-PRIVATE_SUBNET_AZ2_CIDR = hiera_client.get('amazonia::private_subnet_az2_cidr')
-PUBLIC_CIDR = hiera_client.get('amazonia::public_cidr')
-PUBLIC_SUBNET_NAME = hiera_client.get('amazonia::public_subnet_name')
-PRIVATE_SUBNET_NAME = hiera_client.get('amazonia::private_subnet_name')
+    # CIDRs
+    PUBLIC_COMPANY_CIDR = hiera_client.get('amazonia::public_company_cidr')
+    VPC_CIDR = hiera_client.get('amazonia::vpc_cidr')
+    PUBLIC_SUBNET_AZ1_CIDR = hiera_client.get('amazonia::public_subnet_az1_cidr')
+    PUBLIC_SUBNET_AZ2_CIDR = hiera_client.get('amazonia::public_subnet_az2_cidr')
+    PRIVATE_SUBNET_AZ1_CIDR = hiera_client.get('amazonia::private_subnet_az1_cidr')
+    PRIVATE_SUBNET_AZ2_CIDR = hiera_client.get('amazonia::private_subnet_az2_cidr')
+    PUBLIC_CIDR = hiera_client.get('amazonia::public_cidr')
+    PUBLIC_SUBNET_NAME = hiera_client.get('amazonia::public_subnet_name')
+    PRIVATE_SUBNET_NAME = hiera_client.get('amazonia::private_subnet_name')
 
-# WEB SERVER BOOTSTRAP SCRIPTS
-WEB_SERVER_AZ1_USER_DATA = hiera_client.get('amazonia::web_server_az1_user_data')
-WEB_SERVER_AZ2_USER_DATA = hiera_client.get('amazonia::web_server_az2_user_data')
+    # WEB SERVER BOOTSTRAP SCRIPTS
+    WEB_SERVER_AZ1_USER_DATA = hiera_client.get('amazonia::web_server_az1_user_data')
+    WEB_SERVER_AZ2_USER_DATA = hiera_client.get('amazonia::web_server_az2_user_data')
+
+    # Bootstrap variables for instances & auto scaling groups
+    BOOTSTRAP_S3_DEPLOY_REPO = hiera_client.get('amazonia::bootstrap_s3_deploy_repo')
+    BOOTSTRAP_SCRIPT_NAME = hiera_client.get('amazonia::bootstrap_script_name')
+except Exception:
+    if os.path.isfile('./config.yaml'):
+        f=open('config.yaml')
+        variables=yaml.load(f)
+        NAT_IMAGE_ID = variables['nat_image_id']
+        NAT_INSTANCE_TYPE = variables['nat_instance_type']
+        ENVIRONMENT_NAME = variables['environment']
+        AVAILABILITY_ZONES = [variables['availability_zone1'], variables['availability_zone2']]
+        WEB_IMAGE_ID = variables['web_image_id']
+        WEB_INSTANCE_TYPE = variables['web_instance_type']
+        ASG_MIN_INSTANCES = int(variables['asg_min_instances'])
+
+        # CIDRs
+        PUBLIC_COMPANY_CIDR = variables['public_company_cidr']
+        VPC_CIDR = variables['vpc_cidr']
+        PUBLIC_SUBNET_AZ1_CIDR = variables['public_subnet_az1_cidr']
+        PUBLIC_SUBNET_AZ2_CIDR = variables['public_subnet_az2_cidr']
+        PRIVATE_SUBNET_AZ1_CIDR = variables['private_subnet_az1_cidr']
+        PRIVATE_SUBNET_AZ2_CIDR = variables['private_subnet_az2_cidr']
+        PUBLIC_CIDR = variables['public_cidr']
+        PUBLIC_SUBNET_NAME = variables['public_subnet_name']
+        PRIVATE_SUBNET_NAME = variables['private_subnet_name']
+
+        # WEB SERVER BOOTSTRAP SCRIPTS
+        WEB_SERVER_AZ1_USER_DATA = variables['web_server_az1_user_data']
+        WEB_SERVER_AZ2_USER_DATA = variables['web_server_az2_user_data']
+
+        # Bootstrap variables for instances & auto scaling groups
+        BOOTSTRAP_S3_DEPLOY_REPO = variables['bootstrap_s3_deploy_repo']
+        BOOTSTRAP_SCRIPT_NAME = variables['bootstrap_script_name']
+    else:
+        print("ERROR: Hiera, or config.yaml could not be found.")
+        print("       Amazonia expects either a HIERA_PATH environment")
+        print("       variable pointing to the location of a hiera config")
+        print("       or a config.yaml to be in the root of the amazonia directory")
+        print("       See README.md for more information.")
+        exit(1) # Exit with error code 1
+
 
 # Handler for switching Availability Zones
 current_az = 0
-
-# Bootstrap variables for instances & auto scaling groups
-BOOTSTRAP_S3_DEPLOY_REPO = hiera_client.get('amazonia::bootstrap_s3_deploy_repo')
-BOOTSTRAP_SCRIPT_NAME = hiera_client.get('amazonia::bootstrap_script_name')
 
 # numbers to count objects created
 num_vpcs = 0

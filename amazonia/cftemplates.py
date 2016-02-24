@@ -48,7 +48,7 @@ class SingleAZenv(Template):
         # enable inbound https access to the NAT from anywhere
         add_security_group_ingress(self, self.nat_sg, 'tcp', '443', '443', cidr=PUBLIC_CIDR)
         # enable inbound SSH  access to the NAT from GA
-        add_security_group_ingress(self, self.nat_sg, 'tcp', '22', '22', cidr=PUBLIC_GA_GOV_AU_CIDR)
+        add_security_group_ingress(self, self.nat_sg, 'tcp', '22', '22', cidr=PUBLIC_COMPANY_CIDR)
         # enable inbound ICMP access to the NAT from anywhere
         add_security_group_ingress(self, self.nat_sg, 'icmp', '-1', '-1', cidr=PUBLIC_CIDR)
 
@@ -86,7 +86,7 @@ class DualAZenv(Template):
         # enable inbound https access to the NAT from anywhere
         add_security_group_ingress(self, self.nat_security_group, 'tcp', '443', '443', cidr=PUBLIC_CIDR)
         # enable inbound SSH  access to the NAT from GA
-        add_security_group_ingress(self, self.nat_security_group, 'tcp', '22', '22', cidr=PUBLIC_GA_GOV_AU_CIDR)
+        add_security_group_ingress(self, self.nat_security_group, 'tcp', '22', '22', cidr=PUBLIC_COMPANY_CIDR)
         # enable inbound ICMP access to the NAT from anywhere
         add_security_group_ingress(self, self.nat_security_group, 'icmp', '-1', '-1', cidr=PUBLIC_CIDR)
 
@@ -154,7 +154,7 @@ class EnvNat(Env):
         self.nat_security_group = add_security_group(self, self.vpc)
         add_security_group_ingress(self, self.nat_security_group, 'tcp', '80', '80', cidr=PUBLIC_CIDR)  # enable inbound http access to the NAT from anywhere
         add_security_group_ingress(self, self.nat_security_group, 'tcp', '443', '443', cidr=PUBLIC_CIDR)  # enable inbound https access to the NAT from anywhere
-        add_security_group_ingress(self, self.nat_security_group, 'tcp', '22', '22', cidr=PUBLIC_GA_GOV_AU_CIDR)  # enable inbound SSH  access to the NAT from GA
+        add_security_group_ingress(self, self.nat_security_group, 'tcp', '22', '22', cidr=PUBLIC_COMPANY_CIDR)  # enable inbound SSH  access to the NAT from GA
         add_security_group_ingress(self, self.nat_security_group, 'icmp', '-1', '-1', cidr=PUBLIC_CIDR)  # enable inbound ICMP access to the NAT from anywhere
         self.nat1 = add_nat(self, self.public_subnet1, key_pair_name, self.nat_security_group)
         add_route_egress_via_NAT(self, self.private_route_table1, self.nat1, dependson=[self.internet_gateway_attachment])
