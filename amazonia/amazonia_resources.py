@@ -403,7 +403,10 @@ def add_web_instance(template, key_pair_name, subnet, security_group, userdata, 
     return instance
 
 
-def add_load_balancer(template, subnets, healthcheck_target, security_groups, resources="", dependson= ""):
+def add_load_balancer(template, subnets, healthcheck_target, security_groups, 
+            loadbalancerport="80", protocol="HTTP", 
+            instanceport="80", instanceprotocol="HTTP", 
+            resources="", dependson= ""):
     global num_load_balancers
     num_load_balancers += 1
 
@@ -421,10 +424,10 @@ def add_load_balancer(template, subnets, healthcheck_target, security_groups, re
             Timeout="5",
         ),
         Listeners=[elb.Listener(
-            LoadBalancerPort="80",
-            Protocol="HTTP",
-            InstancePort="80",
-            InstanceProtocol="HTTP",
+            LoadBalancerPort = loadbalancerport,
+            Protocol         = protocol,
+            InstancePort     = instanceport,
+            InstanceProtocol = instanceprotocol,
         )],
         Scheme="internet-facing",
         SecurityGroups=[isCfObject(x) for x in security_groups],
