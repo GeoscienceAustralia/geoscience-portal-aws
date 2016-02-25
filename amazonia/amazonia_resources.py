@@ -10,51 +10,82 @@ from troposphere import Ref, Tags, Join, Base64, GetAtt, ec2, rds
 from troposphere.autoscaling import AutoScalingGroup, LaunchConfiguration, Tag
 import troposphere.elasticloadbalancing as elb
 import inflection
+import hiera
+import os
+import yaml
 
-NAT_IMAGE_ID = "ami-893f53b3"
-NAT_INSTANCE_TYPE = "t2.micro"
-NAT_IP_ADDRESS = "10.0.0.100"
-SYSTEM_NAME = "TestApplication"
-ENVIRONMENT_NAME = "EXPERIMENTAL"
-AVAILABILITY_ZONES = ["ap-southeast-2a", "ap-southeast-2b"]
-WEB_IMAGE_ID = "ami-910623f2" # OLD AMI: "ami-c11856fb"  # BASE AMI: "ami-ba6f4ad9"
-WEB_INSTANCE_TYPE = "t2.small"
-ASG_MIN_INSTANCES = 1
+try:
+    hiera_directory = os.getenv('HIERA_PATH', "/etc/puppet/hieradata/")
+    hiera_file = hiera_directory + "hiera.yaml"
+    hiera_client = hiera.HieraClient(hiera_file, hiera_path=hiera_directory, application='amazonia')
 
-# CIDRs
-PUBLIC_GA_GOV_AU_CIDR = '192.104.44.129/32'
-VPC_CIDR = "10.0.0.0/16"
-PUBLIC_SUBNET_AZ1_CIDR = "10.0.0.0/24"
-PUBLIC_SUBNET_AZ2_CIDR = "10.0.10.0/24"
-PRIVATE_SUBNET_AZ1_CIDR = "10.0.1.0/24"
-PRIVATE_SUBNET_AZ2_CIDR = "10.0.11.0/24"
-PUBLIC_CIDR = "0.0.0.0/0"
-PUBLIC_SUBNET_NAME = "PublicSubnet"
-PRIVATE_SUBNET_NAME = "PrivateSubnet"
+    NAT_IMAGE_ID = hiera_client.get('amazonia::nat_image_id')
+    NAT_INSTANCE_TYPE = hiera_client.get('amazonia::nat_instance_type')
+    ENVIRONMENT_NAME = hiera_client.get('amazonia::environment')
+    AVAILABILITY_ZONES = [hiera_client.get('amazonia::availability_zone1'), hiera_client.get('amazonia::availability_zone2')]
+    WEB_IMAGE_ID = hiera_client.get('amazonia::web_image_id') # OLD AMI: "ami-c11856fb"  # BASE AMI: "ami-ba6f4ad9"
+    WEB_INSTANCE_TYPE = hiera_client.get('amazonia::web_instance_type')
+    ASG_MIN_INSTANCES = int(hiera_client.get('amazonia::asg_min_instances'))
 
-# WEB SERVER BOOTSTRAP SCRIPTS
-WEB_SERVER_AZ1_USER_DATA = "#!/bin/sh\n"
-WEB_SERVER_AZ1_USER_DATA += "yum -y install httpd && chkconfig httpd on\n"
-WEB_SERVER_AZ1_USER_DATA += "/etc/init.d/httpd start && yum -y install git\n"
-WEB_SERVER_AZ1_USER_DATA += "git clone https://github.com/budawangbill/webserverconfig.git\n"
-WEB_SERVER_AZ1_USER_DATA += "cp webserverconfig/testAZ1.html /var/www/html/test.html\n"
-WEB_SERVER_AZ1_USER_DATA += "sed -i '/Listen 80/a Listen 8080' /etc/httpd/conf/httpd.conf\n"
-WEB_SERVER_AZ1_USER_DATA += "service httpd restart"
+    # CIDRs
+    PUBLIC_COMPANY_CIDR = hiera_client.get('amazonia::public_company_cidr')
+    VPC_CIDR = hiera_client.get('amazonia::vpc_cidr')
+    PUBLIC_SUBNET_AZ1_CIDR = hiera_client.get('amazonia::public_subnet_az1_cidr')
+    PUBLIC_SUBNET_AZ2_CIDR = hiera_client.get('amazonia::public_subnet_az2_cidr')
+    PRIVATE_SUBNET_AZ1_CIDR = hiera_client.get('amazonia::private_subnet_az1_cidr')
+    PRIVATE_SUBNET_AZ2_CIDR = hiera_client.get('amazonia::private_subnet_az2_cidr')
+    PUBLIC_CIDR = hiera_client.get('amazonia::public_cidr')
+    PUBLIC_SUBNET_NAME = hiera_client.get('amazonia::public_subnet_name')
+    PRIVATE_SUBNET_NAME = hiera_client.get('amazonia::private_subnet_name')
 
-WEB_SERVER_AZ2_USER_DATA = "#!/bin/sh\n"
-WEB_SERVER_AZ2_USER_DATA += "yum -y install httpd && chkconfig httpd on\n"
-WEB_SERVER_AZ2_USER_DATA += "/etc/init.d/httpd start && yum -y install git\n"
-WEB_SERVER_AZ2_USER_DATA += "git clone https://github.com/budawangbill/webserverconfig.git\n"
-WEB_SERVER_AZ2_USER_DATA += "cp webserverconfig/testAZ2.html /var/www/html/test.html\n"
-WEB_SERVER_AZ2_USER_DATA += "sed -i '/Listen 80/a Listen 8080' /etc/httpd/conf/httpd.conf\n"
-WEB_SERVER_AZ2_USER_DATA += "service httpd restart"
+    # WEB SERVER BOOTSTRAP SCRIPTS
+    WEB_SERVER_AZ1_USER_DATA = hiera_client.get('amazonia::web_server_az1_user_data')
+    WEB_SERVER_AZ2_USER_DATA = hiera_client.get('amazonia::web_server_az2_user_data')
+
+    # Bootstrap variables for instances & auto scaling groups
+    BOOTSTRAP_S3_DEPLOY_REPO = hiera_client.get('amazonia::bootstrap_s3_deploy_repo')
+    BOOTSTRAP_SCRIPT_NAME = hiera_client.get('amazonia::bootstrap_script_name')
+except Exception:
+    if os.path.isfile('./config.yaml'):
+        f=open('config.yaml')
+        variables=yaml.load(f)
+        NAT_IMAGE_ID = variables['nat_image_id']
+        NAT_INSTANCE_TYPE = variables['nat_instance_type']
+        ENVIRONMENT_NAME = variables['environment']
+        AVAILABILITY_ZONES = [variables['availability_zone1'], variables['availability_zone2']]
+        WEB_IMAGE_ID = variables['web_image_id']
+        WEB_INSTANCE_TYPE = variables['web_instance_type']
+        ASG_MIN_INSTANCES = int(variables['asg_min_instances'])
+
+        # CIDRs
+        PUBLIC_COMPANY_CIDR = variables['public_company_cidr']
+        VPC_CIDR = variables['vpc_cidr']
+        PUBLIC_SUBNET_AZ1_CIDR = variables['public_subnet_az1_cidr']
+        PUBLIC_SUBNET_AZ2_CIDR = variables['public_subnet_az2_cidr']
+        PRIVATE_SUBNET_AZ1_CIDR = variables['private_subnet_az1_cidr']
+        PRIVATE_SUBNET_AZ2_CIDR = variables['private_subnet_az2_cidr']
+        PUBLIC_CIDR = variables['public_cidr']
+        PUBLIC_SUBNET_NAME = variables['public_subnet_name']
+        PRIVATE_SUBNET_NAME = variables['private_subnet_name']
+
+        # WEB SERVER BOOTSTRAP SCRIPTS
+        WEB_SERVER_AZ1_USER_DATA = variables['web_server_az1_user_data']
+        WEB_SERVER_AZ2_USER_DATA = variables['web_server_az2_user_data']
+
+        # Bootstrap variables for instances & auto scaling groups
+        BOOTSTRAP_S3_DEPLOY_REPO = variables['bootstrap_s3_deploy_repo']
+        BOOTSTRAP_SCRIPT_NAME = variables['bootstrap_script_name']
+    else:
+        print("ERROR: Hiera, or config.yaml could not be found.")
+        print("       Amazonia expects either a HIERA_PATH environment")
+        print("       variable pointing to the location of a hiera config")
+        print("       or a config.yaml to be in the root of the amazonia directory")
+        print("       See README.md for more information.")
+        exit(1) # Exit with error code 1
+
 
 # Handler for switching Availability Zones
 current_az = 0
-
-# Bootstrap variables for instances & auto scaling groups
-BOOTSTRAP_S3_DEPLOY_REPO = "smallest-bucket-in-history"
-BOOTSTRAP_SCRIPT_NAME = "bootstrap_custom_script.sh"
 
 # numbers to count objects created
 num_vpcs = 0

@@ -53,11 +53,11 @@ def test_add_subnet():
     template = Template()
     myvpc = add_vpc(template, VPC_CIDR)
 
-    subnet = add_subnet(template, myvpc, "Public", PUBLIC_SUBNET_AZ1_CIDR)
+    subnet = add_subnet(template, myvpc, PUBLIC_SUBNET_NAME, PUBLIC_SUBNET_AZ1_CIDR)
 
     assert_equals(subnet.AvailabilityZone, AVAILABILITY_ZONES[current_az])
     assert_equals(subnet.CidrBlock, PUBLIC_SUBNET_AZ1_CIDR)
-    assert_equals(subnet.title, "Public1")
+    assert_equals(subnet.title, PUBLIC_SUBNET_NAME + "1")
 
 
 def test_add_route_table():
@@ -73,7 +73,7 @@ def test_add_route_table_subnet_association():
     template = Template()
     myvpc = add_vpc(template, VPC_CIDR)
     rt = add_route_table(template, myvpc)
-    subnet = add_subnet(template, myvpc, "Public", PUBLIC_SUBNET_AZ1_CIDR)
+    subnet = add_subnet(template, myvpc, PUBLIC_SUBNET_NAME, PUBLIC_SUBNET_AZ1_CIDR)
 
     rta = add_route_table_subnet_association(template, rt, subnet)
 
@@ -113,7 +113,7 @@ def test_add_route_egress_via_nat():
     template = Template()
     myvpc = add_vpc(template, VPC_CIDR)
     rt = add_route_table(template, myvpc)
-    subnet = add_subnet(template, myvpc, "Public", PUBLIC_SUBNET_AZ1_CIDR)
+    subnet = add_subnet(template, myvpc, PUBLIC_SUBNET_NAME, PUBLIC_SUBNET_AZ1_CIDR)
     test_sg = add_security_group(template, myvpc)
     nat = add_nat(template, subnet, "akeypair", test_sg)
 
@@ -161,7 +161,7 @@ def test_add_security_group_egress():
 def test_add_nat():
     template = Template()
     myvpc = add_vpc(template, VPC_CIDR)
-    subnet = add_subnet(template, myvpc, "Public", PUBLIC_SUBNET_AZ1_CIDR)
+    subnet = add_subnet(template, myvpc, PUBLIC_SUBNET_NAME, PUBLIC_SUBNET_AZ1_CIDR)
     test_sg = add_security_group(template, myvpc)
 
     nat = add_nat(template, subnet, "akeypair", test_sg)
@@ -175,7 +175,7 @@ def test_add_nat():
 def test_add_web_instance():
     template = Template()
     myvpc = add_vpc(template, VPC_CIDR)
-    subnet = add_subnet(template, myvpc, "Public", PUBLIC_SUBNET_AZ1_CIDR)
+    subnet = add_subnet(template, myvpc, PUBLIC_SUBNET_NAME, PUBLIC_SUBNET_AZ1_CIDR)
     test_sg = add_security_group(template, myvpc)
 
     web = add_web_instance(template, "akeypair", subnet, test_sg, "test user data")
@@ -190,7 +190,7 @@ def test_add_web_instance():
 def test_add_load_balancer():
     template = Template()
     myvpc = add_vpc(template, VPC_CIDR)
-    subnet = add_subnet(template, myvpc, "Public", PUBLIC_SUBNET_AZ1_CIDR)
+    subnet = add_subnet(template, myvpc, PUBLIC_SUBNET_NAME, PUBLIC_SUBNET_AZ1_CIDR)
     test_sg = add_security_group(template, myvpc)
     web = add_web_instance(template, "akeypair", subnet, test_sg, "test user data")
 
@@ -227,7 +227,7 @@ def test_add_auto_scaling_group():
     template = Template()
     myvpc = add_vpc(template, VPC_CIDR)
     test_sg = add_security_group(template, myvpc)
-    subnet = add_subnet(template, myvpc, "Public", PUBLIC_SUBNET_AZ1_CIDR)
+    subnet = add_subnet(template, myvpc, PUBLIC_SUBNET_NAME, PUBLIC_SUBNET_AZ1_CIDR)
     lc = add_launch_config(template, "akeypair", [test_sg], WEB_IMAGE_ID, WEB_INSTANCE_TYPE)
 
     asg = add_auto_scaling_group(template, 4, [subnet], launch_configuration=lc)

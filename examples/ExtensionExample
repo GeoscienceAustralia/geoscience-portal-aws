@@ -20,7 +20,7 @@ def main():
     # all from web security group
     # all to public
     add_security_group_ingress(template, template.nat_security_group, "-1", "-1", "-1", source_security_group=web_sg)
-    add_security_group_ingress(template, template.nat_security_group, "tcp", SSH_PORT, SSH_PORT,  cidr=PUBLIC_GA_GOV_AU_CIDR)
+    add_security_group_ingress(template, template.nat_security_group, "tcp", SSH_PORT, SSH_PORT,  cidr=PUBLIC_COMPANY_CIDR)
     add_security_group_egress(template, template.nat_security_group, "-1", "-1", "-1", cidr=PUBLIC_CIDR)
 
     # ELB Rules
