@@ -1,6 +1,6 @@
 #!/bin/sh
 
 make install
-RESULTS=$(nosetests ./test/*)
+nosetests -s ./test/*.py
 
 exit $?
