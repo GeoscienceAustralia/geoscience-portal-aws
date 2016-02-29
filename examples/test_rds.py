@@ -21,7 +21,12 @@ def main():
     db_security_group = add_security_group(template, vpc)
     add_security_group_ingress(template, db_security_group, "tcp", db_port, db_port)
 
-    add_db(template, "postgres", db_subnet_group, "username", "password", db_security_groups=db_security_group, db_port=db_port)
+    my_hiera_client =  hiera.HieraClient(hiera_file, hiera_path=hiera_directory, application='my_app_name')
+
+    username = my_hiera_client.get('my_app_name::rds_user')
+    password = my_hiera_client.get('my_app_name::rds_password')
+
+    add_db(template, "postgres", db_subnet_group, username, password, db_security_groups=db_security_group, db_port=db_port)
 
     print(template.to_json(indent=2, separators=(',', ': ')))
 
