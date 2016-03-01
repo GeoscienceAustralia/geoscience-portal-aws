@@ -2,12 +2,12 @@
 
 # pylint: disable=missing-docstring, invalid-name, line-too-long, redefined-outer-name, too-many-arguments
 
-from amazonia.cftemplates import DualAZenv
+from amazonia.cftemplates import SingleAZenv
 from amazonia.amazonia_resources import *
 
 def main():
     keypair = "Your Keypair name Here"
-    template = DualAZenv(keypair)
+    template = SingleAZenv(keypair)
     HTTP_PORT="80"      # This variable is used to specify the port for general HTTP traffic
     HTTPS_PORT="443"    # This variable is used to specify the port for general HTTPS traffic
     APP_PORT="8080"     # This variable is used to specify App specific port (eg. 8080 is commonly used in many apps)
@@ -18,8 +18,8 @@ def main():
     # NAT Rules
     # all from web security group
     # all to public
-    add_security_group_ingress(template, template.nat_security_group, "-1", "-1", "-1", source_security_group=web_sg)
-    add_security_group_egress(template, template.nat_security_group, "-1", "-1", "-1", cidr=PUBLIC_CIDR)
+    add_security_group_ingress(template, template.nat_sg, "-1", "-1", "-1", source_security_group=web_sg)
+    add_security_group_egress(template, template.nat_sg, "-1", "-1", "-1", cidr=PUBLIC_CIDR)
 
     # ELB Rules
     # 80 and 443 from public
@@ -34,13 +34,16 @@ def main():
     add_security_group_ingress(template, web_sg, "tcp", HTTP_PORT, HTTP_PORT, source_security_group=elb_sg)
     add_security_group_ingress(template, web_sg, "tcp", APP_PORT, APP_PORT, source_security_group=elb_sg)
     add_security_group_ingress(template, web_sg, "tcp", HTTPS_PORT, HTTPS_PORT, source_security_group=elb_sg)
-    add_security_group_egress(template, web_sg, "-1", "-1", "-1", destination_security_group=template.nat_security_group)
+    add_security_group_egress(template, web_sg, "-1", "-1", "-1", destination_security_group=template.nat_sg)
 
-    elb = add_load_balancer(template, [template.public_subnet1, template.public_subnet2], 'HTTP:8080/error/noindex.html', [elb_sg])
+    #elb = add_load_balancer(template, [template.public_subnet], 'HTTP:8080/error/noindex.html', [elb_sg])
+    elb = add_load_balancer(template, [template.public_subnet], 'HTTP:8080/error/noindex.html', [elb_sg], 
+             loadbalancerport = "443"   , protocol          = "HTTPS", 
+             instanceport     = "8080"  , instanceprotocol  = "HTTP")    
 
     web_launch_config = add_launch_config(template, keypair, [web_sg], WEB_IMAGE_ID, WEB_INSTANCE_TYPE, userdata=WEB_SERVER_AZ1_USER_DATA)
     web_launch_config.AssociatePublicIpAddress = False
-    web_asg = add_auto_scaling_group(template, 2, [template.private_subnet1, template.private_subnet2], launch_configuration=web_launch_config, health_check_type="ELB", load_balancer=elb, dependson=[template.internet_gateway.title], multiAZ=True)
+    web_asg = add_auto_scaling_group(template, 1, [template.private_subnet], launch_configuration=web_launch_config, health_check_type="ELB", load_balancer=elb, dependson=[template.internet_gateway.title])
 
     print(template.to_json(indent=2, separators=(',', ': ')))
 

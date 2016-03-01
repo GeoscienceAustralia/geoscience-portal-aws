@@ -10,6 +10,8 @@ Alternatively, you can use:
 
 Note: this will install all of the dependencies for the project. The dependencies list can be found in the setup.py file in the 'Install Requires:' section.
 
+Amazonia expects either a HIERA_PATH environment variable that points to a hiera instance with variables for amazonia/amazonia_resources.py, or a config.yaml file in the root of the amazonia directory with those variables. There is an example of this config.yaml file in the examples folder.
+
 To generate cloud formation using this library, you can use make to refer to any of the existing examples:
 
 `make AutoscalingWebEnv.json`

@@ -6,55 +6,86 @@ The functions in this module generate cloud formation scripts that install commo
 
 """
 
-from troposphere import Ref, Tags, Join, Base64, GetAtt, ec2
+from troposphere import Ref, Tags, Join, Base64, GetAtt, ec2, rds
 from troposphere.autoscaling import AutoScalingGroup, LaunchConfiguration, Tag
 import troposphere.elasticloadbalancing as elb
 import inflection
+import hiera
+import os
+import yaml
 
-NAT_IMAGE_ID = "ami-893f53b3"
-NAT_INSTANCE_TYPE = "t2.micro"
-NAT_IP_ADDRESS = "10.0.0.100"
-SYSTEM_NAME = "TestApplication"
-ENVIRONMENT_NAME = "EXPERIMENTAL"
-AVAILABILITY_ZONES = ["ap-southeast-2a", "ap-southeast-2b"]
-WEB_IMAGE_ID = "ami-910623f2" # OLD AMI: "ami-c11856fb"  # BASE AMI: "ami-ba6f4ad9"
-WEB_INSTANCE_TYPE = "t2.small"
-ASG_MIN_INSTANCES = 1
+try:
+    hiera_directory = os.getenv('HIERA_PATH', "/etc/puppet/hieradata/")
+    hiera_file = hiera_directory + "hiera.yaml"
+    hiera_client = hiera.HieraClient(hiera_file, hiera_path=hiera_directory, application='amazonia')
 
-# CIDRs
-PUBLIC_GA_GOV_AU_CIDR = '192.104.44.129/32'
-VPC_CIDR = "10.0.0.0/16"
-PUBLIC_SUBNET_AZ1_CIDR = "10.0.0.0/24"
-PUBLIC_SUBNET_AZ2_CIDR = "10.0.10.0/24"
-PRIVATE_SUBNET_AZ1_CIDR = "10.0.1.0/24"
-PRIVATE_SUBNET_AZ2_CIDR = "10.0.11.0/24"
-PUBLIC_CIDR = "0.0.0.0/0"
-PUBLIC_SUBNET_NAME = "PublicSubnet"
-PRIVATE_SUBNET_NAME = "PrivateSubnet"
+    NAT_IMAGE_ID = hiera_client.get('amazonia::nat_image_id')
+    NAT_INSTANCE_TYPE = hiera_client.get('amazonia::nat_instance_type')
+    ENVIRONMENT_NAME = hiera_client.get('amazonia::environment')
+    AVAILABILITY_ZONES = [hiera_client.get('amazonia::availability_zone1'), hiera_client.get('amazonia::availability_zone2')]
+    WEB_IMAGE_ID = hiera_client.get('amazonia::web_image_id') # OLD AMI: "ami-c11856fb"  # BASE AMI: "ami-ba6f4ad9"
+    WEB_INSTANCE_TYPE = hiera_client.get('amazonia::web_instance_type')
+    ASG_MIN_INSTANCES = int(hiera_client.get('amazonia::asg_min_instances'))
 
-# WEB SERVER BOOTSTRAP SCRIPTS
-WEB_SERVER_AZ1_USER_DATA = "#!/bin/sh\n"
-WEB_SERVER_AZ1_USER_DATA += "yum -y install httpd && chkconfig httpd on\n"
-WEB_SERVER_AZ1_USER_DATA += "/etc/init.d/httpd start && yum -y install git\n"
-WEB_SERVER_AZ1_USER_DATA += "git clone https://github.com/budawangbill/webserverconfig.git\n"
-WEB_SERVER_AZ1_USER_DATA += "cp webserverconfig/testAZ1.html /var/www/html/test.html\n"
-WEB_SERVER_AZ1_USER_DATA += "sed -i '/Listen 80/a Listen 8080' /etc/httpd/conf/httpd.conf\n"
-WEB_SERVER_AZ1_USER_DATA += "service httpd restart"
+    # CIDRs
+    PUBLIC_COMPANY_CIDR = hiera_client.get('amazonia::public_company_cidr')
+    VPC_CIDR = hiera_client.get('amazonia::vpc_cidr')
+    PUBLIC_SUBNET_AZ1_CIDR = hiera_client.get('amazonia::public_subnet_az1_cidr')
+    PUBLIC_SUBNET_AZ2_CIDR = hiera_client.get('amazonia::public_subnet_az2_cidr')
+    PRIVATE_SUBNET_AZ1_CIDR = hiera_client.get('amazonia::private_subnet_az1_cidr')
+    PRIVATE_SUBNET_AZ2_CIDR = hiera_client.get('amazonia::private_subnet_az2_cidr')
+    PUBLIC_CIDR = hiera_client.get('amazonia::public_cidr')
+    PUBLIC_SUBNET_NAME = hiera_client.get('amazonia::public_subnet_name')
+    PRIVATE_SUBNET_NAME = hiera_client.get('amazonia::private_subnet_name')
 
-WEB_SERVER_AZ2_USER_DATA = "#!/bin/sh\n"
-WEB_SERVER_AZ2_USER_DATA += "yum -y install httpd && chkconfig httpd on\n"
-WEB_SERVER_AZ2_USER_DATA += "/etc/init.d/httpd start && yum -y install git\n"
-WEB_SERVER_AZ2_USER_DATA += "git clone https://github.com/budawangbill/webserverconfig.git\n"
-WEB_SERVER_AZ2_USER_DATA += "cp webserverconfig/testAZ2.html /var/www/html/test.html\n"
-WEB_SERVER_AZ2_USER_DATA += "sed -i '/Listen 80/a Listen 8080' /etc/httpd/conf/httpd.conf\n"
-WEB_SERVER_AZ2_USER_DATA += "service httpd restart"
+    # WEB SERVER BOOTSTRAP SCRIPTS
+    WEB_SERVER_AZ1_USER_DATA = hiera_client.get('amazonia::web_server_az1_user_data')
+    WEB_SERVER_AZ2_USER_DATA = hiera_client.get('amazonia::web_server_az2_user_data')
+
+    # Bootstrap variables for instances & auto scaling groups
+    BOOTSTRAP_S3_DEPLOY_REPO = hiera_client.get('amazonia::bootstrap_s3_deploy_repo')
+    BOOTSTRAP_SCRIPT_NAME = hiera_client.get('amazonia::bootstrap_script_name')
+except Exception:
+    if os.path.isfile('./config.yaml'):
+        f=open('config.yaml')
+        variables=yaml.load(f)
+        NAT_IMAGE_ID = variables['nat_image_id']
+        NAT_INSTANCE_TYPE = variables['nat_instance_type']
+        ENVIRONMENT_NAME = variables['environment']
+        AVAILABILITY_ZONES = [variables['availability_zone1'], variables['availability_zone2']]
+        WEB_IMAGE_ID = variables['web_image_id']
+        WEB_INSTANCE_TYPE = variables['web_instance_type']
+        ASG_MIN_INSTANCES = int(variables['asg_min_instances'])
+
+        # CIDRs
+        PUBLIC_COMPANY_CIDR = variables['public_company_cidr']
+        VPC_CIDR = variables['vpc_cidr']
+        PUBLIC_SUBNET_AZ1_CIDR = variables['public_subnet_az1_cidr']
+        PUBLIC_SUBNET_AZ2_CIDR = variables['public_subnet_az2_cidr']
+        PRIVATE_SUBNET_AZ1_CIDR = variables['private_subnet_az1_cidr']
+        PRIVATE_SUBNET_AZ2_CIDR = variables['private_subnet_az2_cidr']
+        PUBLIC_CIDR = variables['public_cidr']
+        PUBLIC_SUBNET_NAME = variables['public_subnet_name']
+        PRIVATE_SUBNET_NAME = variables['private_subnet_name']
+
+        # WEB SERVER BOOTSTRAP SCRIPTS
+        WEB_SERVER_AZ1_USER_DATA = variables['web_server_az1_user_data']
+        WEB_SERVER_AZ2_USER_DATA = variables['web_server_az2_user_data']
+
+        # Bootstrap variables for instances & auto scaling groups
+        BOOTSTRAP_S3_DEPLOY_REPO = variables['bootstrap_s3_deploy_repo']
+        BOOTSTRAP_SCRIPT_NAME = variables['bootstrap_script_name']
+    else:
+        print("ERROR: Hiera, or config.yaml could not be found.")
+        print("       Amazonia expects either a HIERA_PATH environment")
+        print("       variable pointing to the location of a hiera config")
+        print("       or a config.yaml to be in the root of the amazonia directory")
+        print("       See README.md for more information.")
+        exit(1) # Exit with error code 1
+
 
 # Handler for switching Availability Zones
 current_az = 0
-
-# Bootstrap variables for instances & auto scaling groups
-BOOTSTRAP_S3_DEPLOY_REPO = "smallest-bucket-in-history"
-BOOTSTRAP_SCRIPT_NAME = "bootstrap_custom_script.sh"
 
 # numbers to count objects created
 num_vpcs = 0
@@ -72,6 +103,9 @@ num_web_instances = 0
 num_web_security_groups = 0
 num_route_table_associations = 0
 num_auto_scaling_groups = 0
+num_db = 0
+num_db_subnet_group = 0
+num_db_instance = 0
 
 def isCfObject(object):
     if type(object) is str:
@@ -80,6 +114,7 @@ def isCfObject(object):
         returnObject = Ref(object)
 
     return returnObject
+
 
 def switch_availability_zone():
     """
@@ -144,11 +179,16 @@ def add_route_table_subnet_association(template, route_table, subnet):
     global num_route_table_associations
     num_route_table_associations += 1
 
+    if type(route_table) is str:
+        route_table_name = route_table
+    else:
+        route_table_name = route_table.title
+
     # Associate the route table with the subnet
     route_table_association = template.add_resource(ec2.SubnetRouteTableAssociation(
-        route_table.title + "Association" + str(num_route_table_associations),
-        SubnetId=Ref(subnet.title),
-        RouteTableId=Ref(route_table.title),
+        route_table_name + "Association" + str(num_route_table_associations),
+        SubnetId=isCfObject(subnet),
+        RouteTableId=isCfObject(route_table),
     ))
 
     return route_table_association
@@ -170,10 +210,15 @@ def add_internet_gateway(template):
 
 def add_internet_gateway_attachment(template, vpc, internet_gateway):
 
-    attachment_title = internet_gateway.title + "Attachment"
+    if type(internet_gateway) is str:
+        internet_gateway_name = internet_gateway
+    else:
+        internet_gateway_name = internet_gateway.title
+
+    attachment_title = internet_gateway_name + "Attachment"
     gateway_attachment = template.add_resource(ec2.VPCGatewayAttachment(attachment_title,
                                                                         VpcId=isCfObject(vpc),
-                                                                        InternetGatewayId=Ref(internet_gateway.title),
+                                                                        InternetGatewayId=isCfObject(internet_gateway),
                                                                        ))
 
     return gateway_attachment
@@ -184,13 +229,13 @@ def add_route_ingress_via_gateway(template, route_table, internet_gateway, cidr,
     num_routes += 1
     route = template.add_resource(ec2.Route(
         "InboundRoute" + str(num_routes),
-        GatewayId=Ref(internet_gateway.title),
-        RouteTableId=Ref(route_table.title),
+        GatewayId=isCfObject(internet_gateway),
+        RouteTableId=isCfObject(route_table),
         DestinationCidrBlock=cidr
     ))
 
     if not dependson == "":
-        route.DependsOn = [x.title for x in dependson]
+        route.DependsOn = [isCfObject(x) for x in dependson]
 
     return route
 
@@ -200,13 +245,13 @@ def add_route_egress_via_NAT(template, route_table, nat, dependson=""):
     num_routes += 1
 
     route = template.add_resource(ec2.Route("OutboundRoute" + str(num_routes),
-                                    InstanceId=Ref(nat.title),
-                                    RouteTableId=Ref(route_table.title),
+                                    InstanceId=isCfObject(nat),
+                                    RouteTableId=isCfObject(route_table),
                                     DestinationCidrBlock=PUBLIC_CIDR,
                                    ))
 
     if not dependson == "":
-        route.DependsOn = [x.title for x in dependson]
+        route.DependsOn = [isCfObject(x) for x in dependson]
 
     return route
 
@@ -241,11 +286,14 @@ def add_security_group_ingress(template, security_group, protocol, from_port, to
 
     global num_ingress_rules
     num_ingress_rules += 1
-
-    if not protocol == "-1":
-        non_alphanumeric_title = security_group.title + 'Ingress' + protocol + str(num_ingress_rules)
+    if type(security_group) is str:
+        security_group_name = security_group
     else:
-        non_alphanumeric_title = security_group.title + 'IngressAll' + str(num_ingress_rules)
+        security_group_name = security_group.title
+    if not protocol == "-1":
+        non_alphanumeric_title = security_group_name + 'Ingress' + protocol + str(num_ingress_rules)
+    else:
+        non_alphanumeric_title = security_group_name + 'IngressAll' + str(num_ingress_rules)
 
     ingress_title = trimTitle(non_alphanumeric_title)
 
@@ -253,7 +301,7 @@ def add_security_group_ingress(template, security_group, protocol, from_port, to
                                                                 IpProtocol=protocol,
                                                                 FromPort=from_port,
                                                                 ToPort=to_port,
-                                                                GroupId=Ref(security_group.title)
+                                                                GroupId=isCfObject(security_group)
                                                                ))
     if not source_security_group == "":
         sg_ingress.SourceSecurityGroupId = GetAtt(source_security_group.title, "GroupId")
@@ -267,11 +315,14 @@ def add_security_group_egress(template, security_group, protocol, from_port, to_
 
     global num_egress_rules
     num_egress_rules += 1
-
-    if not protocol == "-1":
-        non_alphanumeric_title = security_group.title + 'Egress' + protocol + str(num_egress_rules)
+    if type(security_group) is str:
+        security_group_name = security_group
     else:
-        non_alphanumeric_title = security_group.title + 'EgressAll' + str(num_egress_rules)
+        security_group_name = security_group.title
+    if not protocol == "-1":
+        non_alphanumeric_title = security_group_name + 'Egress' + protocol + str(num_egress_rules)
+    else:
+        non_alphanumeric_title = security_group_name + 'EgressAll' + str(num_egress_rules)
 
     egress_title = trimTitle(non_alphanumeric_title)
 
@@ -279,11 +330,14 @@ def add_security_group_egress(template, security_group, protocol, from_port, to_
                                                               IpProtocol=protocol,
                                                               FromPort=from_port,
                                                               ToPort=to_port,
-                                                              GroupId=Ref(security_group.title)
+                                                              GroupId=isCfObject(security_group)
                                                              ))
 
     if not destination_security_group == "":
-        sg_egress.DestinationSecurityGroupId = GetAtt(destination_security_group.title, "GroupId")
+        if type(destination_security_group) == str:
+            sg_egress.DestinationSecurityGroupId = destination_security_group
+        else:
+            sg_egress.DestinationSecurityGroupId = GetAtt(destination_security_group, "GroupId")
     else:
         if not cidr == "":
             sg_egress.CidrIp = cidr
@@ -304,11 +358,11 @@ def add_nat(template, subnet, key_pair_name, security_group):
         ImageId=NAT_IMAGE_ID,
         InstanceType=NAT_INSTANCE_TYPE,
         NetworkInterfaces=[ec2.NetworkInterfaceProperty(
-            GroupSet=[Ref(security_group.title)],
+            GroupSet=[isCfObject(security_group)],
             AssociatePublicIpAddress=True,
             DeviceIndex="0",
             DeleteOnTermination=True,
-            SubnetId=Ref(subnet.title),
+            SubnetId=isCfObject(subnet),
         )],
         SourceDestCheck=False,
         Tags=Tags(
@@ -332,11 +386,11 @@ def add_web_instance(template, key_pair_name, subnet, security_group, userdata, 
         SourceDestCheck=False,
         ImageId=WEB_IMAGE_ID,
         NetworkInterfaces=[ec2.NetworkInterfaceProperty(
-            GroupSet=[Ref(security_group.title)],
+            GroupSet=[isCfObject(security_group)],
             AssociatePublicIpAddress=public,
             DeviceIndex="0",
             DeleteOnTermination=True,
-            SubnetId=Ref(subnet.title),
+            SubnetId=isCfObject(subnet),
         )],
         Tags=Tags(
             Name=name_tag(instance_title),
@@ -349,7 +403,10 @@ def add_web_instance(template, key_pair_name, subnet, security_group, userdata, 
     return instance
 
 
-def add_load_balancer(template, subnets, healthcheck_target, security_groups, resources="", dependson= ""):
+def add_load_balancer(template, subnets, healthcheck_target, security_groups, 
+            loadbalancerport="80", protocol="HTTP", 
+            instanceport="80", instanceprotocol="HTTP", 
+            resources="", dependson= ""):
     global num_load_balancers
     num_load_balancers += 1
 
@@ -367,24 +424,24 @@ def add_load_balancer(template, subnets, healthcheck_target, security_groups, re
             Timeout="5",
         ),
         Listeners=[elb.Listener(
-            LoadBalancerPort="80",
-            Protocol="HTTP",
-            InstancePort="80",
-            InstanceProtocol="HTTP",
+            LoadBalancerPort = loadbalancerport,
+            Protocol         = protocol,
+            InstancePort     = instanceport,
+            InstanceProtocol = instanceprotocol,
         )],
         Scheme="internet-facing",
-        SecurityGroups=[Ref(x) for x in security_groups],
-        Subnets=[Ref(x) for x in subnets],
+        SecurityGroups=[isCfObject(x) for x in security_groups],
+        Subnets=[isCfObject(x) for x in subnets],
         Tags=Tags(
             Name=name_tag(elb_title),
         ),
     ))
 
     if not resources == "":
-        return_elb.Instances = [Ref(x) for x in resources]
+        return_elb.Instances = [isCfObject(x) for x in resources]
 
     if not dependson == "":
-        return_elb.DependsOn = [x.title for x in dependson]
+        return_elb.DependsOn = [isCfObject(x) for x in dependson]
 
     return return_elb
 
@@ -400,7 +457,7 @@ def add_auto_scaling_group(template, max_instances, subnets, instance="", launch
         auto_scaling_group_title,
         MinSize=ASG_MIN_INSTANCES,
         MaxSize=max_instances,
-        VPCZoneIdentifier=[Ref(x) for x in subnets],
+        VPCZoneIdentifier=[isCfObject(x) for x in subnets],
         Tags=[
             Tag("Name", auto_scaling_group_title, True),
             Tag("Application", app_name, True),
@@ -412,10 +469,10 @@ def add_auto_scaling_group(template, max_instances, subnets, instance="", launch
     ))
 
     if not launch_configuration == "":
-        asg.LaunchConfigurationName = Ref(launch_configuration.title)
+        asg.LaunchConfigurationName = isCfObject(launch_configuration)
 
     if not instance == "":
-        asg.InstanceId = Ref(instance.title)
+        asg.InstanceId = isCfObject(instance)
 
     if multiAZ:
         asg.AvailabilityZones = AVAILABILITY_ZONES
@@ -423,12 +480,12 @@ def add_auto_scaling_group(template, max_instances, subnets, instance="", launch
         asg.AvailabilityZones = [AVAILABILITY_ZONES[current_az]]
 
     if health_check_type == "ELB":
-        asg.LoadBalancerNames = [Ref(load_balancer.title)]
+        asg.LoadBalancerNames = [isCfObject(load_balancer)]
         asg.HealthCheckType = health_check_type
         asg.HealthCheckGracePeriod = 300
 
     if not dependson == "":
-        asg.DependsOn = [x.title for x in dependson]
+        asg.DependsOn = [isCfObject(x) for x in dependson]
 
     return asg
 
@@ -447,7 +504,7 @@ def add_launch_config(template, key_pair_name, security_groups, image_id, instan
         InstanceMonitoring=False,
         InstanceType=instance_type,
         KeyName=key_pair_name,
-        SecurityGroups=[Ref(x) for x in security_groups],
+        SecurityGroups=[isCfObject(x) for x in security_groups],
     ))
 
     if not userdata == "":
@@ -471,3 +528,75 @@ def trimTitle(old_title):
 
     new_title = inflection.camelize(old_title)
     return new_title
+
+
+def add_db_subnet_group(template, raw_subnets):
+    global num_db_subnet_group
+    num_db_subnet_group += 1
+
+    non_alphanumeric_title = "DBSubnetGroup" + str(num_db_subnet_group)
+    db_subnet_group_title = trimTitle(non_alphanumeric_title)
+
+    db_subnet_group = template.add_resource(rds.DBSubnetGroup(db_subnet_group_title,
+                                                              DBSubnetGroupDescription=db_subnet_group_title,
+                                                              SubnetIds=[isCfObject(subnet) for subnet in raw_subnets],
+                                                              Tags=Tags(Name=name_tag(db_subnet_group_title))))
+
+    return db_subnet_group
+
+
+def add_db(template, engine, db_subnet_group, username, password, db_security_groups, db_port="", db_snapshot=""):
+    global num_db
+    num_db += 1
+    global num_db_instance
+    num_db_instance += 1
+
+    db_non_alphanumeric_title = "DB" + engine + str(num_db)
+    db_title = trimTitle(db_non_alphanumeric_title)
+
+    db_instance_non_alphanumeric_title = "DBInstance" + engine + str(num_db_instance)
+    db_instance_title = trimTitle(db_instance_non_alphanumeric_title)
+
+    # Engine matching:mariadb, oracle-se1, oracle-se, oracle-ee, sqlserver-ee, sqlserver-se, sqlserver-ex, sqlserver-web
+    if db_port == "":
+        if engine == "postgres":
+            db_port = 5432
+        elif engine == "MySQL":
+            db_port = 3306
+        elif engine == "aurora":
+            db_port = 3306
+
+    db = template.add_resource(rds.DBInstance(db_title,
+                                              AllocatedStorage=5,
+                                              AllowMajorVersionUpgrade=True,
+                                              AutoMinorVersionUpgrade=True,
+                                              AvailabilityZone=AVAILABILITY_ZONES[current_az],
+                                              BackupRetentionPeriod=0,
+                                              # CharacterSetName= (basestring, False),
+                                              # DBClusterIdentifier= (basestring, False),
+                                              DBInstanceClass="db.t2.micro",
+                                              DBInstanceIdentifier=db_instance_title,
+                                              DBName=db_title,
+                                              # DBParameterGroupName= (basestring, False),
+                                              # DBSecurityGroups=isCfObject(db_security_group),
+                                              DBSnapshotIdentifier=db_snapshot,
+                                              DBSubnetGroupName=isCfObject(db_subnet_group),
+                                              Engine=engine,
+                                              # EngineVersion= (basestring, False),
+                                              # Iops= (validate_iops, False),
+                                              # KmsKeyId= (basestring, False),
+                                              # LicenseModel= (validate_license_model, False),
+                                              MasterUsername=username,
+                                              MasterUserPassword=password,
+                                              # MultiAZ=False,
+                                              # OptionGroupName= (basestring, False),
+                                              Port=db_port,
+                                              # PreferredBackupWindow= (validate_backup_window, False),
+                                              # PreferredMaintenanceWindow= (basestring, False),
+                                              PubliclyAccessible=False,
+                                              # SourceDBInstanceIdentifier= (basestring, False),
+                                              # StorageEncrypted= (boolean, False),
+                                              StorageType="standard",
+                                              VPCSecurityGroups=[isCfObject(sg) for sg in db_security_groups],
+                                              Tags=Tags(Name=name_tag(db_title))))
+    return db
