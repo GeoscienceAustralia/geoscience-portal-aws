@@ -6,7 +6,7 @@ The functions in this module generate cloud formation scripts that install commo
 
 """
 
-from troposphere import Ref, Tags, Join, Base64, GetAtt, ec2, rds
+from troposphere import Ref, Tags, Join, Base64, GetAtt, ec2, rds, route53
 from troposphere.autoscaling import AutoScalingGroup, LaunchConfiguration, Tag
 import troposphere.elasticloadbalancing as elb
 import inflection
@@ -106,6 +106,8 @@ num_auto_scaling_groups = 0
 num_db = 0
 num_db_subnet_group = 0
 num_db_instance = 0
+num_r53_hosted_zone = 0
+num_r53_record_set = 0
 
 def isCfObject(object):
     if type(object) is str:
@@ -403,39 +405,29 @@ def add_web_instance(template, key_pair_name, subnet, security_group, userdata, 
     return instance
 
 
-def add_load_balancer(template, subnets, healthcheck_target, security_groups, 
-            loadbalancerport="80", protocol="HTTP", 
-            instanceport="80", instanceprotocol="HTTP", 
-            resources="", dependson= ""):
+def add_load_balancer(template, subnets, healthcheck_target, security_groups, loadbalancerport="80", protocol="HTTP",
+                      instanceport="80", instanceprotocol="HTTP", resources="", dependson=""):
     global num_load_balancers
     num_load_balancers += 1
 
     non_alphanumeric_title = "ElasticLoadBalancer" + str(num_load_balancers)
     elb_title = trimTitle(non_alphanumeric_title)
 
-    return_elb = template.add_resource(elb.LoadBalancer(
-        elb_title,
-        CrossZone=True,
-        HealthCheck=elb.HealthCheck(
-            Target=healthcheck_target,
-            HealthyThreshold="2",
-            UnhealthyThreshold="5",
-            Interval="15",
-            Timeout="5",
-        ),
-        Listeners=[elb.Listener(
-            LoadBalancerPort = loadbalancerport,
-            Protocol         = protocol,
-            InstancePort     = instanceport,
-            InstanceProtocol = instanceprotocol,
-        )],
-        Scheme="internet-facing",
-        SecurityGroups=[isCfObject(x) for x in security_groups],
-        Subnets=[isCfObject(x) for x in subnets],
-        Tags=Tags(
-            Name=name_tag(elb_title),
-        ),
-    ))
+    return_elb = template.add_resource(elb.LoadBalancer(elb_title,
+                                                        CrossZone=True,
+                                                        HealthCheck=elb.HealthCheck(Target=healthcheck_target,
+                                                                                    HealthyThreshold="2",
+                                                                                    UnhealthyThreshold="5",
+                                                                                    Interval="15",
+                                                                                    Timeout="5"),
+                                                        Listeners=[elb.Listener(LoadBalancerPort=loadbalancerport,
+                                                                                Protocol=protocol,
+                                                                                InstancePort=instanceport,
+                                                                                InstanceProtocol=instanceprotocol)],
+                                                        Scheme="internet-facing",
+                                                        SecurityGroups=[isCfObject(x) for x in security_groups],
+                                                        Subnets=[isCfObject(x) for x in subnets],
+                                                        Tags=Tags(Name=name_tag(elb_title))))
 
     if not resources == "":
         return_elb.Instances = [isCfObject(x) for x in resources]
@@ -600,3 +592,47 @@ def add_db(template, engine, db_subnet_group, username, password, db_security_gr
                                               VPCSecurityGroups=[isCfObject(sg) for sg in db_security_groups],
                                               Tags=Tags(Name=name_tag(db_title))))
     return db
+
+
+def add_r53_hosted_zone(template, vpc):
+    global num_db_subnet_group
+    num_db_subnet_group += 1
+
+    non_alphanumeric_title = "R53HostedZone" + str(num_r53_hosted_zone)
+    r53_hosted_zone_title = trimTitle(non_alphanumeric_title)
+
+    r53_hosted_zone_configuration = template.add_resource(route53.HostedZoneConfiguration(Comment="Test Hosted Zone COnfiguration"))
+    r53_hosted_zone_vpcs = template.add_resource(route53.HostedZoneVPCs(VPCId=vpc,
+                                                                        VPCRegion=getattr(vpc, AVAILABILITY_ZONES[0][:-1])))
+    r53_hosted_zone = template.add_resource(route53.HostedZone(r53_hosted_zone_title,
+                                                               HostedZoneConfig=r53_hosted_zone_configuration,
+                                                               HostedZoneTags=Tags(Name=name_tag(r53_hosted_zone_title)),
+                                                               Name=r53_hosted_zone_title,
+                                                               VPCs=[r53_hosted_zone_vpcs]))
+
+    return r53_hosted_zone
+
+
+def add_r53_record_set(template, r53_hosted_zone):
+    global num_db_subnet_group
+    num_db_subnet_group += 1
+
+    non_alphanumeric_title = "R53RecordSet" + str(num_r53_record_set)
+    r53_record_set_title = trimTitle(non_alphanumeric_title)
+
+    r53_record_set = template.add_resource(route53.BaseRecordSet(r53_record_set_title,
+                                                                 # AliasTarget=(AliasTarget, False),
+                                                                 Comment=(basestring, False),
+                                                                 # Failover=(basestring, False),
+                                                                 # GeoLocation=(GeoLocation, False),
+                                                                 #HealthCheckId=(basestring, False),
+                                                                 HostedZoneId=(basestring, False),
+                                                                 HostedZoneName=(basestring, False),
+                                                                 Name=(basestring, True),
+                                                                 Region=(basestring, False),
+                                                                 ResourceRecords=(list, False),
+                                                                 SetIdentifier=(basestring, False),
+                                                                 TTL=(integer, False),
+                                                                 Type=(basestring, True)
+                                                                 # Weight=(integer, False))
+    return r53_record_set
