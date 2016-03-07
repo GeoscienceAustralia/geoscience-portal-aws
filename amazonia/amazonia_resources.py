@@ -608,7 +608,7 @@ def add_r53_hosted_zone(template, vpc, r53_hosted_zone_title=""):
     r53_hosted_zone = template.add_resource(route53.HostedZone(r53_hosted_zone_title,
                                                                HostedZoneConfig=r53_hosted_zone_configuration,
                                                                HostedZoneTags=Tags(Name=name_tag(r53_hosted_zone_title)),
-                                                               Name=name_tag(r53_hosted_zone_title) + ".com",
+                                                               Name=name_tag(r53_hosted_zone_title),
                                                                VPCs=[r53_hosted_zone_vpcs]))
 
     return r53_hosted_zone
