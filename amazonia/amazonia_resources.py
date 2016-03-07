@@ -23,6 +23,7 @@ try:
     NAT_INSTANCE_TYPE = hiera_client.get('amazonia::nat_instance_type')
     ENVIRONMENT_NAME = hiera_client.get('amazonia::environment')
     AVAILABILITY_ZONES = [hiera_client.get('amazonia::availability_zone1'), hiera_client.get('amazonia::availability_zone2')]
+    REGION = AVAILABILITY_ZONES[0][:-1]
     WEB_IMAGE_ID = hiera_client.get('amazonia::web_image_id') # OLD AMI: "ami-c11856fb"  # BASE AMI: "ami-ba6f4ad9"
     WEB_INSTANCE_TYPE = hiera_client.get('amazonia::web_instance_type')
     ASG_MIN_INSTANCES = int(hiera_client.get('amazonia::asg_min_instances'))
@@ -594,45 +595,45 @@ def add_db(template, engine, db_subnet_group, username, password, db_security_gr
     return db
 
 
-def add_r53_hosted_zone(template, vpc):
-    global num_db_subnet_group
-    num_db_subnet_group += 1
+def add_r53_hosted_zone(template, vpc, r53_hosted_zone_title=""):
 
-    non_alphanumeric_title = "R53HostedZone" + str(num_r53_hosted_zone)
-    r53_hosted_zone_title = trimTitle(non_alphanumeric_title)
+    if r53_hosted_zone_title == "":
+        global num_r53_hosted_zone
+        num_r53_hosted_zone += 1
+        non_alphanumeric_title = "R53HostedZone" + str(num_r53_hosted_zone)
+        r53_hosted_zone_title = trimTitle(non_alphanumeric_title)
 
-    r53_hosted_zone_configuration = template.add_resource(route53.HostedZoneConfiguration(Comment="Test Hosted Zone COnfiguration"))
-    r53_hosted_zone_vpcs = template.add_resource(route53.HostedZoneVPCs(VPCId=vpc,
-                                                                        VPCRegion=getattr(vpc, AVAILABILITY_ZONES[0][:-1])))
+    r53_hosted_zone_configuration = route53.HostedZoneConfiguration(Comment=r53_hosted_zone_title)
+    r53_hosted_zone_vpcs = route53.HostedZoneVPCs(VPCId=isCfObject(vpc), VPCRegion=REGION)
     r53_hosted_zone = template.add_resource(route53.HostedZone(r53_hosted_zone_title,
                                                                HostedZoneConfig=r53_hosted_zone_configuration,
                                                                HostedZoneTags=Tags(Name=name_tag(r53_hosted_zone_title)),
-                                                               Name=r53_hosted_zone_title,
+                                                               Name=name_tag(r53_hosted_zone_title) + ".com",
                                                                VPCs=[r53_hosted_zone_vpcs]))
 
     return r53_hosted_zone
 
 
-def add_r53_record_set(template, r53_hosted_zone):
-    global num_db_subnet_group
-    num_db_subnet_group += 1
+def add_r53_record_set(template, r53_hosted_zone, r53_record_set_name, r53_resource_records, r53_type):
+    global num_r53_record_set
+    num_r53_record_set += 1
 
     non_alphanumeric_title = "R53RecordSet" + str(num_r53_record_set)
     r53_record_set_title = trimTitle(non_alphanumeric_title)
 
-    r53_record_set = template.add_resource(route53.BaseRecordSet(r53_record_set_title,
+    r53_record_set = template.add_resource(route53.RecordSetType(r53_record_set_title,
                                                                  # AliasTarget=(AliasTarget, False),
-                                                                 Comment=(basestring, False),
+                                                                 Comment=r53_record_set_title,
                                                                  # Failover=(basestring, False),
                                                                  # GeoLocation=(GeoLocation, False),
-                                                                 #HealthCheckId=(basestring, False),
-                                                                 HostedZoneId=(basestring, False),
-                                                                 HostedZoneName=(basestring, False),
-                                                                 Name=(basestring, True),
-                                                                 Region=(basestring, False),
-                                                                 ResourceRecords=(list, False),
-                                                                 SetIdentifier=(basestring, False),
-                                                                 TTL=(integer, False),
-                                                                 Type=(basestring, True)
-                                                                 # Weight=(integer, False))
+                                                                 # HealthCheckId=(basestring, False),
+                                                                 HostedZoneId=isCfObject(r53_hosted_zone),
+                                                                 # HostedZoneName=(basestring, False),
+                                                                 Name=r53_record_set_name,
+                                                                 Region=REGION,
+                                                                 ResourceRecords=[r53_resource_records],
+                                                                 # SetIdentifier=(basestring, False),
+                                                                 TTL=300,
+                                                                 Type=r53_type))
+
     return r53_record_set
