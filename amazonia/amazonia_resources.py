@@ -600,3 +600,8 @@ def add_db(template, engine, db_subnet_group, username, password, db_security_gr
                                               VPCSecurityGroups=[isCfObject(sg) for sg in db_security_groups],
                                               Tags=Tags(Name=name_tag(db_title))))
     return db
+
+def add_codedeploy_application:
+
+
+def add_codedeploy_deploygroup:
