@@ -227,7 +227,7 @@ def add_internet_gateway_attachment(template, vpc, internet_gateway):
     return gateway_attachment
 
 
-def add_route_ingress_via_gateway(template, route_table, internet_gateway, cidr, dependson = ""):
+def add_route_ingress_via_gateway(template, route_table, internet_gateway, cidr, dependson=""):
     global num_routes
     num_routes += 1
     route = template.add_resource(ec2.Route(
@@ -518,7 +518,8 @@ def trimTitle(old_title):
     badsymbols = ["-", "*", " ", ".", ",", "/", "\\"]
     for var in badsymbols:
         old_title = old_title.replace(var, "_")
-
+    if old_title[-1:] == "_":
+        old_title = old_title[:-1]
     new_title = inflection.camelize(old_title)
     return new_title
 
@@ -595,20 +596,25 @@ def add_db(template, engine, db_subnet_group, username, password, db_security_gr
     return db
 
 
-def add_r53_hosted_zone(template, vpc, r53_hosted_zone_title=""):
+def add_r53_hosted_zone(template, vpc, raw_r53_hosted_zone_title=""):
 
-    if r53_hosted_zone_title == "":
+    if raw_r53_hosted_zone_title == "":
         global num_r53_hosted_zone
         num_r53_hosted_zone += 1
         non_alphanumeric_title = "R53HostedZone" + str(num_r53_hosted_zone)
         r53_hosted_zone_title = trimTitle(non_alphanumeric_title)
+        r53_hosted_zone_name = Join("", [name_tag(r53_hosted_zone_title), ".com.au."])
+    else:
+        r53_hosted_zone_name = raw_r53_hosted_zone_title
+        r53_hosted_zone_title = trimTitle(r53_hosted_zone_name)
 
     r53_hosted_zone_configuration = route53.HostedZoneConfiguration(Comment=r53_hosted_zone_title)
-    r53_hosted_zone_vpcs = route53.HostedZoneVPCs(VPCId=isCfObject(vpc), VPCRegion=REGION)
+    r53_hosted_zone_vpcs = route53.HostedZoneVPCs(VPCId=isCfObject(vpc),
+                                                  VPCRegion=REGION)
     r53_hosted_zone = template.add_resource(route53.HostedZone(r53_hosted_zone_title,
                                                                HostedZoneConfig=r53_hosted_zone_configuration,
-                                                               HostedZoneTags=Tags(Name=name_tag(r53_hosted_zone_title)),
-                                                               Name=name_tag(r53_hosted_zone_title),
+                                                               HostedZoneTags=Tags(Name=r53_hosted_zone_name),
+                                                               Name=r53_hosted_zone_name,
                                                                VPCs=[r53_hosted_zone_vpcs]))
 
     return r53_hosted_zone
@@ -623,17 +629,20 @@ def add_r53_record_set(template, r53_hosted_zone, r53_record_set_name, r53_resou
 
     r53_record_set = template.add_resource(route53.RecordSetType(r53_record_set_title,
                                                                  # AliasTarget=(AliasTarget, False),
-                                                                 Comment=r53_record_set_title,
+                                                                 # Comment=r53_record_set_title,
                                                                  # Failover=(basestring, False),
                                                                  # GeoLocation=(GeoLocation, False),
                                                                  # HealthCheckId=(basestring, False),
                                                                  HostedZoneId=isCfObject(r53_hosted_zone),
                                                                  # HostedZoneName=(basestring, False),
-                                                                 Name=r53_record_set_name,
-                                                                 Region=REGION,
+                                                                 Name=Join("", [r53_record_set_name, ".",
+                                                                                r53_hosted_zone.Name]),
+                                                                 # Region=REGION,
                                                                  ResourceRecords=[r53_resource_records],
                                                                  # SetIdentifier=(basestring, False),
                                                                  TTL=300,
                                                                  Type=r53_type))
+
+    r53_record_set.DependsOn = [r53_hosted_zone.title]
 
     return r53_record_set
