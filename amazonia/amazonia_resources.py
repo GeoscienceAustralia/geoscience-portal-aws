@@ -627,6 +627,11 @@ def add_r53_record_set(template, r53_hosted_zone, r53_record_set_name, r53_resou
     non_alphanumeric_title = "R53RecordSet" + str(num_r53_record_set)
     r53_record_set_title = trimTitle(non_alphanumeric_title)
 
+    if type(r53_hosted_zone) == str:
+        r53_hosted_zone_name = r53_hosted_zone
+    else:
+        r53_hosted_zone_name = r53_hosted_zone.Name
+
     r53_record_set = template.add_resource(route53.RecordSetType(r53_record_set_title,
                                                                  # AliasTarget=(AliasTarget, False),
                                                                  # Comment=r53_record_set_title,
@@ -636,7 +641,7 @@ def add_r53_record_set(template, r53_hosted_zone, r53_record_set_name, r53_resou
                                                                  HostedZoneId=isCfObject(r53_hosted_zone),
                                                                  # HostedZoneName=(basestring, False),
                                                                  Name=Join("", [r53_record_set_name, ".",
-                                                                                r53_hosted_zone.Name]),
+                                                                                r53_hosted_zone_name]),
                                                                  # Region=REGION,
                                                                  ResourceRecords=[r53_resource_records],
                                                                  # SetIdentifier=(basestring, False),

@@ -283,29 +283,20 @@ def test_add_db():
 
 def test_add_r53_hosted_zone():
     template = Template()
-    # myvpc = "vpc123456"
     myvpc = add_vpc(template, VPC_CIDR)
-    # r53_hosted_zone = add_r53_hosted_zone(template, myvpc)
-
-    mock_stack_name = ""
-
-    # assert_equals(r53_hosted_zone.HostedZoneConfig.Comment, "R53HostedZone1")
-    # assert_equals(r53_hosted_zone.HostedZoneTags,  )
-    # assert_equals(r53_hosted_zone.Name, "mock_stack_name-r53hostedzone1.com.au.")
 
     r53_hosted_zone_manual = add_r53_hosted_zone(template, myvpc, raw_r53_hosted_zone_title="test-hz.com.")
     assert_equals(r53_hosted_zone_manual.Name, "test-hz.com.")
 
-# def test_add_r53_record_set():
-#     template = Template()
-#     r53_hosted_zone = add_r53_hosted_zone(template, myvpc)
-#     r53_record_set_name = "testdns"
-#     r53_resource_records = "10.0.0.5"
-#     r53_type = "A"
-#
-#     add_r53_record_set(template, r53_hosted_zone, r53_record_set_name, r53_resource_records, r53_type)
-#
-#     asset_equals(add_r53_record_set.HostedZoneId, )
-#     asset_equals(add_r53_record_set.Name, )
-#     asset_equals(add_r53_record_set.ResourceRecords, "10.0.0.5")
-#     asset_equals(add_r53_record_set.Type, "A")
+
+def test_add_r53_record_set():
+    template = Template()
+    r53_hosted_zone = "test-hz.com."
+    r53_record_set_name = "testdns"
+    r53_resource_records = "10.0.0.5"
+    r53_type = "A"
+
+    r53_record_set = add_r53_record_set(template, r53_hosted_zone, r53_record_set_name, r53_resource_records, r53_type)
+
+    assert_equals(r53_record_set.ResourceRecords, ["10.0.0.5"])
+    assert_equals(r53_record_set.Type, "A")
