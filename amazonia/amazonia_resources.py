@@ -6,7 +6,7 @@ The functions in this module generate cloud formation scripts that install commo
 
 """
 
-from troposphere import Ref, Tags, Join, Base64, GetAtt, ec2, rds, route53
+from troposphere import Ref, Tags, Join, Base64, GetAtt, ec2, rds, route53, codedeploy
 from troposphere.autoscaling import AutoScalingGroup, LaunchConfiguration, Tag
 import troposphere.elasticloadbalancing as elb
 import inflection
@@ -109,6 +109,7 @@ num_db_subnet_group = 0
 num_db_instance = 0
 num_r53_hosted_zone = 0
 num_r53_record_set = 0
+num_cd_deploygroup = 0
 
 def isCfObject(object):
     if type(object) is str:
@@ -653,10 +654,41 @@ def add_r53_record_set(template, r53_hosted_zone, r53_record_set_name, r53_resou
     return r53_record_set
 
 
-def add_codedeploy_application:
+def add_cd_application(template, app_name):
+    """
+    AWS::CodeDeploy::Application
+    Function used to create Code Deploy Application Objects
+     - http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-codedeploy-application.html
+     - https://github.com/cloudtools/troposphere/blob/master/troposphere/codedeploy.py
+    :param template: Troposphere cloudformation template object
+    :param app_name: Name of Application which will be used to generate Code Deploy Application container
+    :return: Code Deploy Application troposphere object
+    """
+
+    cd_application = template.add_resource(codedeploy.Application(app_name, ApplicationName=app_name))
+
+    return cd_application
 
 
-def add_codedeploy_deploygroup:
+# def add_cd_deploygroup(template, cd_application, auto_scaling_group, service_role_arn=""):
+#
+#     global num_cd_deploygroup
+#     num_cd_deploygroup += 1
+#
+#     non_alphanumeric_title = "CodeDeployGroup" + str(num_cd_deploygroup)
+#     deploygroup_name = trimTitle(non_alphanumeric_title)
+#
+#     cd_deploygroup = template.add_resource(codedeploy.DeploymentGroup(deploygroup_name,
+#                                                                       ApplicationName=isCfObject(cd_application),
+#                                                                       AutoScalingGroups=isCfObject(auto_scaling_group),
+#                                                                       # Deployment="",
+#                                                                       DeploymentConfigName="CodeDeployDefault.OneAtATime",
+#                                                                       DeploymentGroupName=name_tag("DeploymentGroup"),
+#                                                                       # Ec2TagFilters=[ec2_tags],
+#                                                                       # OnPremisesInstanceTagFilters="",
+#                                                                       ServiceRoleArn=service_role_arn))
+#
+#     return cd_deploygroup
 
 
 

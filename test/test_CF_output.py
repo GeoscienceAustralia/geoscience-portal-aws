@@ -300,3 +300,10 @@ def test_add_r53_record_set():
 
     assert_equals(r53_record_set.ResourceRecords, ["10.0.0.5"])
     assert_equals(r53_record_set.Type, "A")
+
+
+def test_add_cd_application():
+    template = Template()
+    cd_application = add_cd_application(template, app_name="testapp")
+
+    assert_equals(cd_application.ApplicationName, "testapp")
