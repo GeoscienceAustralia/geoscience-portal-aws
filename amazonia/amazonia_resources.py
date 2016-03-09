@@ -628,7 +628,7 @@ def add_r53_record_set(template, r53_hosted_zone, r53_record_set_name, r53_resou
     non_alphanumeric_title = "R53RecordSet" + str(num_r53_record_set)
     r53_record_set_title = trimTitle(non_alphanumeric_title)
 
-    if type(r53_hosted_zone) == str:
+    if type(r53_hosted_zone) is str:
         r53_hosted_zone_name = r53_hosted_zone
     else:
         r53_hosted_zone_name = r53_hosted_zone.Name
