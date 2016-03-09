@@ -610,8 +610,8 @@ def add_r53_hosted_zone(template, vpc, raw_r53_hosted_zone_title=""):
         r53_hosted_zone_title = trimTitle(r53_hosted_zone_name)
 
     r53_hosted_zone_configuration = route53.HostedZoneConfiguration(Comment=r53_hosted_zone_title)
-    r53_hosted_zone_vpcs = route53.HostedZoneVPCs(VPCId=isCfObject(vpc),
-                                                  VPCRegion=REGION)
+    r53_hosted_zone_vpcs = [route53.HostedZoneVPCs(VPCId=isCfObject(x),
+                                                   VPCRegion=REGION) for x in vpc]
     r53_hosted_zone = template.add_resource(route53.HostedZone(r53_hosted_zone_title,
                                                                HostedZoneConfig=r53_hosted_zone_configuration,
                                                                HostedZoneTags=Tags(Name=r53_hosted_zone_name),
@@ -628,7 +628,7 @@ def add_r53_record_set(template, r53_hosted_zone, r53_record_set_name, r53_resou
     non_alphanumeric_title = "R53RecordSet" + str(num_r53_record_set)
     r53_record_set_title = trimTitle(non_alphanumeric_title)
 
-    if type(r53_hosted_zone) == str:
+    if type(r53_hosted_zone) is str:
         r53_hosted_zone_name = r53_hosted_zone
     else:
         r53_hosted_zone_name = r53_hosted_zone.Name
