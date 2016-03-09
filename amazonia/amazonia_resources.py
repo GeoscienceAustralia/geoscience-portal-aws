@@ -670,25 +670,37 @@ def add_cd_application(template, app_name):
     return cd_application
 
 
-# def add_cd_deploygroup(template, cd_application, auto_scaling_group, service_role_arn=""):
-#
-#     global num_cd_deploygroup
-#     num_cd_deploygroup += 1
-#
-#     non_alphanumeric_title = "CodeDeployGroup" + str(num_cd_deploygroup)
-#     deploygroup_name = trimTitle(non_alphanumeric_title)
-#
-#     cd_deploygroup = template.add_resource(codedeploy.DeploymentGroup(deploygroup_name,
-#                                                                       ApplicationName=isCfObject(cd_application),
-#                                                                       AutoScalingGroups=isCfObject(auto_scaling_group),
-#                                                                       # Deployment="",
-#                                                                       DeploymentConfigName="CodeDeployDefault.OneAtATime",
-#                                                                       DeploymentGroupName=name_tag("DeploymentGroup"),
-#                                                                       # Ec2TagFilters=[ec2_tags],
-#                                                                       # OnPremisesInstanceTagFilters="",
-#                                                                       ServiceRoleArn=service_role_arn))
-#
-#     return cd_deploygroup
+def add_cd_deploygroup(template, cd_application, auto_scaling_group, service_role_arn=""):
+    """
+    AWS::CodeDeploy::DeploymentGroup
+    Function used to create Code Deploy DeploymentGroup Objects that will determine where applications get deployed to.
+     - http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-codedeploy-deploymentgroup.html
+     - https://github.com/cloudtools/troposphere/blob/master/troposphere/codedeploy.py
+    :param template: Troposphere cloudformation template object
+    :param cd_application: Troposhpere Code Deploy Application object or string of AWS Code Deploy Application object
+    :param auto_scaling_group: Troposhpere EC2 Autoscaling Group object or string of AWS EC2 Autoscaling Group object
+    :param service_role_arn: AWS IAM ROle with Code Deploy permissions
+    :return: Code Deploy DeploymentGroup troposphere object
+    """
+
+    global num_cd_deploygroup
+    num_cd_deploygroup += 1
+
+    non_alphanumeric_title = "CodeDeployGroup" + str(num_cd_deploygroup)
+    deploygroup_name = trimTitle(non_alphanumeric_title)
+
+    cd_deploygroup = template.add_resource(codedeploy.DeploymentGroup(deploygroup_name,
+                                                                      ApplicationName=isCfObject(cd_application),
+                                                                      AutoScalingGroups=[isCfObject(auto_scaling_group)],
+                                                                      # Deployment="",
+                                                                      DeploymentConfigName="CodeDeployDefault.OneAtATime",
+                                                                      DeploymentGroupName=name_tag("DeploymentGroup"),
+                                                                      # Ec2TagFilters=[ec2_tags],
+                                                                      # OnPremisesInstanceTagFilters="",
+                                                                      ServiceRoleArn=service_role_arn))
+    cd_deploygroup.DependsOn = [cd_application.title, auto_scaling_group.title]
+
+    return cd_deploygroup
 
 
 

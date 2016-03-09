@@ -307,3 +307,14 @@ def test_add_cd_application():
     cd_application = add_cd_application(template, app_name="testapp")
 
     assert_equals(cd_application.ApplicationName, "testapp")
+
+
+def test_add_cd_deploygroup():
+    template = Template()
+    auto_scaling_group = "deploygrp-TestappEXPERIMENTALAutoScalingGroup1-1Q4F92R4M768L"
+
+    cd_deploygroup = add_cd_deploygroup(template, "testapp", auto_scaling_group, service_role_arn="arn:aws:iam::658695688407:role/CodeDeploy")
+
+    assert_equals(cd_deploygroup.ApplicationName, "testapp"),
+    assert_equals(cd_deploygroup.ServiceRoleArn, "arn:aws:iam::658695688407:role/CodeDeploy"),
+    assert_equals(cd_deploygroup.AutoScalingGroups, ["deploygrp-TestappEXPERIMENTALAutoScalingGroup1-1Q4F92R4M768L"])
