@@ -22,7 +22,7 @@ try:
     NAT_IMAGE_ID = hiera_client.get('amazonia::nat_image_id')
     NAT_INSTANCE_TYPE = hiera_client.get('amazonia::nat_instance_type')
     ENVIRONMENT_NAME = hiera_client.get('amazonia::environment')
-    AVAILABILITY_ZONES = [hiera_client.get('amazonia::availability_zone1'), hiera_client.get('amazonia::availability_zone2')]
+    AVAILABILITY_ZONES = [hiera_client.get('amazonia::availability_zone1'), hiera_client.get('amazonia::availability_zone2'), hiera_client.get('amazonia::availability_zone3')]
     REGION = AVAILABILITY_ZONES[0][:-1]
     WEB_IMAGE_ID = hiera_client.get('amazonia::web_image_id') # OLD AMI: "ami-c11856fb"  # BASE AMI: "ami-ba6f4ad9"
     WEB_INSTANCE_TYPE = hiera_client.get('amazonia::web_instance_type')
@@ -53,7 +53,7 @@ except Exception:
         NAT_IMAGE_ID = variables['nat_image_id']
         NAT_INSTANCE_TYPE = variables['nat_instance_type']
         ENVIRONMENT_NAME = variables['environment']
-        AVAILABILITY_ZONES = [variables['availability_zone1'], variables['availability_zone2']]
+        AVAILABILITY_ZONES = [variables['availability_zone1'], variables['availability_zone2'], variables['availability_zone3']]
         WEB_IMAGE_ID = variables['web_image_id']
         WEB_INSTANCE_TYPE = variables['web_instance_type']
         ASG_MIN_INSTANCES = int(variables['asg_min_instances'])
@@ -121,15 +121,19 @@ def isCfObject(object):
     return returnObject
 
 
-def switch_availability_zone():
+def switch_availability_zone(num=-1):
     """
-        A simple function to switch Availability zones.
+    A simple function to switch Availability zones.
+    :param num: the Availability zone number you want to switch to (0,1,2)
     """
-    global current_az
-    if current_az == 0:
-        current_az = 1
+
+    if num==-1:
+        global current_az
+        current_az += 1
+        if current_az == 3:
+            current_az = 0
     else:
-        current_az = 0
+        current_az = num
 
 
 def add_vpc(template, cidr):

@@ -3,16 +3,21 @@ from amazonia import *
 from troposphere import Template
 
 
-def test_only_two_sydney_azs():
+def test_only_three_sydney_azs():
     assert_equals(amazonia_resources.current_az, 0)
     assert_equals(amazonia_resources.AVAILABILITY_ZONES[amazonia_resources.current_az], "ap-southeast-2a")
     switch_availability_zone()
     assert_equals(amazonia_resources.current_az, 1)
     assert_equals(amazonia_resources.AVAILABILITY_ZONES[amazonia_resources.current_az], "ap-southeast-2b")
     switch_availability_zone()
+    assert_equals(amazonia_resources.current_az, 2)
+    assert_equals(amazonia_resources.AVAILABILITY_ZONES[amazonia_resources.current_az], "ap-southeast-2c")
+    switch_availability_zone()
     assert_equals(amazonia_resources.current_az, 0)
     assert_equals(amazonia_resources.AVAILABILITY_ZONES[amazonia_resources.current_az], "ap-southeast-2a")
-
+    switch_availability_zone(2)
+    assert_equals(amazonia_resources.current_az, 2)
+    assert_equals(amazonia_resources.AVAILABILITY_ZONES[amazonia_resources.current_az], "ap-southeast-2c")
 
 def test_titles_are_alphanumeric():
     title = "abc_bcde-c,d.e*f/g\h_i-j,k.l*m/n\o.p,q.r,s_t-u/v.w_x*y,z."
@@ -52,6 +57,7 @@ def test_add_vpc():
 def test_add_subnet():
     template = Template()
     myvpc = add_vpc(template, VPC_CIDR)
+    switch_availability_zone(0)
 
     subnet = add_subnet(template, myvpc, PUBLIC_SUBNET_NAME, PUBLIC_SUBNET_AZ1_CIDR)
 
@@ -229,6 +235,7 @@ def test_add_auto_scaling_group():
     test_sg = add_security_group(template, myvpc)
     subnet = add_subnet(template, myvpc, PUBLIC_SUBNET_NAME, PUBLIC_SUBNET_AZ1_CIDR)
     lc = add_launch_config(template, "akeypair", [test_sg], WEB_IMAGE_ID, WEB_INSTANCE_TYPE)
+    switch_availability_zone(0)
 
     asg = add_auto_scaling_group(template, 4, [subnet], launch_configuration=lc)
 
@@ -258,6 +265,7 @@ def test_add_db():
     dbsubnetgroup = add_db_subnet_group(template, [subnet1, subnet2])
     sg1 = add_security_group(template, myvpc)
     sg2 = add_security_group(template, myvpc)
+    switch_availability_zone(0)
 
     db = add_db(template, "postgres", dbsubnetgroup, "testuser", "testpassword", [sg1, sg2])
 
