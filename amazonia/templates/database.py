@@ -6,7 +6,7 @@ from amazonia.templates.stack import Stack
 
 class DataBase(Stack):
     def __init__(self):
-        """ Public Class to create a single AZ environment in a vpc """
+        """ Class to create a single AZ Database in a vpc """
         super(DataBase, self).__init__()
 
         my_hiera_client = hiera.HieraClient(hiera_file, hiera_path=hiera_directory, application='my_app_name')

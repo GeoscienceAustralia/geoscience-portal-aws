@@ -111,6 +111,7 @@ num_r53_hosted_zone = 0
 num_r53_record_set = 0
 num_cd_deploygroup = 0
 
+
 def isCfObject(object):
     if type(object) is str:
         returnObject = object
