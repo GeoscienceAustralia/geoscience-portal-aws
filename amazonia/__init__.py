@@ -4,4 +4,6 @@
 
 from amazonia.amazonia_resources import *
 from amazonia.cftemplates import *
+from amazonia.templates import *
+
 

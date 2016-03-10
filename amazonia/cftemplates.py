@@ -11,10 +11,12 @@ The functions in this module generate cloud formation scripts that install commo
 from troposphere import Template
 from amazonia.amazonia_resources import *
 
+
 def addVPC(template):
     """Create a VPC resource and add it to the given template."""
     vpc = add_vpc(template, VPC_CIDR)
     return vpc
+
 
 class SingleAZenv(Template):
     """
@@ -54,6 +56,7 @@ class SingleAZenv(Template):
 
         self.nat = add_nat(self, self.public_subnet, key_pair_name, self.nat_sg)
         add_route_egress_via_NAT(self, self.private_route_table, self.nat, dependson=[self.internet_gateway_attachment.title])
+
 
 class DualAZenv(Template):
     """
