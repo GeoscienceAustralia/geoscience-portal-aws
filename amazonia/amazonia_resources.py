@@ -112,6 +112,7 @@ num_r53_record_set = 0
 num_cd_deploygroup = 0
 num_elastic_ip = 0
 
+
 def isCfObject(object):
     if type(object) is str:
         returnObject = object
@@ -716,9 +717,9 @@ def add_elastic_ip(template, vpc, instance_id=""):
      - http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-eip.html
      - https://github.com/cloudtools/troposphere/blob/master/troposphere/ec2.py
     :param template: Troposphere cloudformation template object
-    :param vpc:
-    :param instance_id:
-    :return:
+    :param vpc: AWS VPC troposhpere object or string
+    :param instance_id: Instance ID string to attach the elastic IP to
+    :return: Elastic IP troposhpere object
     """
 
     global num_elastic_ip
