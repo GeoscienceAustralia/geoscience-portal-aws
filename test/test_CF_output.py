@@ -328,14 +328,15 @@ def test_add_cd_deploygroup():
     assert_equals(cd_deploygroup.AutoScalingGroups, ["deploygrp-TestappEXPERIMENTALAutoScalingGroup1-1Q4F92R4M768L"])
 
 
-@raises(NameError)
+@raises(AttributeError)
 def test_add_elastic_ip():
     template = Template()
     myvpc = add_vpc(template, VPC_CIDR)
 
     elastic_ip = add_elastic_ip(template, myvpc)
-    hasattr(elastic_ip, InstanceId)
-    raise NameError("This is a passing test as InstanceId is not passed in")
+    assert_not_equals(elastic_ip.InstanceId, "i-5c440b83")
+    raise AttributeError("This is a passing test as InstanceId is not passed in")
+
 
 def test_add_elastic_ip_with_instance():
     template = Template()
