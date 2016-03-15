@@ -41,13 +41,14 @@ class Stack(Template):
         self.sub_pri3 = add_subnet(self, self.vpc, "subnet", PRIVATE_SUBNET_AZ3_CIDR)
 
         # TODO Internet Gateway Class
-        # TODO Internet Gateway Tests: Connect from instance to internet site
+        # TODO Internet Gateway Unit Tests: validate that internet_gateway = internet_gateway_attachment.InternetGatewayId
+        # TODO Internet Gateway Sys Tests: Connect from instance to internet site
         self.internet_gateway = add_internet_gateway(self)
         self.internet_gateway_attachment = add_internet_gateway_attachment(self, self.vpc, self.internet_gateway)
 
         # TODO NAT Class
         # TODO NAT Security Group
-        # TODO NAT Security Group Tests:
+        # TODO NAT Security Group Unit Tests: validate that nat_sg = nat.NetworkInterfaces.GroupSet
         self.nat_sg = add_security_group(self, self.vpc)
         self.nat = add_nat(self, self.sub_pub1, keypair_nat, self.nat_sg)
 
