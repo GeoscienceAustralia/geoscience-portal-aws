@@ -45,13 +45,13 @@ class Stack(Template):
         self.internet_gateway = add_internet_gateway(self)
         self.internet_gateway_attachment = add_internet_gateway_attachment(self, self.vpc, self.internet_gateway)
 
-        # TODO NAT
+        # TODO NAT Class
         # TODO NAT Security Group
         # TODO NAT Security Group Tests:
         self.nat_sg = add_security_group(self, self.vpc)
         self.nat = add_nat(self, self.sub_pub1, keypair_nat, self.nat_sg)
 
-        # TODO Routing Tables
+        # TODO Routing Tables Class
         # TODO Routing Tables Tests:
         self.public_route_table = add_route_table(self, self.vpc, route_type="Public")
         add_route_table_subnet_association(self, self.public_route_table, self.sub_pub1)
