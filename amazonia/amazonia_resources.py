@@ -33,8 +33,10 @@ try:
     VPC_CIDR = hiera_client.get('amazonia::vpc_cidr')
     PUBLIC_SUBNET_AZ1_CIDR = hiera_client.get('amazonia::public_subnet_az1_cidr')
     PUBLIC_SUBNET_AZ2_CIDR = hiera_client.get('amazonia::public_subnet_az2_cidr')
+    PUBLIC_SUBNET_AZ3_CIDR = hiera_client.get('amazonia::public_subnet_az3_cidr')
     PRIVATE_SUBNET_AZ1_CIDR = hiera_client.get('amazonia::private_subnet_az1_cidr')
     PRIVATE_SUBNET_AZ2_CIDR = hiera_client.get('amazonia::private_subnet_az2_cidr')
+    PRIVATE_SUBNET_AZ3_CIDR = hiera_client.get('amazonia::private_subnet_az3_cidr')
     PUBLIC_CIDR = hiera_client.get('amazonia::public_cidr')
     PUBLIC_SUBNET_NAME = hiera_client.get('amazonia::public_subnet_name')
     PRIVATE_SUBNET_NAME = hiera_client.get('amazonia::private_subnet_name')
@@ -63,8 +65,10 @@ except Exception:
         VPC_CIDR = variables['vpc_cidr']
         PUBLIC_SUBNET_AZ1_CIDR = variables['public_subnet_az1_cidr']
         PUBLIC_SUBNET_AZ2_CIDR = variables['public_subnet_az2_cidr']
+        PUBLIC_SUBNET_AZ3_CIDR = variables['public_subnet_az3_cidr']
         PRIVATE_SUBNET_AZ1_CIDR = variables['private_subnet_az1_cidr']
         PRIVATE_SUBNET_AZ2_CIDR = variables['private_subnet_az2_cidr']
+        PRIVATE_SUBNET_AZ3_CIDR = variables['private_subnet_az3_cidr']
         PUBLIC_CIDR = variables['public_cidr']
         PUBLIC_SUBNET_NAME = variables['public_subnet_name']
         PRIVATE_SUBNET_NAME = variables['private_subnet_name']

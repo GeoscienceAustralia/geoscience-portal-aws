@@ -37,6 +37,8 @@ class Stack(Template):
         # TODO Routing Tables
 
         # TODO Internet Gateway
+        self.internet_gateway = add_internet_gateway(self)
+        self.internet_gateway_attachment = add_internet_gateway_attachment(self, self.vpc, self.internet_gateway)
 
         # TODO Jump Host
         # TODO Jump Host Security Group
