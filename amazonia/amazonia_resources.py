@@ -110,6 +110,7 @@ num_db_instance = 0
 num_r53_hosted_zone = 0
 num_r53_record_set = 0
 num_cd_deploygroup = 0
+num_elastic_ip = 0
 
 
 def isCfObject(object):
@@ -708,4 +709,28 @@ def add_cd_deploygroup(template, cd_application, auto_scaling_group, service_rol
     return cd_deploygroup
 
 
+def add_elastic_ip(template, vpc, instance_id=""):
+    """
+    AWS::EC2::EIP
+    Function used to create an Elastic IP Object that will allocate an Elastic IP (EIP) address and can, optionally,
+    associate it with an Amazon EC2 instance.
+     - http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-eip.html
+     - https://github.com/cloudtools/troposphere/blob/master/troposphere/ec2.py
+    :param template: Troposphere cloudformation template object
+    :param vpc: AWS VPC troposhpere object or string
+    :param instance_id: Instance ID string to attach the elastic IP to
+    :return: Elastic IP troposhpere object
+    """
 
+    global num_elastic_ip
+    num_elastic_ip += 1
+
+    non_alphanumeric_title = "ElasticIP" + str(num_elastic_ip)
+    num_elastic_ip_name = trimTitle(non_alphanumeric_title)
+
+    elastic_ip = template.add_resource(ec2.EIP(num_elastic_ip_name,
+                                               Domain=isCfObject(vpc)))
+
+    if instance_id != "":
+        elastic_ip.InstanceId = instance_id
+    return elastic_ip
