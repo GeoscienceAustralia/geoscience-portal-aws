@@ -53,7 +53,7 @@ class Stack(Template):
         self.nat = add_nat(self, self.sub_pub1, keypair_nat, self.nat_sg)
 
         # TODO Routing Tables Class
-        # TODO Routing Tables Tests:
+        # TODO Routing Tables Unit Tests:
         self.public_route_table = add_route_table(self, self.vpc, route_type="Public")
         add_route_table_subnet_association(self, self.public_route_table, self.sub_pub1)
         add_route_table_subnet_association(self, self.public_route_table, self.sub_pub2)
@@ -68,8 +68,9 @@ class Stack(Template):
 
         # TODO Jump Host Class
         # TODO Jump Host Security Group
-        # TODO Tests: Connect from jumphost to subpub1 instance, subpub2 instance, cannot connect on port 80, 8080, 443,
-        # TODO Tests: Try connecting to host in another vpc
+        # TODO Unit Tests:jump_sg = jumphost1.NetworkInterfaces.GroupSet,
+        # TODO Sys Tests: Connect from jumphost to subpub1 instance, subpub2 instance, cannot connect on port 80, 8080, 443,
+        # TODO Sys Tests: Try connecting to host in another vpc
         self.jump_sg = add_security_group(self, self.vpc)
         self.jumphost1 = add_nat(self, self.sub_pub1, keypair_jump, self.jump_sg)
         add_security_group_ingress(self, self.jump_sg, 'tcp', '22', '22', cidr=PUBLIC_COMPANY_CIDR)  # enable inbound SSH  access to the NAT from GA
