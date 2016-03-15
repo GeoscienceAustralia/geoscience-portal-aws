@@ -47,10 +47,15 @@ class Stack(Template):
         self.internet_gateway_attachment = add_internet_gateway_attachment(self, self.vpc, self.internet_gateway)
 
         # TODO NAT Class
-        # TODO NAT Security Group
+        # TODO NAT Seqcurity Group
         # TODO NAT Security Group Unit Tests: validate that nat_sg = nat.NetworkInterfaces.GroupSet
         self.nat_sg = add_security_group(self, self.vpc)
         self.nat = add_nat(self, self.sub_pub1, keypair_nat, self.nat_sg)
+        add_security_group_egress(self, self.nat_sg, '-1', '-1', '-1', cidr=PUBLIC_CIDR)
+        # TODO update the 3 below rules to refer to a security group within private subnets instead (once we have some)
+        add_security_group_ingress(self, self.nat_sg, '-1', '-1', '-1', cidr=PRIVATE_SUBNET_AZ1_CIDR)
+        add_security_group_ingress(self, self.nat_sg, '-1', '-1', '-1', cidr=PRIVATE_SUBNET_AZ2_CIDR)
+        add_security_group_ingress(self, self.nat_sg, '-1', '-1', '-1', cidr=PRIVATE_SUBNET_AZ3_CIDR)
 
         # TODO Routing Tables Class
         # TODO Routing Tables Tests:
@@ -71,12 +76,6 @@ class Stack(Template):
         # TODO Tests: Connect from jumphost to subpub1 instance, subpub2 instance, cannot connect on port 80, 8080, 443,
         # TODO Tests: Try connecting to host in another vpc
         self.jump_sg = add_security_group(self, self.vpc)
-        self.jumphost1 = add_nat(self, self.sub_pub1, keypair_jump, self.jump_sg)
+        self.jumphost = add_nat(self, self.sub_pub1, keypair_jump, self.jump_sg)
         add_security_group_ingress(self, self.jump_sg, 'tcp', '22', '22', cidr=PUBLIC_COMPANY_CIDR)  # enable inbound SSH  access to the NAT from GA
         add_security_group_egress(self, self.jump_sg, 'tcp', '22', '22', cidr=VPC_CIDR)  # enable outbound SSH  access from the NAT to VPC
-
-
-
-
-
-
