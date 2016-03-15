@@ -33,3 +33,17 @@ class Stack(Template):
 
         switch_availability_zone(2)
         self.sub_pri3 = add_subnet(self, self.vpc, "subnet", PUBLIC_SUBNET_AZ3_CIDR) # TODO Change PUBLIC_SUBNET_AZ1_CIDR to subnet generator /8
+
+        # TODO Routing Tables
+
+        # TODO Internet Gateway
+
+        # TODO Jump Host
+        # TODO Jump Host Security Group
+
+        # TODO NAT
+        # TODO NAT Security Group
+
+
+
+
