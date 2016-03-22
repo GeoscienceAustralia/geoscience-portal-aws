@@ -32,13 +32,14 @@ class SecurityEnabledObject(Template):
         :param protocol: Protocol to send, and receive traffic on
         """
         name = self.title + port + "From" + other.title + port
-        self.add_resource(ec2.SecurityGroupIngress(name,
-                                                   IpProtocol=protocol,
-                                                   FromPort=port,
-                                                   ToPort=port,
-                                                   GroupId=Ref(self.security_group),
-                                                   SourceSecurityGroupId=GetAtt(other.security_group.title, "GroupId")
-                                                   ))
+        self.add_resource(ec2.SecurityGroupIngress(
+            name,
+            IpProtocol=protocol,
+            FromPort=port,
+            ToPort=port,
+            GroupId=Ref(self.security_group),
+            SourceSecurityGroupId=GetAtt(other.security_group.title, "GroupId")
+            ))
 
     def add_egress(self, other, port, protocol):
         """
@@ -49,13 +50,14 @@ class SecurityEnabledObject(Template):
         :return:
         """
         name = self.title + port + "To" + other.title + port
-        self.add_resource(ec2.SecurityGroupEgress(name,
-                                                  IpProtocol=protocol,
-                                                  FromPort=port,
-                                                  ToPort=port,
-                                                  GroupId=Ref(self.security_group),
-                                                  DestinationSecurityGroupId=GetAtt(other.security_group.title, "GroupId")
-                                                  ))
+        self.add_resource(ec2.SecurityGroupEgress(
+            name,
+            IpProtocol=protocol,
+            FromPort=port,
+            ToPort=port,
+            GroupId=Ref(self.security_group),
+            DestinationSecurityGroupId=GetAtt(other.security_group.title, "GroupId")
+            ))
 
     def create_security_group(self, vpc):
         """
