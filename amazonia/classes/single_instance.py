@@ -25,7 +25,7 @@ class SingleInstance(SecurityEnabledObject):
                                KeyName=kwargs['keypair'],
                                ImageId=kwargs['si_image_id'],
                                InstanceType=kwargs['si_instance_type'],
-                               NetworkInterfaces=[ec2.NetworkInterfaceProperty(
+                               NetworkInterfaces=[ec2.NetworkInterfaceProperty('network',
                                    GroupSet=[Ref(self.security_group)],
                                    AssociatePublicIpAddress=True,
                                    DeviceIndex="0",
@@ -37,11 +37,11 @@ class SingleInstance(SecurityEnabledObject):
                            ))
 
         if self.single.SourceDestCheck:
-            self.si_output(nat=False)
+            self.si_output(nat=False, subnet=kwargs['subnet'])
         else:
-            self.si_output(nat=True)
+            self.si_output(nat=True, subnet=kwargs['subnet'])
 
-    def si_output(self, nat=True):
+    def si_output(self, nat=True, **kwargs):
         """
         Function that add the IP output required for single instances depending if it is a NAT or JumpHost
         :param nat: A NAT is defined by the SourceDestCheck=False flag
@@ -55,11 +55,11 @@ class SingleInstance(SecurityEnabledObject):
         self.add_output(
              Output(
                  self.single.title,
-                 Description='IP address of {0} single instance'.format(self.single.title),
+                 Description='{0} address of {1} single instance'.format(net_interface, self.single.title),
                  Value=Join(" ", ["{0} IP address".format(self.single.title),
                                   GetAtt(self.single, net_interface),
-                                  # "on subnet",
-                                  # Ref(self.single.NetworkInterfaces.SubnetId)
+                                  "on subnet",
+                                  Ref(kwargs['subnet'])
                                   ]
                             )
                  ))
