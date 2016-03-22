@@ -27,6 +27,9 @@ class SecurityEnabledObject(Template):
     def add_ingress(self, other, port, protocol):
         """
         Add an ingress rule to this SecurityEnabledObject
+        Creates a Troposphere SecurityGroupIngress object
+        AWS Cloud Formation: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-security-group-ingress.html
+        Troposphere link: https://github.com/cloudtools/troposphere/blob/master/troposphere/ec2.py
         :param other: The SecurityEnabledObject that we are expecting traffic from
         :param port: Port to send, and receive traffic on
         :param protocol: Protocol to send, and receive traffic on
@@ -44,6 +47,9 @@ class SecurityEnabledObject(Template):
     def add_egress(self, other, port, protocol):
         """
         Add an egress rule to this SecurityEnabledObject
+        Creates a Troposphere SecurityGroupEgress object
+        AWS Cloud Formation: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-security-group-egress.html
+        Troposphere link: https://github.com/cloudtools/troposphere/blob/master/troposphere/ec2.py
         :param other: The SecurityEnabledObject that will be sending traffic to this SecurityEnabledObject
         :param port: Port to send, and receive traffic on
         :param protocol: Protocol to send, and receive traffic on
@@ -62,6 +68,9 @@ class SecurityEnabledObject(Template):
     def create_security_group(self, vpc):
         """
         Add a security group to this SecurityEnabledObject which can then have rules added to it where needed
+        Creates a Troposphere SecurityGroup object
+        AWS Cloud Formation: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-security-group.html
+        Troposphere link: https://github.com/cloudtools/troposphere/blob/master/troposphere/ec2.py
         :param vpc: The VPC that the security group should live in
         :return: The security group for this SecurityEnabledObject
         """
