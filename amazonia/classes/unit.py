@@ -21,4 +21,3 @@ class Unit(object):
             database = Database()
 
 
-        
