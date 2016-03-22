@@ -13,8 +13,12 @@ class Unit(object):
         elb = Elb()
         asg = Asg()
 
-        if self.database:
-        database = Database()
 
         # TODO UNIT Unit Tests:
         # TODO Sys Tests:
+
+        if kwargs[database]:
+            database = Database()
+
+
+        
