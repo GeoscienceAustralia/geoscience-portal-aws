@@ -2,16 +2,19 @@ from troposphere import Template, ec2, Ref, Tags, GetAtt, Join
 
 
 class SecurityEnabledObject(Template):
-    def __init__(self, vpc, title):
+    def __init__(self, **kwargs):
         """
         A Class to enable uni-directional flow when given two security groups
+        :param template: The VPC for this object
         :param vpc: The VPC for this object
         :param title: the Title of the object eg: unit01ELB, unit01ASG
         :return: a security group, and the ability to create ingress and egress rules
         """
+
         super(SecurityEnabledObject, self).__init__()
-        self.title = title
-        self.security_group = self.create_security_group(vpc)
+
+        self.title = kwargs['title']
+        self.security_group = self.create_security_group(kwargs['vpc'])
 
     def add_flow(self, other, port, protocol):
         """
@@ -53,7 +56,6 @@ class SecurityEnabledObject(Template):
         :param other: The SecurityEnabledObject that will be sending traffic to this SecurityEnabledObject
         :param port: Port to send, and receive traffic on
         :param protocol: Protocol to send, and receive traffic on
-        :return:
         """
         name = self.title + port + "To" + other.title + port
         self.add_resource(ec2.SecurityGroupEgress(
