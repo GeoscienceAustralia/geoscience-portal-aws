@@ -10,13 +10,11 @@ class SecurityEnabledObject(Template):
         """
         super(object, self).__init__()
         self.title = title
-        self.securitygroup = self.create_security_group(vpc)
+        self.security_group = self.create_security_group(vpc)
 
-
-    def addFlow(self, other, port, protocol):
+    def add_flow(self, other, port, protocol):
         self.add_egress(other, port, protocol)
         other.add_ingress(self, port, protocol)
-
 
     def add_ingress(self, other, port, protocol):
         name = self.title + port + "From" + other.title + port
@@ -24,9 +22,8 @@ class SecurityEnabledObject(Template):
                                                    IpProtocol=protocol,
                                                    FromPort=port,
                                                    ToPort=port,
-                                                   GroupId=Ref(self.securitygroup)
+                                                   GroupId=Ref(self.security_group)
                                                    ))
-
 
     def add_egress(self, other, port, protocol):
         name = self.title + port + "To" + other.title + port
@@ -34,14 +31,13 @@ class SecurityEnabledObject(Template):
                                                   IpProtocol=protocol,
                                                   FromPort=port,
                                                   ToPort=port,
-                                                  GroupId=Ref(self.securitygroup)
+                                                  GroupId=Ref(self.security_group)
                                                   ))
 
-    def create_security_group(self, vpc, title):
-        name = self.title + "SecurityGroup"
-        self.add_resource(ec2.SecurityGroup(name,
-                                            GroupDescription="Security group",
-                                            VpcId=Ref(vpc),
-                                            Tags=Tags(Name=name)
-                                            ))
-
+    def create_security_group(self, vpc):
+        name = self.title + "SG"
+        return self.add_resource(ec2.SecurityGroup(name,
+                                                   GroupDescription="Security group",
+                                                   VpcId=Ref(vpc),
+                                                   Tags=Tags(Name=name)
+                                                   ))
