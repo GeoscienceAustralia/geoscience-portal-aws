@@ -17,7 +17,7 @@ class Unit(object):
         # TODO UNIT Unit Tests:
         # TODO Sys Tests:
 
-        if kwargs[database]:
-            database = Database()
+        if kwargs.get(database):
+            database(**kwargs)
 
 
