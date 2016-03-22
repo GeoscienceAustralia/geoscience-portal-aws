@@ -54,4 +54,3 @@ class Stack(Template):
         vpc_split[3] = '/'.join(vpc_last)
 
         return '.'.join(vpc_split)
-

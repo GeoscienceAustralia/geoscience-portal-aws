@@ -9,7 +9,7 @@ class SingleInstance(object):
         super(object, self).__init__()
 
         self.sg = add_security_group(self, self.vpc)
-        self.single = add_nat(self, subnet, keypair, self.sg)
+        self.single = add_nat(self, kwargs[subnet], kwargs[keypair], self.sg)
 
         # TODO NAT Security Group Unit Tests: validate that nat_sg = nat.NetworkInterfaces.GroupSet
         # TODO Unit Tests:jump_sg = jumphost1.NetworkInterfaces.GroupSet,
