@@ -13,14 +13,12 @@ def main():
                         VpcId=Ref(vpc),
                         CidrBlock='10.0.1.0/24')
 
-    template = SingleInstance(title='nat1',
+    template = SingleInstance(title='jump',
                               keypair='pipeline',
                               si_image_id='ami-893f53b3',
                               si_instance_type='t2.nano',
                               vpc=vpc,
                               subnet=subnet)
-
-    template.single.SourceDestCheck = True
 
     template.add_resource(vpc)
     template.add_resource(subnet)

@@ -25,29 +25,32 @@ class SingleInstance(SecurityEnabledObject):
                                KeyName=kwargs['keypair'],
                                ImageId=kwargs['si_image_id'],
                                InstanceType=kwargs['si_instance_type'],
-                               NetworkInterfaces=[ec2.NetworkInterfaceProperty('network',
+                               NetworkInterfaces=[ec2.NetworkInterfaceProperty(
                                    GroupSet=[Ref(self.security_group)],
                                    AssociatePublicIpAddress=True,
                                    DeviceIndex="0",
                                    DeleteOnTermination=True,
                                    SubnetId=Ref(kwargs['subnet']),
                                )],
-                               SourceDestCheck=False if kwargs['title'].lower() == 'nat' else True,
+                               SourceDestCheck=False if kwargs['title'][:3].lower() == 'nat' else True,
                                Tags=Tags(Name=Join("", [Ref('AWS::StackName'), '-', kwargs['title']]))
                            ))
 
-        if self.single.SourceDestCheck:
+        if self.single.SourceDestCheck == 'true':
             self.si_output(nat=False, subnet=kwargs['subnet'])
         else:
             self.si_output(nat=True, subnet=kwargs['subnet'])
 
-    def si_output(self, nat=True, **kwargs):
+    def si_output(self, **kwargs):
         """
         Function that add the IP output required for single instances depending if it is a NAT or JumpHost
-        :param nat: A NAT is defined by the SourceDestCheck=False flag
-        :return: Troposphere Output object containing IP
+        :param kwargs: Key value pairs required to create output for a single instance
+            nat: A NAT boolean is defined by the SourceDestCheck=False flag for extracting the ip
+            subnet: A subnetwhere the instance lives required for output.
+        :return: Troposphere Output object containing IP details
         """
-        if nat:
+
+        if kwargs['nat'] is True:
             net_interface = "PrivateIp"
         else:
             net_interface = "PublicIp"
@@ -56,7 +59,7 @@ class SingleInstance(SecurityEnabledObject):
              Output(
                  self.single.title,
                  Description='{0} address of {1} single instance'.format(net_interface, self.single.title),
-                 Value=Join(" ", ["{0} IP address".format(self.single.title),
+                 Value=Join(" ", ["{0} {1} address".format(self.single.title, net_interface),
                                   GetAtt(self.single, net_interface),
                                   "on subnet",
                                   Ref(kwargs['subnet'])
