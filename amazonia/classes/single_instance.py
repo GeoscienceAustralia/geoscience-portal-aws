@@ -67,7 +67,6 @@ class SingleInstance(SecurityEnabledObject):
                             )
                  ))
 
-    # TODO NAT Security Group Unit Tests: validate that nat_sg = nat.NetworkInterfaces.GroupSet
-    # TODO Unit Tests:jump_sg = jumphost1.NetworkInterfaces.GroupSet,
+
     # TODO Sys Tests: Connect from jumphost to subpub1 instance, subpub2 instance, can't connect on port 80,8080,443
     # TODO Sys Tests: Try connecting to host in another vpc
