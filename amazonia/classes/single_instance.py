@@ -8,13 +8,12 @@ class SingleInstance(SecurityEnabledObject):
     def __init__(self, **kwargs):
         """
         Create a singleton instance such as a nat or a jumphost
-        :param kwargs: Key value pairs required to create a single instance
-            title: Title of instance e.g 'nat1', 'nat2' or 'jump1'
-            keypair: Instance Keypair for ssh e.g. 'pipeline' or 'mykey'
-            si_image_id: AWS ami id to create instance from, e.g. 'ami-12345'
-            si_instance_type: Instance type for single instance e.g. 't2.micro' or 't2.nano'
-            vpc: Troposphere vpc object, required for SecurityEnabledObject class
-            subnet: Troposhere object for subnet created e.g. 'sub_pub1'
+        :param title: Title of instance e.g 'nat1', 'nat2' or 'jump1'
+        :param keypair: Instance Keypair for ssh e.g. 'pipeline' or 'mykey'
+        :param si_image_id: AWS ami id to create instance from, e.g. 'ami-12345'
+        :param si_instance_type: Instance type for single instance e.g. 't2.micro' or 't2.nano'
+        :param vpc: Troposphere vpc object, required for SecurityEnabledObject class
+        :param subnet: Troposhere object for subnet created e.g. 'sub_pub1'
         """
 
         super(SingleInstance, self).__init__(kwargs['vpc'], kwargs['title'])
@@ -44,9 +43,8 @@ class SingleInstance(SecurityEnabledObject):
     def si_output(self, **kwargs):
         """
         Function that add the IP output required for single instances depending if it is a NAT or JumpHost
-        :param kwargs: Key value pairs required to create output for a single instance
-            nat: A NAT boolean is defined by the SourceDestCheck=False flag for extracting the ip
-            subnet: A subnetwhere the instance lives required for output.
+        :param nat: A NAT boolean is defined by the SourceDestCheck=False flag for extracting the ip
+        :param subnet: A subnetwhere the instance lives required for output.
         :return: Troposphere Output object containing IP details
         """
 
@@ -66,7 +64,6 @@ class SingleInstance(SecurityEnabledObject):
                                   ]
                             )
                  ))
-
 
     # TODO Sys Tests: Connect from jumphost to subpub1 instance, subpub2 instance, can't connect on port 80,8080,443
     # TODO Sys Tests: Try connecting to host in another vpc
