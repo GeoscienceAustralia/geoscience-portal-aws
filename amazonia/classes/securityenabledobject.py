@@ -5,7 +5,7 @@ class SecurityEnabledObject(object):
     def __init__(self, **kwargs):
         """
         A Class to enable uni-directional flow when given two security groups
-        :param template: The VPC for this object
+        :param stack: The VPC for this object
         :param vpc: The VPC for this object
         :param title: the Title of the object eg: unit01ELB, unit01ASG
         :return: a security group, and the ability to create ingress and egress rules
