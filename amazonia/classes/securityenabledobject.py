@@ -1,7 +1,7 @@
-from troposphere import Template, ec2, Ref, Tags, GetAtt, Join
+from troposphere import ec2, Ref, Tags, GetAtt, Join
 
 
-class SecurityEnabledObject(Template):
+class SecurityEnabledObject(object):
     def __init__(self, **kwargs):
         """
         A Class to enable uni-directional flow when given two security groups
@@ -13,6 +13,7 @@ class SecurityEnabledObject(Template):
 
         super(SecurityEnabledObject, self).__init__()
 
+        self.stack = kwargs['template']
         self.title = kwargs['title']
         self.security_group = self.create_security_group(kwargs['vpc'])
 
@@ -38,7 +39,7 @@ class SecurityEnabledObject(Template):
         :param protocol: Protocol to send, and receive traffic on
         """
         name = self.title + port + "From" + other.title + port
-        self.add_resource(ec2.SecurityGroupIngress(
+        self.ingress = self.stack.add_resource(ec2.SecurityGroupIngress(
             name,
             IpProtocol=protocol,
             FromPort=port,
@@ -58,7 +59,7 @@ class SecurityEnabledObject(Template):
         :param protocol: Protocol to send, and receive traffic on
         """
         name = self.title + port + "To" + other.title + port
-        self.add_resource(ec2.SecurityGroupEgress(
+        self.egress = self.stack.add_resource(ec2.SecurityGroupEgress(
             name,
             IpProtocol=protocol,
             FromPort=port,
@@ -77,7 +78,7 @@ class SecurityEnabledObject(Template):
         :return: The security group for this SecurityEnabledObject
         """
         name = self.title + "SG"
-        return self.add_resource(
+        return self.stack.add_resource(
                     ec2.SecurityGroup(
                         name,
                         GroupDescription="Security group",
