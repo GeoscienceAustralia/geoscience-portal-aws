@@ -2,6 +2,7 @@ from amazonia.classes.securityenabledobject import SecurityEnabledObject
 from nose.tools import *
 from troposphere import Template, ec2, Ref
 
+
 def test_security_enabled_object():
     template = Template()
     myvpc = ec2.VPC('myVpc', CidrBlock='10.0.0.0/16')

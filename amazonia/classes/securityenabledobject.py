@@ -16,6 +16,8 @@ class SecurityEnabledObject(object):
         self.stack = kwargs['stack']
         self.title = kwargs['title']
         self.security_group = self.create_security_group(kwargs['vpc'])
+        self.ingress = None
+        self.egress = None
 
     def add_flow(self, other, port, protocol):
         """
