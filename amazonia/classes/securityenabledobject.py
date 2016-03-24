@@ -13,7 +13,7 @@ class SecurityEnabledObject(object):
 
         super(SecurityEnabledObject, self).__init__()
 
-        self.stack = kwargs['template']
+        self.stack = kwargs['stack']
         self.title = kwargs['title']
         self.security_group = self.create_security_group(kwargs['vpc'])
 
