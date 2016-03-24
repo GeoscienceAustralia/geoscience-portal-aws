@@ -68,7 +68,8 @@ class Stack(Template):
         for unit in units:
             Unit(**kwargs)
 
-    def cidr_mgt(self, vpc_cidr, num):
+    @staticmethod
+    def cidr_mgt(vpc_cidr, num):
         """
         Function to help create Class C subnet CIDRs from Class A VPC CIDRs
         :param vpc_cidr: VPC CIDR to be broken down into subnets e.g. 10.0.0.0/8
