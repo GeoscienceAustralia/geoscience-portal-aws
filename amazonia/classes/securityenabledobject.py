@@ -1,17 +1,23 @@
-from troposphere import Template, ec2, Ref, Tags, GetAtt, Join
+from troposphere import ec2, Ref, Tags, GetAtt, Join
 
 
-class SecurityEnabledObject(Template):
-    def __init__(self, vpc, title):
+class SecurityEnabledObject(object):
+    def __init__(self, **kwargs):
         """
         A Class to enable uni-directional flow when given two security groups
+        :param stack: The VPC for this object
         :param vpc: The VPC for this object
         :param title: the Title of the object eg: unit01ELB, unit01ASG
         :return: a security group, and the ability to create ingress and egress rules
         """
+
         super(SecurityEnabledObject, self).__init__()
-        self.title = title
-        self.security_group = self.create_security_group(vpc)
+
+        self.stack = kwargs['stack']
+        self.title = kwargs['title']
+        self.security_group = self.create_security_group(kwargs['vpc'])
+        self.ingress = None
+        self.egress = None
 
     def add_flow(self, other, port, protocol):
         """
@@ -35,7 +41,7 @@ class SecurityEnabledObject(Template):
         :param protocol: Protocol to send, and receive traffic on
         """
         name = self.title + port + "From" + other.title + port
-        self.add_resource(ec2.SecurityGroupIngress(
+        self.ingress = self.stack.add_resource(ec2.SecurityGroupIngress(
             name,
             IpProtocol=protocol,
             FromPort=port,
@@ -53,10 +59,9 @@ class SecurityEnabledObject(Template):
         :param other: The SecurityEnabledObject that will be sending traffic to this SecurityEnabledObject
         :param port: Port to send, and receive traffic on
         :param protocol: Protocol to send, and receive traffic on
-        :return:
         """
         name = self.title + port + "To" + other.title + port
-        self.add_resource(ec2.SecurityGroupEgress(
+        self.egress = self.stack.add_resource(ec2.SecurityGroupEgress(
             name,
             IpProtocol=protocol,
             FromPort=port,
@@ -75,7 +80,7 @@ class SecurityEnabledObject(Template):
         :return: The security group for this SecurityEnabledObject
         """
         name = self.title + "SG"
-        return self.add_resource(
+        return self.stack.add_resource(
                     ec2.SecurityGroup(
                         name,
                         GroupDescription="Security group",

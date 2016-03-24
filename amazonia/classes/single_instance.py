@@ -17,7 +17,7 @@ class SingleInstance(SecurityEnabledObject):
             subnet: Troposhere object for subnet created e.g. 'sub_pub1'
         """
 
-        super(SingleInstance, self).__init__(kwargs['vpc'], kwargs['title'])
+        super(SingleInstance, self).__init__(vpc=kwargs['vpc'], title=kwargs['title'], stack=kwargs['stack'])
 
         self.single = self.add_resource(
                            ec2.Instance(
