@@ -8,7 +8,22 @@ class Elb(SecurityEnabledObject):
         """ Public Class to create a Triple AZ environment in a vpc """
         super(SecurityEnabledObject, self).__init__()
 
-        self.elb = add_load_balancer()
+        return_elb = template.add_resource(
+            elb.LoadBalancer(elb_title,
+                             CrossZone=True,
+                             HealthCheck=elb.HealthCheck(Target=healthcheck_target,
+                                                         HealthyThreshold="2",
+                                                         UnhealthyThreshold="5",
+                                                         Interval="15",
+                                                         Timeout="5"),
+                             Listeners=[elb.Listener(LoadBalancerPort=loadbalancerport,
+                                                     Protocol=protocol,
+                                                     InstancePort=instanceport,
+                                                     InstanceProtocol=instanceprotocol)],
+                             Scheme="internet-facing",
+                             SecurityGroups=[isCfObject(x) for x in security_groups],
+                             Subnets=[isCfObject(x) for x in subnets],
+                             Tags=Tags(Name=name_tag(elb_title))))
 
 
         # TODO Elb Unit Tests:

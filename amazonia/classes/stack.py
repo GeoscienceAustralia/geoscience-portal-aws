@@ -24,26 +24,55 @@ class Stack(Template):
         self.internet_gateway = add_internet_gateway(self)
         self.internet_gateway_attachment = add_internet_gateway_attachment(self, self.vpc, self.internet_gateway)
 
-        # TODO possible enumeration?
-        sub_pub1 = Subnet(stack=self, internet_gateway=self.internet_gateway, cidr=self.cidr_mgt(vpc_cidr, 0))
-        sub_pub2 = Subnet(stack=self, internet_gateway=self.internet_gateway, cidr=self.cidr_mgt(vpc_cidr, 1))
-        sub_pub3 = Subnet(stack=self, internet_gateway=self.internet_gateway, cidr=self.cidr_mgt(vpc_cidr, 2))
+        """ Create Private Subnets
+        """
+        az = len(AVAILABILITY_ZONES)
+        self.pub_sub_list = []
+        for sub_num in range(0, az):
+            if sub_num == 0:  # create route table in first loop
+                self.pub_sub_list.append(Subnet(stack=self,
+                                                internet_gateway=self.internet_gateway,
+                                                cidr=self.cidr_mgt(vpc_cidr, sub_num)))
+            else:  # uses route table created in first loop
+                self.pub_sub_list.append(Subnet(stack=self,
+                                                internet_gateway=self.internet_gateway,
+                                                route_table=self.pub_sub_list[0].route_table,
+                                                cidr=self.cidr_mgt(vpc_cidr, sub_num)))
 
-        self.nat = SingleInstance(stack=self, subnet=sub_pub1, keypair=keypair_nat)
-        self.jump = SingleInstance(stack=self, subnet=sub_pub1, keypair=keypair_jump)
+        # TODO Rewrite -add_route_ingress_via_gateway(self, self.public_route_table, self.internet_gateway, PUBLIC_CIDR)
 
-        sub_pri1 = Subnet(stack=self, nat=self.nat, cidr=self.cidr_mgt(vpc_cidr, 3))
-        sub_pri2 = Subnet(stack=self, nat=self.nat, cidr=self.cidr_mgt(vpc_cidr, 4))
-        sub_pri3 = Subnet(stack=self, nat=self.nat, cidr=self.cidr_mgt(vpc_cidr, 5))
+        """ Create NAT and Jumpbox
+        """
+        self.nat = SingleInstance(stack=self, subnet=self.pub_sub_list[0], keypair=keypair_nat)
+        self.jump = SingleInstance(stack=self, subnet=self.pub_sub_list[0], keypair=keypair_jump)
 
-        unit()
-            self.database = database(stack=self, **kwargs) if database={database}
+        """ Create Private Subnets
+        """
+        self.pri_sub_list = []
+        for sub_num in range(az, 2*az):
+            if sub_num == 0:  # create route table in first loop
+                self.pri_sub_list.append(Subnet(stack=self,
+                                                nat=self.nat,
+                                                cidr=self.cidr_mgt(vpc_cidr, sub_num)))
+            else:  # uses route table created in first loop
+                self.pri_sub_list.append(Subnet(stack=self,
+                                                route_table=self.pub_sub_list[0].route_table,
+                                                nat=self.nat,
+                                                cidr=self.cidr_mgt(vpc_cidr, sub_num)))
+
+        # TODO Rewrite - add_route_egress_via_NAT(stack, self.private_route_table, self.nat)
+
+        """ Create Unit
+        """
+        # read in yaml['units']
+        for unit in units:
+            Unit(**kwargs)
 
     def cidr_mgt(self, vpc_cidr, num):
         """
-
-        :param vpc_cidr:
-        :param num:
+        Function to help create Class C subnet CIDRs from Class A VPC CIDRs
+        :param vpc_cidr: VPC CIDR to be broken down into subnets e.g. 10.0.0.0/8
+        :param num: Number of the Subnet
         :return:
         """
         # TODO test Subnet CIDR returns correctly from vpc CIDR fo rmultiple subnets
