@@ -1,4 +1,5 @@
 from nose.tools import *
+from troposphere import Template
 from amazonia.classes.single_instance import SingleInstance
 
 
@@ -17,7 +18,7 @@ def test_nat_single_instance():
         print 'SourceDestCheck='.format(si_sdc)
         assert_equals(si_sdc, 'false')
 
-        sio = si.outputs[title].Description
+        sio = si.stack.outputs[title].Description
         print sio
         assert_in('PrivateIp', sio)
 
@@ -37,7 +38,7 @@ def test_not_nat_single_instance():
         print 'SourceDestCheck='.format(si_sdc)
         assert_equals(si_sdc, 'true')
 
-        sio = si.outputs[title].Description
+        sio = si.stack.outputs[title].Description
         print sio
         assert_in('PublicIp', sio)
 
@@ -50,10 +51,12 @@ def create_si(title):
     """
     vpc = 'vpc-12345'
     subnet = 'subnet-123456'
+    template = Template()
     si = SingleInstance(title=title,
                         keypair='pipeline',
                         si_image_id='ami-893f53b3',
                         si_instance_type='t2.nano',
                         vpc=vpc,
-                        subnet=subnet)
+                        subnet=subnet,
+                        stack=template)
     return si

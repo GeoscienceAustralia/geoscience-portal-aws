@@ -18,7 +18,7 @@ class SingleInstance(SecurityEnabledObject):
 
         super(SingleInstance, self).__init__(vpc=kwargs['vpc'], title=kwargs['title'], stack=kwargs['stack'])
 
-        self.single = self.add_resource(
+        self.single = self.stack.add_resource(
                            ec2.Instance(
                                kwargs['title'],
                                KeyName=kwargs['keypair'],
@@ -53,7 +53,7 @@ class SingleInstance(SecurityEnabledObject):
         else:
             net_interface = "PublicIp"
 
-        self.add_output(
+        self.stack.add_output(
              Output(
                  self.single.title,
                  Description='{0} address of {1} single instance'.format(net_interface, self.single.title),
