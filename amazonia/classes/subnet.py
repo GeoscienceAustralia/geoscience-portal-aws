@@ -1,7 +1,5 @@
 #!/usr/bin/python3
 
-from amazonia.amazonia.amazonia_resources import *
-
 
 class Subnet(object):
     def __init__(self, **kwargs):

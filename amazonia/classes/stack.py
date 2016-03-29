@@ -1,8 +1,8 @@
 #!/usr/bin/python3
 
 from troposphere import Template
-from amazonia.amazonia.classes.subnet import Subnet
-from amazonia.amazonia.classes.single_instance import SingleInstance
+from amazonia.classes.subnet import Subnet
+from amazonia.classes.single_instance import SingleInstance
 
 
 class Stack(Template):
