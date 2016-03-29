@@ -1,3 +1,5 @@
+#!/usr/bin/python3
+
 from nose.tools import *
 from troposphere import Template
 from amazonia.classes.single_instance import SingleInstance
