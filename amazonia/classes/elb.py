@@ -1,4 +1,4 @@
-# pylint: disable=too-many-arguments, line-too-long
+#!/usr/bin/python3
 
 from amazonia.amazonia_resources import *
 

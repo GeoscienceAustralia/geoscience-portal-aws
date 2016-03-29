@@ -1,7 +1,7 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 
 from troposphere import Ref, Tags, Join, Output, GetAtt, ec2
-from amazonia.classes.securityenabledobject import SecurityEnabledObject
+from amazonia.amazonia.classes.securityenabledobject import SecurityEnabledObject
 
 
 class SingleInstance(SecurityEnabledObject):

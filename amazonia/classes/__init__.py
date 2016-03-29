@@ -1,6 +1,7 @@
-#pylint: disable=wildcard-import
+#!/usr/bin/python3
+# pylint: disable=wildcard-import
 
 """GA Amazonia Package that generates GA cloud formation classes"""
 
+from amazonia.amazonia.classes import *
 
-from amazonia.classes import *

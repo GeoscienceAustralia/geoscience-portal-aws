@@ -1,9 +1,8 @@
-# pylint: disable=too-many-arguments, line-too-long
+#!/usr/bin/python3
 
-from amazonia.amazonia_resources import *
 from troposphere import Template
-from amazonia.classes.subnet import Subnet
-from amazonia.classes.single_instance import SingleInstance
+from amazonia.amazonia.classes.subnet import Subnet
+from amazonia.amazonia.classes.single_instance import SingleInstance
 
 
 class Stack(Template):
