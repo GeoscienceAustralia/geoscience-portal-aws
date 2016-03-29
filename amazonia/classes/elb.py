@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-from amazonia.amazonia.classes.securityenabledobject import SecurityEnabledObject
+from amazonia.classes.securityenabledobject import SecurityEnabledObject
 
 
 class Elb(SecurityEnabledObject):
