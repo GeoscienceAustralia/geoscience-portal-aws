@@ -1,4 +1,4 @@
-from amazonia.classes.securityenabledobject import SecurityEnabledObject
+from amazonia.amazonia.classes.securityenabledobject import SecurityEnabledObject
 from nose.tools import *
 from troposphere import Template, ec2, Ref
 

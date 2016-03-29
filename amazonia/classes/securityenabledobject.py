@@ -1,3 +1,5 @@
+#!/usr/bin/python3
+
 from troposphere import ec2, Ref, Tags, GetAtt, Join
 
 

@@ -3,7 +3,6 @@
 from amazonia.amazonia.amazonia_resources import *
 
 
-
 class Subnet(object):
     def __init__(self, **kwargs):
         """ Public Class to create a Triple AZ environment in a vpc """
