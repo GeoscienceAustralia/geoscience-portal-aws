@@ -1,6 +1,8 @@
+#!/usr/bin/python3
+
 from amazonia.classes.securityenabledobject import SecurityEnabledObject
 from nose.tools import *
-from troposphere import Template, ec2, Ref
+from troposphere import Template, ec2
 
 
 def test_security_enabled_object():

@@ -1,3 +1,5 @@
+#!/usr/bin/python3
+
 from nose.tools import *
 from troposphere import Template
 from amazonia.classes.single_instance import SingleInstance
@@ -13,13 +15,13 @@ def test_nat_single_instance():
 
     for title in nat_titles:
         si = create_si(title)
-        print 'title={0}'.format(si.title)
+        print('title={0}'.format(si.title))
         si_sdc = si.single.SourceDestCheck
-        print 'SourceDestCheck='.format(si_sdc)
+        print('SourceDestCheck='.format(si_sdc))
         assert_equals(si_sdc, 'false')
 
         sio = si.stack.outputs[title].Description
-        print sio
+        print(sio)
         assert_in('PrivateIp', sio)
 
 
@@ -33,13 +35,13 @@ def test_not_nat_single_instance():
 
     for title in jump_titles:
         si = create_si(title)
-        print 'title={0}'.format(si.title)
+        print('title={0}'.format(si.title))
         si_sdc = si.single.SourceDestCheck
-        print 'SourceDestCheck='.format(si_sdc)
+        print('SourceDestCheck='.format(si_sdc))
         assert_equals(si_sdc, 'true')
 
         sio = si.stack.outputs[title].Description
-        print sio
+        print(sio)
         assert_in('PublicIp', sio)
 
 

@@ -1,7 +1,4 @@
-# pylint: disable=too-many-arguments, line-too-long
-
-from amazonia.amazonia_resources import *
-from troposphere import Template
+#!/usr/bin/python3
 
 
 class Subnet(object):

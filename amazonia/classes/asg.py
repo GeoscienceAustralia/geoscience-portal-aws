@@ -1,6 +1,5 @@
-# pylint: disable=too-many-arguments, line-too-long
-
-from amazonia.amazonia_resources import *
+#!/usr/bin/python3
+#  pylint: disable=too-many-arguments, line-too-long
 
 
 class Asg(SecurityEnabledObject):

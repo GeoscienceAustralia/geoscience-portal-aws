@@ -1,6 +1,6 @@
-# pylint: disable=too-many-arguments, line-too-long
+#!/usr/bin/python3
 
-from amazonia.amazonia_resources import *
+from amazonia.classes.securityenabledobject import SecurityEnabledObject
 
 
 class Elb(SecurityEnabledObject):
