@@ -3,5 +3,4 @@
 
 """GA Amazonia Package that generates GA cloud formation classes"""
 
-from amazonia.amazonia.classes import *
-
+from amazonia.classes import *
