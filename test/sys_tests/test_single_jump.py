@@ -1,7 +1,6 @@
-#!/usr/bin/env python
 
 from amazonia.classes.single_instance import SingleInstance
-from troposphere import ec2, Ref
+from troposphere import ec2, Ref, Template
 
 
 def main():
@@ -12,17 +11,18 @@ def main():
                         AvailabilityZone='ap-southeast-2a',
                         VpcId=Ref(vpc),
                         CidrBlock='10.0.1.0/24')
-
-    template = SingleInstance(title='jump',
+    template = Template()
+    si = SingleInstance(title='jump',
                               keypair='pipeline',
                               si_image_id='ami-893f53b3',
                               si_instance_type='t2.nano',
                               vpc=vpc,
-                              subnet=subnet)
+                              subnet=subnet,
+                              stack=template)
 
-    template.add_resource(vpc)
-    template.add_resource(subnet)
-    print(template.to_json(indent=2, separators=(',', ': ')))
+    si.stack.add_resource(vpc)
+    si.stack.add_resource(subnet)
+    print(si.stack.to_json(indent=2, separators=(',', ': ')))
 
 if __name__ == "__main__":
     main()
