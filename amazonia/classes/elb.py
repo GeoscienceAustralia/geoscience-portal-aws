@@ -12,11 +12,13 @@ class Elb(SecurityEnabledObject):
         Public Class to create a ELB in the unit stack environment
         ELB - AWS Cloud Formation: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-elb.html
         ELB - Troposphere: https://github.com/cloudtools/troposphere/blob/master/troposphere/elasticloadbalancing.py
-        :param port: Port to allow traffic in and out of the load balancer.
-         e.g. Listener Port and Health Check Target port
+        :param protocol: Single protocol to allow traffic e.g.  HTTP, HTTPS, TCP or SSL
+        :param port: Single port to allow traffic in and out of the load balancer.
+         e.g. Listener Port and Health Check Target port - 80, 8080, 443
+        :param path2ping:Path for the Healthcheck to ping e.g 'index.html' or 'test/test_page.htm'
         :param subnets: List of subnets either [pub_sub_list] if public unit or [pri_sub_list] if private unit
         :param title: Name of the Cloud formation elb object
-        :param protocol: Protocol to allow traffic e.g.  HTTP, HTTPS, TCP or SSL
+
 
         """
         super(Elb, self).__init__(vpc=kwargs['vpc'], title=kwargs['title'], stack=kwargs['stack'])
@@ -24,16 +26,19 @@ class Elb(SecurityEnabledObject):
         self.stack.add_resource(
             elb.LoadBalancer(kwargs['title'],
                              CrossZone=True,
-                             HealthCheck=elb.HealthCheck(Target='HTTP:{0}/index.html'.format(kwargs['port']),
-                                                         HealthyThreshold="2",
-                                                         UnhealthyThreshold="5",
-                                                         Interval="15",
-                                                         Timeout="5"),
+                             HealthCheck=elb.HealthCheck(Target='{0}:{1}/{2}'.format(kwargs['protocol'].upper(),
+                                                                                     kwargs['port'],
+                                                                                     kwargs['path2ping']),
+                                                         HealthyThreshold='2',
+                                                         UnhealthyThreshold='5',
+                                                         Interval='10',
+                                                         Timeout='5'),
                              Listeners=[elb.Listener(LoadBalancerPort=kwargs['port'],
-                                                     Protocol=kwargs['protocol'],
+                                                     Protocol=kwargs['protocol'].upper(),
                                                      InstancePort=kwargs['port'],
-                                                     InstanceProtocol=kwargs['protocol'])],
-                             Scheme="internet-facing",
+                                                     InstanceProtocol=kwargs['protocol'].upper())],
+                             Scheme='internet-facing',
+                             # TODO If kwarg['subnets']==pri_sub_list e.g Private unit, Scheme must be set to 'internal'
                              SecurityGroups=self.security_group,
                              Subnets=kwargs['subnets'],
                              Tags=Tags(Name=kwargs['title'])))
