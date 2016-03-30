@@ -32,7 +32,8 @@ def test_subnets():
     e.g. [subnet1, subnet2] creates [Ref(subnet1), Ref(subnet2)]
     """
     helper_elb = create_elb(protocol='HTTP')
-    assert_equals(helper_elb.elb.Subnets, [Ref('subnet-123456'), Ref('subnet-123496'), Ref('subnet-123454')])
+    for subnet in helper_elb.elb.Subnets:
+        assert_equals(type(subnet), Ref)
 
 
 def test_security_group():
@@ -40,9 +41,10 @@ def test_security_group():
     Test to assert type of SecurityGroup equals Ref
     """
     helper_elb = create_elb(protocol='HTTP')
-    print('type = {0}').format(type(helper_elb.elb.SecurityGroups))
-    print('typeref = {0}').format(Ref)
-    assert_is(type(helper_elb.elb.SecurityGroups), Ref)
+    print('type = {0}'.format(type(helper_elb.elb.SecurityGroups)))
+    print('typeref = {0}'.format(Ref))
+    for sg in helper_elb.elb.SecurityGroups:
+        assert_is(type(sg), Ref)
 
 
 def create_elb(**kwargs):
