@@ -23,26 +23,26 @@ class Elb(SecurityEnabledObject):
         """
         super(Elb, self).__init__(vpc=kwargs['vpc'], title=kwargs['title'], stack=kwargs['stack'])
 
-        self.stack.add_resource(
-            elb.LoadBalancer(kwargs['title'],
-                             CrossZone=True,
-                             HealthCheck=elb.HealthCheck(Target='{0}:{1}/{2}'.format(kwargs['protocol'].upper(),
-                                                                                     kwargs['port'],
-                                                                                     kwargs['path2ping']),
-                                                         HealthyThreshold='2',
-                                                         UnhealthyThreshold='5',
-                                                         Interval='10',
-                                                         Timeout='5'),
-                             Listeners=[elb.Listener(LoadBalancerPort=kwargs['port'],
-                                                     Protocol=kwargs['protocol'].upper(),
-                                                     InstancePort=kwargs['port'],
-                                                     InstanceProtocol=kwargs['protocol'].upper())],
-                             Scheme='internet-facing',
-                             # TODO If kwarg['subnets']==pri_sub_list e.g Private unit, Scheme must be set to 'internal'
-                             SecurityGroups=[Ref(self.security_group)],
-                             Subnets=[Ref(x) for x in kwargs['subnets']],
-                             Tags=Tags(Name=kwargs['title'])))
+        self.elb = self.stack.add_resource(
+                    elb.LoadBalancer(kwargs['title'],
+                                     CrossZone=True,
+                                     HealthCheck=elb.HealthCheck(Target='{0}:{1}/{2}'.format(kwargs['protocol'].upper(),
+                                                                                             kwargs['port'],
+                                                                                             kwargs['path2ping']),
+                                                                 HealthyThreshold='2',
+                                                                 UnhealthyThreshold='5',
+                                                                 Interval='10',
+                                                                 Timeout='5'),
+                                     Listeners=[elb.Listener(LoadBalancerPort=kwargs['port'],
+                                                             Protocol=kwargs['protocol'].upper(),
+                                                             InstancePort=kwargs['port'],
+                                                             InstanceProtocol=kwargs['protocol'].upper())],
+                                     Scheme='internet-facing',
+                                     SecurityGroups=[Ref(self.security_group)],
+                                     Subnets=[Ref(x) for x in kwargs['subnets']],
+                                     Tags=Tags(Name=kwargs['title'])))
 
+        # TODO If kwarg['subnets']==pri_sub_list e.g Private unit, Scheme must be set to 'internal'
         # TODO Elb Unit Tests:
         # TODO Unit Tests:jump_sg = jumphost1.NetworkInterfaces.GroupSet,
         # TODO Sys Tests: Connect from jumphost to subpub1 instance, subpub2 instance, can't connect on port 80,8080,443
