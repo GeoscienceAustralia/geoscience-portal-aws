@@ -15,7 +15,7 @@ class Elb(SecurityEnabledObject):
         :param protocol: Single protocol to allow traffic e.g.  HTTP, HTTPS, TCP or SSL
         :param port: Single port to allow traffic in and out of the load balancer.
          e.g. Listener Port and Health Check Target port - 80, 8080, 443
-        :param path2ping:Path for the Healthcheck to ping e.g 'index.html' or 'test/test_page.htm'
+        :param path2ping: Path for the Healthcheck to ping e.g 'index.html' or 'test/test_page.htm'
         :param subnets: List of subnets either [pub_sub_list] if public unit or [pri_sub_list] if private unit
         :param title: Name of the Cloud formation elb object
 
@@ -41,7 +41,7 @@ class Elb(SecurityEnabledObject):
                                      SecurityGroups=[Ref(self.security_group)],
                                      Subnets=[Ref(x) for x in kwargs['subnets']],
                                      Tags=Tags(Name=kwargs['title'])))
-
+        # TODO Add Output for ELB Address
         # TODO If kwarg['subnets']==pri_sub_list e.g Private unit, Scheme must be set to 'internal'
         # TODO Elb Unit Tests:
         # TODO Unit Tests:jump_sg = jumphost1.NetworkInterfaces.GroupSet,
