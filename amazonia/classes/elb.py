@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 
 from amazonia.classes.securityenabledobject import SecurityEnabledObject
-from troposphere import Tags
+from troposphere import Tags, Ref
 import troposphere.elasticloadbalancing as elb
 
 
@@ -39,8 +39,8 @@ class Elb(SecurityEnabledObject):
                                                      InstanceProtocol=kwargs['protocol'].upper())],
                              Scheme='internet-facing',
                              # TODO If kwarg['subnets']==pri_sub_list e.g Private unit, Scheme must be set to 'internal'
-                             SecurityGroups=self.security_group,
-                             Subnets=kwargs['subnets'],
+                             SecurityGroups=[Ref(self.security_group)],
+                             Subnets=[Ref(x) for x in kwargs['subnets']],
                              Tags=Tags(Name=kwargs['title'])))
 
         # TODO Elb Unit Tests:
