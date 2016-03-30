@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 
 from amazonia.classes.securityenabledobject import SecurityEnabledObject
-from troposphere import Tags, Ref
+from troposphere import Tags, Ref, Output, Join, GetAtt
 import troposphere.elasticloadbalancing as elb
 
 
@@ -41,10 +41,14 @@ class Elb(SecurityEnabledObject):
                                      SecurityGroups=[Ref(self.security_group)],
                                      Subnets=[Ref(x) for x in kwargs['subnets']],
                                      Tags=Tags(Name=kwargs['title'])))
-        # TODO Add Output for ELB Address
+
+        self.stack.add_output(Output(
+            self.elb.title,
+            Description='URL of the {0} website'.format(self.elb.title),
+            Value=Join('', ['http://', GetAtt(self.elb, 'DNSName')])
+        ))
+        
         # TODO If kwarg['subnets']==pri_sub_list e.g Private unit, Scheme must be set to 'internal'
-        # TODO Elb Unit Tests:
-        # TODO Unit Tests:jump_sg = jumphost1.NetworkInterfaces.GroupSet,
         # TODO Sys Tests: Connect from jumphost to subpub1 instance, subpub2 instance, can't connect on port 80,8080,443
         # TODO Sys Tests: Try connecting to host in another vpc
 
