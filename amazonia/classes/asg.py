@@ -16,7 +16,6 @@ class Asg(SecurityEnabledObject):
         :param minsize: minimum size of autoscaling group
         :param maxsize: maximum size of autoscaling group
         :param subnets: subnets to create autoscaled instances in
-        :param availability_zones: availability zones to create autoscaled instances in
         :param load_balancer: load balancer to associate autoscaling group with
         :param keypair: Instance Keypair for ssh e.g. 'pipeline' or 'mykey'
         :param image_id: AWS ami id to create instances from, e.g. 'ami-12345'
@@ -25,13 +24,15 @@ class Asg(SecurityEnabledObject):
         :param service_role_arn: AWS IAM Role with Code Deploy permissions
         """
         super(Asg, self).__init__(vpc=kwargs['vpc'], title=kwargs['title'], stack=kwargs['stack'])
-        self.asg, self.lc, self.cd_app, self.cd_deploygroup = None
+        self.asg = None
+        self.lc = None
+        self.cd_app = None
+        self.cd_deploygroup = None
         self.add_asg(
             title=kwargs['title'],
             minsize=kwargs['minsize'],
             maxsize=kwargs['maxsize'],
             subnets=kwargs['subnets'],
-            availability_zones=kwargs['availability_zones'],
             load_balancer=kwargs['load_balancer'],
             keypair=kwargs['keypair'],
             image_id=kwargs['image_id'],
@@ -43,14 +44,11 @@ class Asg(SecurityEnabledObject):
             service_role_arn=kwargs['service_role_arn'],
         )
 
-        # TODO Sys Tests:
-
     def add_asg(self,
                 title,
                 minsize,
                 maxsize,
                 subnets,
-                availability_zones,
                 load_balancer,
                 keypair,
                 image_id,
@@ -62,7 +60,6 @@ class Asg(SecurityEnabledObject):
         :param minsize: minimum size of autoscaling group
         :param maxsize: maximum size of autoscaling group
         :param subnets: subnets to create autoscaled instances in
-        :param availability_zones: availability zones to create autoscaled instances in
         :param load_balancer: load balancer to associate autoscaling group with
         :param keypair: Instance Keypair for ssh e.g. 'pipeline' or 'mykey'
         :param image_id: AWS ami id to create instances from, e.g. 'ami-12345'
@@ -70,13 +67,14 @@ class Asg(SecurityEnabledObject):
         :param userdata: Instance boot script
         """
         asg_title = title + "ASG"
+        availability_zones = [subnet.AvailabilityZone for subnet in subnets]
         self.asg = self.stack.add_resource(AutoScalingGroup(
             asg_title,
             MinSize=minsize,
             MaxSize=maxsize,
             VPCZoneIdentifier=subnets,
             AvailabilityZones=availability_zones,
-            LoadBalancerNames=load_balancer,
+            LoadBalancerNames=[load_balancer],
         )
         )
         self.asg.LaunchConfigurationName = self.add_launch_config(
@@ -108,7 +106,7 @@ class Asg(SecurityEnabledObject):
             InstanceMonitoring=False,
             InstanceType=instance_type,
             KeyName=keypair,
-            SecurityGroups=self.security_group,
+            SecurityGroups=[self.security_group.name],
         ))
         self.lc.UserData = Base64(userdata)
         return launch_config_title
@@ -126,8 +124,8 @@ class Asg(SecurityEnabledObject):
                                                                      ApplicationName=title))
         self.cd_deploygroup = self.stack.add_resource(
             codedeploy.DeploymentGroup(cd_deploygroup_title,
-                                       ApplicationName=self.cd_app,
-                                       AutoScalingGroups=self.asg,
+                                       ApplicationName=self.cd_app.title,
+                                       AutoScalingGroups=[self.asg.title],
                                        DeploymentConfigName="CodeDeployDefault.OneAtATime",
                                        DeploymentGroupName=cd_deploygroup_title,
                                        ServiceRoleArn=service_role_arn))
