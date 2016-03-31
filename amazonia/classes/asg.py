@@ -74,7 +74,7 @@ class Asg(SecurityEnabledObject):
             MaxSize=maxsize,
             VPCZoneIdentifier=subnets,
             AvailabilityZones=availability_zones,
-            LoadBalancerNames=[load_balancer],
+            LoadBalancerNames=[load_balancer.title],
         )
         )
         self.asg.LaunchConfigurationName = self.add_launch_config(
