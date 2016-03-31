@@ -7,7 +7,7 @@ from amazonia.classes.asg import Asg
 userdata = None
 vpc = None
 subnet = None
-templae = None
+template = None
 load_balancer = None
 
 
