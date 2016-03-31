@@ -37,7 +37,15 @@ def test_target():
     assert_equals('HTTPS:443/test/index.html', helper_elb.elb.HealthCheck.Target)
 
 
-# def test_ports():
+def test_ports():
+    ports = ['8080', '80', '443', '5678', '-1', '99', '65535']
+
+    for port in ports:
+        helper_elb = create_elb(port=port)
+        assert_in(port, helper_elb.elb.HealthCheck.Target)
+        for listener in helper_elb.elb.Listeners:
+            assert_equal(port, listener.LoadBalancerPort)
+            assert_equal(port, listener.InstancePort)
 
 
 def test_subnets():
