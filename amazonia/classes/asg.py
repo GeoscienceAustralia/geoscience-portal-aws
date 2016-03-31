@@ -68,7 +68,7 @@ class Asg(SecurityEnabledObject):
         :param instance_type: Instance type to create instances of e.g. 't2.micro' or 't2.nano'
         :param userdata: Instance boot script
         """
-        asg_title = title + "ASG"
+        asg_title = title + 'ASG'
         availability_zones = [subnet.AvailabilityZone for subnet in subnets]
         self.asg = self.stack.add_resource(AutoScalingGroup(
             asg_title,
@@ -101,7 +101,7 @@ class Asg(SecurityEnabledObject):
         :param userdata: Instance boot script
         :return string representing Launch Configuration name
         """
-        launch_config_title = title + "LC"
+        launch_config_title = title + 'LC'
 
         self.lc = self.stack.add_resource(LaunchConfiguration(
             launch_config_title,
@@ -123,8 +123,8 @@ class Asg(SecurityEnabledObject):
         :param title: Title of the code deploy application
         :param service_role_arn: AWS IAM Role with Code Deploy permissions
         """
-        cd_app_title = title + "CDA"
-        cd_deploygroup_title = title + "CDG"
+        cd_app_title = title + 'CDA'
+        cd_deploygroup_title = title + 'CDG'
 
         self.cd_app = self.stack.add_resource(codedeploy.Application(cd_app_title,
                                                                      ApplicationName=title))
@@ -132,7 +132,7 @@ class Asg(SecurityEnabledObject):
             codedeploy.DeploymentGroup(cd_deploygroup_title,
                                        ApplicationName=self.cd_app.title,
                                        AutoScalingGroups=[self.asg.title],
-                                       DeploymentConfigName="CodeDeployDefault.OneAtATime",
+                                       DeploymentConfigName='CodeDeployDefault.OneAtATime',
                                        DeploymentGroupName=cd_deploygroup_title,
                                        ServiceRoleArn=service_role_arn))
         self.cd_deploygroup.DependsOn = [self.cd_app.title, self.asg.title]

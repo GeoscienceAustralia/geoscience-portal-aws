@@ -28,15 +28,15 @@ runcmd:
     load_balancer = elb.LoadBalancer('MyELB',
                                      CrossZone=True,
                                      HealthCheck=elb.HealthCheck(Target='HTTP:8080/error/noindex.html',
-                                                                 HealthyThreshold="2",
-                                                                 UnhealthyThreshold="5",
-                                                                 Interval="15",
-                                                                 Timeout="5"),
-                                     Listeners=[elb.Listener(LoadBalancerPort="80",
-                                                             Protocol="HTTP",
-                                                             InstancePort="80",
-                                                             InstanceProtocol="HTTP")],
-                                     Scheme="internet-facing",
+                                                                 HealthyThreshold='2',
+                                                                 UnhealthyThreshold='5',
+                                                                 Interval='15',
+                                                                 Timeout='5'),
+                                     Listeners=[elb.Listener(LoadBalancerPort='80',
+                                                             Protocol='HTTP',
+                                                             InstancePort='80',
+                                                             InstanceProtocol='HTTP')],
+                                     Scheme='internet-facing',
                                      Subnets=[subnet])
 
     template = Template()
@@ -51,11 +51,11 @@ runcmd:
               maxsize=1,
               load_balancer=load_balancer,
               userdata=userdata,
-              service_role_arn="instance-iam-role-InstanceProfile-OGL42SZSIQRK",
+              service_role_arn='instance-iam-role-InstanceProfile-OGL42SZSIQRK',
               stack=template)
 
     print(asg.stack.to_json(indent=2, separators=(',', ': ')))
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()
