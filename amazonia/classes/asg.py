@@ -56,6 +56,8 @@ class Asg(SecurityEnabledObject):
                 userdata):
         """
         Create autoscaling group object
+        AWS Cloud Formation: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-security-group.html
+        Troposphere link: https://github.com/cloudtools/troposphere/blob/master/troposphere/autoscaling.py
         :param title: Title of the autoscaling application
         :param minsize: minimum size of autoscaling group
         :param maxsize: maximum size of autoscaling group
@@ -90,6 +92,8 @@ class Asg(SecurityEnabledObject):
     def add_launch_config(self, title, keypair, image_id, instance_type, userdata):
         """
         Method to add a launch configuration resource to a cloud formation document
+        AWS Cloud Formation: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-security-group.html
+        Troposphere link: https://github.com/cloudtools/troposphere/blob/master/troposphere/autoscaling.py
         :param title: Title of the autoscaling application
         :param keypair: Instance Keypair for ssh e.g. 'pipeline' or 'mykey'
         :param image_id: AWS ami id to create instances from, e.g. 'ami-12345'
@@ -114,6 +118,8 @@ class Asg(SecurityEnabledObject):
     def add_cd_deploygroup(self, title, service_role_arn):
         """
         Create CodeDeploy application and deploy group  and associate with auto scaling group
+        AWS Cloud Formation: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-security-group.html
+        Troposphere link: https://github.com/cloudtools/troposphere/blob/master/troposphere/codedeploy.py
         :param title: Title of the code deploy application
         :param service_role_arn: AWS IAM Role with Code Deploy permissions
         """
