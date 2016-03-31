@@ -21,10 +21,11 @@ class Elb(SecurityEnabledObject):
 
 
         """
-        super(Elb, self).__init__(vpc=kwargs['vpc'], title=kwargs['title'], stack=kwargs['stack'])
+        self.title = kwargs['title'] + 'Elb'
+        super(Elb, self).__init__(vpc=kwargs['vpc'], title=self.title, stack=kwargs['stack'])
 
         self.elb = self.stack.add_resource(
-                    elb.LoadBalancer(kwargs['title'],
+                    elb.LoadBalancer(self.title,
                                      CrossZone=True,
                                      HealthCheck=elb.HealthCheck(Target='{0}:{1}/{2}'.format(kwargs['protocol'].upper(),
                                                                                              kwargs['port'],
@@ -40,7 +41,7 @@ class Elb(SecurityEnabledObject):
                                      Scheme='internet-facing',
                                      SecurityGroups=[Ref(self.security_group)],
                                      Subnets=[Ref(x) for x in kwargs['subnets']],
-                                     Tags=Tags(Name=kwargs['title'])))
+                                     Tags=Tags(Name=self.title)))
 
         self.stack.add_output(Output(
             self.elb.title,
