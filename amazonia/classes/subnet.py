@@ -14,20 +14,20 @@ class Subnet(object):
         stack = kwargs['stack']
         sub_num = self.num(kwargs['cidr'])
         subnet_title = 'subnet{0}'.format(sub_num + 1)
-        subnet = stack.add_resource(ec2.Subnet(subnet_title,
-                                               AvailabilityZone=self.availability_zone(sub_num),
-                                               VpcId=kwargs['vpc'],
-                                               CidrBlock=kwargs['cidr'],
-                                               Tags=Tags(Name=Join("",
-                                                                   [Ref('AWS::StackName'),
-                                                                    '-', subnet_title]))))
+        self.subnet = stack.add_resource(ec2.Subnet(subnet_title,
+                                                    AvailabilityZone=self.availability_zone(sub_num),
+                                                    VpcId=kwargs['vpc'],
+                                                    CidrBlock=kwargs['cidr'],
+                                                    Tags=Tags(Name=Join("",
+                                                                        [Ref('AWS::StackName'),
+                                                                         '-', subnet_title]))))
 
         # Route Table
         if not kwargs['route_table']:
-            route_table = self.route_table(vpc=vpc)
-            self.associate_route_table(route_table)
+            self.route_table = self.route_table(vpc=vpc)
+            self.associate_route_table(stack, self.subnet, self.route_table)
         else:
-            self.associate_route_table(kwargs['route_table'])
+            self.associate_route_table(stack, self.subnet, kwargs['route_table'])
 
     @staticmethod
     def num(cidr):
@@ -46,11 +46,11 @@ class Subnet(object):
         return route_table
 
     @staticmethod
-    def associate_route_table(self, route_table):
+    def associate_route_table(stack, subnet, route_table):
 
-        route_table_ass = self.stack.add_resource(ec2.SubnetRouteTableAssociation(route_table.title + 'Association',
-                                                                                  RouteTableId=Ref(route_table),
-                                                                                  SubnetId=Ref(self.subnet)))
+        route_table_ass = stack.add_resource(ec2.SubnetRouteTableAssociation(route_table.title + 'Association',
+                                                                             RouteTableId=Ref(route_table),
+                                                                             SubnetId=Ref(subnet)))
         return route_table_ass
 
     @staticmethod
