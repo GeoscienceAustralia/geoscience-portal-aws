@@ -1,5 +1,6 @@
 #!/usr/bin/python3
-from troposphere import ec2
+from troposphere import ec2, Tags
+
 
 class Subnet(object):
     def __init__(self, **kwargs):
@@ -9,34 +10,37 @@ class Subnet(object):
         switch_availability_zone(subnum)
 
         subnet = template.add_resource(ec2.Subnet(subnet_title + subnum,
-                                                  AvailabilityZone= TODO AVAILABILITY_ZONES[current_az],
+                                                  AvailabilityZone=AVAILABILITY_ZONES[current_az],
                                                   VpcId=kwargs['vpc'],
                                                   CidrBlock=kwargs['cidr'],
-                                                  Tags=Tags(Name=name_tag(subnet_title),
-                                                            Environment=ENVIRONMENT_NAME)))
+                                                  Tags=Tags(Name=name_tag(subnet_title))))
 
-        add_route_table_subnet_association(self, self.public_route_table, subnet)
+        # Route Table
+        if not kwargs['route_table']:
+            route_table = route_table()
 
-        return subnet
+        # Route Table Association
+            route_table_asosciation = associate_route_table()
+
     def num(self, cidr):
         cidr_split = self.cidr.split('.')
 
         return cidr_split[2]
 
-        # TODO Routing Tables Class
+
         # TODO Routing Tables Unit Tests:
+
     def route_table(self):
-        self.public_route_table = add_route_table(self, self.vpc, route_type="Public")
+        route_table = template.add_resource(ec2.RouteTable(rt_title,
+                                                           VpcId=kwargs['vpc'],
+                                                           Tags=Tags(Name=rt_title)))
+        return route_table
 
     def associate_route_table(self):
+        template.add_resource(ec2.SubnetRouteTableAssociation(rt_title + association,
+                                                              RouteTableId=Ref(route_table),
+                                                              SubnetId=Ref(subnet)))
 
-        add_route_table_subnet_association(self, self.public_route_table, sub_pub2)
-        add_route_table_subnet_association(self, self.public_route_table, sub_pub3)
 
-
-        self.private_route_table = add_route_table(self, self.vpc, route_type="Private")
-        add_route_table_subnet_association(self, self.public_route_table, sub_pri1)
-        add_route_table_subnet_association(self, self.public_route_table, sub_pri2)
-        add_route_table_subnet_association(self, self.public_route_table, sub_pri3)
 
 
