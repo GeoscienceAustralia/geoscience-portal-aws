@@ -5,18 +5,11 @@ from troposphere import Template, Ref
 from amazonia.classes.elb import Elb
 
 
-def create_elb(**kwargs):
+def create_subnets(**kwargs):
     """
-    Helper function to create Elb Troposhpere object to interate through.
-    :return: Troposphere object for Elb,
+    Helper function to create subnet objects.
+    :return: Troposphere object for subnet,
     """
     vpc = 'vpc-12345'
-    pub_sub_list = ['subnet-123456', 'subnet-123496', 'subnet-123454']
-    elb = Elb(title='elb',
-              port=kwargs.get('port', '80'),
-              subnets=pub_sub_list,
-              protocol=kwargs.get('protocol', 'HTTP'),
-              vpc=vpc,
-              path2ping=kwargs.get('path2ping', 'index.html'),
-              stack=Template())
-    return elb
+    subnet = ''
+    return subnet
