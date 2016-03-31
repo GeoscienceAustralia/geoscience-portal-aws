@@ -95,7 +95,7 @@ class Asg(SecurityEnabledObject):
         launch_config_title = kwargs['title'] + 'LC'
 
         self.lc = self.stack.add_resource(LaunchConfiguration(
-            kwargs['launch_config_title'],
+            launch_config_title,
             AssociatePublicIpAddress=False,
             ImageId=kwargs['image_id'],
             InstanceMonitoring=False,
@@ -118,7 +118,7 @@ class Asg(SecurityEnabledObject):
         cd_deploygroup_title = kwargs['title'] + 'CDG'
 
         self.cd_app = self.stack.add_resource(codedeploy.Application(cd_app_title,
-                                                                     ApplicationName=title))
+                                                                     ApplicationName=kwargs['title']))
         self.cd_deploygroup = self.stack.add_resource(
             codedeploy.DeploymentGroup(cd_deploygroup_title,
                                        ApplicationName=self.cd_app.title,
