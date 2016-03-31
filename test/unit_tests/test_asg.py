@@ -73,8 +73,9 @@ def test_asg():
         assert_equals(asg.cd_app.title, title + "CDA")
         assert_equals(asg.cd_app.ApplicationName, title)
         assert_equals(asg.cd_deploygroup.title, title + "CDG")
-        assert_equals(asg.cd_deploygroup.AutoScalingGroups, [title+"ASG"])
+        assert_equals(asg.cd_deploygroup.AutoScalingGroups, [title + "ASG"])
         assert_equals(asg.cd_deploygroup.ServiceRoleArn, "instance-iam-role-InstanceProfile-OGL42SZSIQRK")
+
 
 def create_asg(title):
     """
