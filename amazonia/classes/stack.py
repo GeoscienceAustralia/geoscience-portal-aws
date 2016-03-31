@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-from troposphere import Template
+from troposphere import Template, ec2, Tags
 from amazonia.classes.subnet import Subnet
 from amazonia.classes.single_instance import SingleInstance
 
@@ -17,11 +17,29 @@ class Stack(Template):
         else:
             self.vpc = invpc
 
+        """
+        Create Internet Gateway
+        AWS CloudFormation - http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-internet-gateway.html
+        Troposphere - https://github.com/cloudtools/troposphere/blob/master/troposphere/ec2.py
+        """
         # TODO Internet Gateway Class
         # TODO Internet Gateway Unit Tests: validate that internet_gateway=internet_gateway_attachment.InternetGatewayId
         # TODO Internet Gateway Sys Tests: Connect from instance to internet site
         self.internet_gateway = add_internet_gateway(self)
         self.internet_gateway_attachment = add_internet_gateway_attachment(self, self.vpc, self.internet_gateway)
+
+        """
+        Create Route Tables
+        AWS CloudFormation - http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-route-table.html
+        Troposphere - https://github.com/cloudtools/troposphere/blob/master/troposphere/ec2.py
+        """
+        public_route_table = self.add_resource(ec2.RouteTable('PublicRouteTable',
+                                                              VpcId=self.vpc,
+                                                              Tags=Tags(Name='PublicRouteTable')))
+
+        private_route_table = self.add_resource(ec2.RouteTable('PrivateRouteTable',
+                                                               VpcId=self.vpc,
+                                                               Tags=Tags(Name='PrivateRouteTable')))
 
         """ Create Private Subnets
         """
