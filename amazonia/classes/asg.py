@@ -23,13 +23,14 @@ class Asg(SecurityEnabledObject):
         :param userdata: Instance boot script
         :param service_role_arn: AWS IAM Role with Code Deploy permissions
         """
-        super(Asg, self).__init__(vpc=kwargs['vpc'], title=kwargs['title'], stack=kwargs['stack'])
+        self.title = kwargs['title']+'Asg'
+        super(Asg, self).__init__(vpc=kwargs['vpc'], title=self.title, stack=kwargs['stack'])
         self.asg = None
         self.lc = None
         self.cd_app = None
         self.cd_deploygroup = None
         self.add_asg(
-            title=kwargs['title'],
+            title=self.title,
             minsize=kwargs['minsize'],
             maxsize=kwargs['maxsize'],
             subnets=kwargs['subnets'],
@@ -40,7 +41,7 @@ class Asg(SecurityEnabledObject):
             userdata=kwargs['userdata'],
         )
         self.add_cd_deploygroup(
-            title=kwargs['title'],
+            title=self.title,
             service_role_arn=kwargs['service_role_arn'],
         )
 
@@ -59,10 +60,9 @@ class Asg(SecurityEnabledObject):
         :param instance_type: Instance type to create instances of e.g. 't2.micro' or 't2.nano'
         :param userdata: Instance boot script
         """
-        asg_title = kwargs['title'] + 'ASG'
         availability_zones = [subnet.AvailabilityZone for subnet in kwargs['subnets']]
         self.asg = self.stack.add_resource(AutoScalingGroup(
-            asg_title,
+            kwargs['title'],
             MinSize=kwargs['minsize'],
             MaxSize=kwargs['maxsize'],
             VPCZoneIdentifier=kwargs['subnets'],
@@ -92,7 +92,7 @@ class Asg(SecurityEnabledObject):
         :param userdata: Instance boot script
         :return string representing Launch Configuration name
         """
-        launch_config_title = kwargs['title'] + 'LC'
+        launch_config_title = kwargs['title'] + 'Lc'
 
         self.lc = self.stack.add_resource(LaunchConfiguration(
             launch_config_title,
@@ -114,8 +114,8 @@ class Asg(SecurityEnabledObject):
         :param title: Title of the code deploy application
         :param service_role_arn: AWS IAM Role with Code Deploy permissions
         """
-        cd_app_title = kwargs['title'] + 'CDA'
-        cd_deploygroup_title = kwargs['title'] + 'CDG'
+        cd_app_title = kwargs['title'] + 'Cda'
+        cd_deploygroup_title = kwargs['title'] + 'Cdg'
 
         self.cd_app = self.stack.add_resource(codedeploy.Application(cd_app_title,
                                                                      ApplicationName=kwargs['title']))
