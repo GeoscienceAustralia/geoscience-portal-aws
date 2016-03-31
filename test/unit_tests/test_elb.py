@@ -8,9 +8,9 @@ import re
 
 def test_protocol_to_upper():
     """
-    Test to check upper and lower case protocol inputs match the beginning pf Target Address
+    Test to check upper and lower case 'protocol' inputs match the beginning of Target Address
     e.g. HTTP or http matches HTTP:80/index.html
-    Also Tests that protocol matches Listener Protocol and Instance Protocol
+    Also tests that protocol matches Listener Protocol and Instance Protocol
     """
     protocols = {'HTTP': ['HTTP', 'http'],
                  'HTTPS': ['HTTPS', 'https'],
@@ -31,6 +31,9 @@ def test_protocol_to_upper():
 
 
 def test_target():
+    """
+    Tests to make sure that inputs of 'protocol', 'port' and 'path2ping' correctly forms target healthcheck url
+    """
     helper_elb = create_elb(protocol='HTTPS',
                             port='443',
                             path2ping='test/index.html')
@@ -38,6 +41,10 @@ def test_target():
 
 
 def test_ports():
+    """
+    Tests to validate that passing in 'port' correctly sets the port in all the right places:
+    'HealthCheck.Target', 'Listner.LoadBalancerPort', 'Listners.InstancePort'
+    """
     ports = ['8080', '80', '443', '5678', '-1', '99', '65535']
 
     for port in ports:
