@@ -1,19 +1,19 @@
 #!/usr/bin/python3
-from troposphere import ec2, Tags
+from troposphere import ec2, Tags, Ref, Join
 
 
 class Subnet(object):
     def __init__(self, **kwargs):
-        """ Public Class to create a Triple AZ environment in a vpc """
-        super(object, self).__init__(**kwargs)
-        subnum = self.num(kwargs['cidr'])
-        switch_availability_zone(subnum)
+        """ Class to Create subnets and assiociate  """
+        super(object, self).__init__(stack=kwargs['stack'])
 
-        subnet = template.add_resource(ec2.Subnet(subnet_title + subnum,
-                                                  AvailabilityZone=AVAILABILITY_ZONES[current_az],
+        sub_num = self.num(kwargs['cidr'])
+        subnet_title = 'subnet{0}'.format(sub_num + 1)
+        subnet = template.add_resource(ec2.Subnet(subnet_title,
+                                                  AvailabilityZone=self.availability_zone(sub_num),
                                                   VpcId=kwargs['vpc'],
                                                   CidrBlock=kwargs['cidr'],
-                                                  Tags=Tags(Name=name_tag(subnet_title))))
+                                                  Tags=Tags(Name=Join("", [Ref('AWS::StackName'), '-', subnet_title]))))
 
         # Route Table
         if not kwargs['route_table']:
@@ -23,7 +23,7 @@ class Subnet(object):
             route_table_asosciation = associate_route_table()
 
     def num(self, cidr):
-        cidr_split = self.cidr.split('.')
+        cidr_split = cidr.split('.')
 
         return cidr_split[2]
 
@@ -41,6 +41,9 @@ class Subnet(object):
                                                               RouteTableId=Ref(route_table),
                                                               SubnetId=Ref(subnet)))
 
-
-
-
+    @staticmethod
+    def availability_zone(sub_num):
+        """ Function to return the current Availability Zone Id based on the subnet cidr
+        """
+        az_alpha = {'0': 'a', '1': 'b', '2': 'c'}
+        return 'ap-southeast-2{0}'.format(az_alpha[sub_num])
