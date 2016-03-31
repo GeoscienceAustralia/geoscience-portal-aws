@@ -55,7 +55,7 @@ class Stack(Template):
                                                 cidr=self.cidr_mgt(vpc_cidr, sub_num)))
             else:  # uses route table created in first loop
                 self.pri_sub_list.append(Subnet(stack=self,
-                                                route_table=self.pub_sub_list[0].route_table,
+                                                route_table=self.pri_sub_list[0].route_table,
                                                 nat=self.nat,
                                                 cidr=self.cidr_mgt(vpc_cidr, sub_num)))
 

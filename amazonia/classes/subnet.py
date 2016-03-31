@@ -1,22 +1,23 @@
 #!/usr/bin/python3
-
+from troposphere import ec2
 
 class Subnet(object):
     def __init__(self, **kwargs):
         """ Public Class to create a Triple AZ environment in a vpc """
         super(object, self).__init__(**kwargs)
-        num = num(cidr)
-        switch_availability_zone(0)
+        subnum = self.num(kwargs['cidr'])
+        switch_availability_zone(subnum)
 
-        subnet = template.add_resource(ec2.Subnet(subnet_title,
-                                                  AvailabilityZone=AVAILABILITY_ZONES[current_az],
-                                                  VpcId=isCfObject(vpc),
-                                                  CidrBlock=cidr,
+        subnet = template.add_resource(ec2.Subnet(subnet_title + subnum,
+                                                  AvailabilityZone= TODO AVAILABILITY_ZONES[current_az],
+                                                  VpcId=kwargs['vpc'],
+                                                  CidrBlock=kwargs['cidr'],
                                                   Tags=Tags(Name=name_tag(subnet_title),
                                                             Environment=ENVIRONMENT_NAME)))
 
         add_route_table_subnet_association(self, self.public_route_table, subnet)
 
+        return subnet
     def num(self, cidr):
         cidr_split = self.cidr.split('.')
 
