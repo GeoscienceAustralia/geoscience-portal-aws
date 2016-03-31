@@ -10,8 +10,8 @@ class Elb(SecurityEnabledObject):
     def __init__(self, **kwargs):
         """
         Public Class to create a ELB in the unit stack environment
-        ELB - AWS Cloud Formation: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-elb.html
-        ELB - Troposphere: https://github.com/cloudtools/troposphere/blob/master/troposphere/elasticloadbalancing.py
+        AWS Cloud Formation: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-elb.html
+        Troposphere: https://github.com/cloudtools/troposphere/blob/master/troposphere/elasticloadbalancing.py
         :param protocol: Single protocol to allow traffic e.g.  HTTP, HTTPS, TCP or SSL
         :param port: Single port to allow traffic in and out of the load balancer.
          e.g. Listener Port and Health Check Target port - 80, 8080, 443
