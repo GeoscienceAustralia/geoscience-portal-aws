@@ -4,11 +4,7 @@ from troposphere import ec2, Ref, Template
 
 from amazonia.classes.asg import Asg
 
-userdata = None
-vpc = None
-subnet = None
-template = None
-load_balancer = None
+userdata = vpc = subnet = template = load_balancer = None
 
 
 def setup_resources():
@@ -56,7 +52,7 @@ def test_asg():
     asg_titles = ['simple', 'hard', 'harder', 'easy']
 
     for title in asg_titles:
-        asg = create_asg(title)
+        asg = create_asg(title=title)
         assert_equals(asg.asg.title, title + 'ASG')
         assert_equals(asg.asg.MinSize, 1)
         assert_equals(asg.asg.MaxSize, 1)
@@ -77,14 +73,14 @@ def test_asg():
         assert_equals(asg.cd_deploygroup.ServiceRoleArn, 'instance-iam-role-InstanceProfile-OGL42SZSIQRK')
 
 
-def create_asg(title):
+def create_asg(**kwargs):
     """
     Helper function to create ASG Troposhpere object.
     :return: Troposphere object for single instance, security group and output
     """
     global userdata, vpc, subnet, template, load_balancer
 
-    asg = Asg(title=title,
+    asg = Asg(title=kwargs['title'],
               keypair='pipeline',
               image_id='ami-893f53b3',
               instance_type='t2.nano',
