@@ -7,6 +7,8 @@ from amazonia.classes.securityenabledobject import SecurityEnabledObject
 class SingleInstance(SecurityEnabledObject):
     def __init__(self, **kwargs):
         """
+        AWS CloudFormation - http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-instance.html
+        Troposphere - https://github.com/cloudtools/troposphere/blob/master/troposphere/ec2.py
         Create a singleton instance such as a nat or a jumphost
         :param title: Title of instance e.g 'nat1', 'nat2' or 'jump1'
         :param keypair: Instance Keypair for ssh e.g. 'pipeline' or 'mykey'
