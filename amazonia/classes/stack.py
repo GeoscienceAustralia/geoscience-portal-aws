@@ -10,8 +10,8 @@ class Stack(Template):
         """ Public Class to create a Triple AZ environment in a vpc """
         super(Stack, self).__init__()
 
-        vpc_cidr = VPC_CIDR   # TODO Change VPC_CIDR to CIDR generator
-
+        vpc_cidr = '10.0.0.0/24'   # TODO Change VPC_CIDR to CIDR generator
+        availability_zones = ['ap-southeast-2a', 'ap-southeast-2b', 'ap-southeast-2c']  # TODO read in AZ list from yaml
         if invpc == "":
             self.vpc = add_vpc(self, vpc_cidr)
         else:
@@ -22,10 +22,9 @@ class Stack(Template):
         AWS CloudFormation - http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-internet-gateway.html
         Troposphere - https://github.com/cloudtools/troposphere/blob/master/troposphere/ec2.py
         """
-        # TODO Internet Gateway Class
         # TODO Internet Gateway Unit Tests: validate that internet_gateway=internet_gateway_attachment.InternetGatewayId
         # TODO Internet Gateway Sys Tests: Connect from instance to internet site
-        self.internet_gateway = add_internet_gateway(self)
+        self.internet_gateway = add_internet_gateway(self)  # TODO rewrite internetgateway
         self.internet_gateway_attachment = add_internet_gateway_attachment(self, self.vpc, self.internet_gateway)
 
         """
@@ -43,7 +42,7 @@ class Stack(Template):
 
         """ Create Private Subnets
         """
-        az = len(AVAILABILITY_ZONES)
+        az = len(availability_zones)
         self.pub_sub_list = []
         for sub_num in range(0, az):
             if sub_num == 0:  # create route table in first loop
