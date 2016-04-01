@@ -8,6 +8,7 @@ class Subnet(object):
         Class to Create subnets route tables and assiociate the two
         AWS CloudFormation - http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-subnet.html
         Troposphere - https://github.com/cloudtools/troposphere/blob/master/troposphere/ec2.py
+        :param az - Availability Zone
         """
         super(Subnet, self).__init__()
         vpc = kwargs['vpc']
@@ -16,30 +17,42 @@ class Subnet(object):
         sub_num = self.num(kwargs['cidr'])
         subnet_title = 'subnet{0}'.format(sub_num + 1)
         self.subnet = stack.add_resource(ec2.Subnet(subnet_title,
-                                                    AvailabilityZone=self.availability_zone(sub_num),
+                                                    AvailabilityZone=kwargs['az'],
                                                     VpcId=kwargs['vpc'],
-                                                    CidrBlock=kwargs['cidr'],
+                                                    CidrBlock=self.sub_cidr(kwargs['vpc'].CidrBlock,
+                                                                            kwargs['route_table'].title),
                                                     Tags=Tags(Name=Join("",
                                                                         [Ref('AWS::StackName'),
                                                                          '-', subnet_title]))))
 
-        """ Create route table and associations
+        """ Create route table associations
         """
-        if not kwargs['route_table']:
-            self.route_table = self.add_route_table(vpc=vpc)
-            self.add_associate_route_table(stack, self.subnet, self.route_table)
-        else:
-            self.add_associate_route_table(stack, self.subnet, kwargs['route_table'])
+        self.add_associate_route_table(stack, self.subnet, kwargs['route_table'])
 
     @staticmethod
     def num(cidr):
-        """ Function to extract the 3rd octect from the SUbnet cidr to determine availability zone and name subnets
+        """ Function to extract the 3rd octet from the Subnet cidr to determine availability zone and name subnets
         """
         cidr_split = cidr.split('.')
 
         return cidr_split[2]
 
+    @staticmethod
+    def sub_cidr(vpc_cidr, route_table_title):
+        """
+        Function to help create Class C subnet CIDRs from Class A VPC CIDRs
+        :param vpc_cidr: VPC CIDR to be broken down into subnets e.g. 10.0.0.0/8
+        :param num: Number of the Subnet
+        :return:
+        """
+        # TODO test Subnet CIDR returns correctly from vpc CIDR fo rmultiple subnets
+        vpc_split = vpc_cidr.split('.')
+        vpc_split[2] = num
+        vpc_last = vpc_split[3].split('/')
+        vpc_last[1] = '24'
+        vpc_split[3] = '/'.join(vpc_last)
 
+        return '.'.join(vpc_split)
 
     @staticmethod
     def add_associate_route_table(stack, subnet, route_table):
@@ -54,9 +67,4 @@ class Subnet(object):
                                                                              SubnetId=Ref(subnet)))
         return route_table_ass
 
-    @staticmethod
-    def availability_zone(sub_num):
-        """ Function to return the current availability zone id based on the subnet cidr
-        """
-        az_alpha = {'0': 'a', '1': 'b', '2': 'c'}
-        return 'ap-southeast-2{0}'.format(az_alpha[sub_num])
+
