@@ -12,7 +12,7 @@ def main():
     stack.pub_sub_list = ['PublicSubnetA', 'PublicSubnetA']
 
     stack.vpc = stack.add_resource(ec2.VPC('MyVPC',
-                                           CidrBlock='10.0.0.0/16'))
+                                           CidrBlock='10.0.0.0/8'))
     stack.pub_route_table = stack.add_resource(ec2.RouteTable('MyUnitPublicRouteTable',
                                                               VpcId=Ref(stack.vpc)))
     stack.pri_route_table = stack.add_resource(ec2.RouteTable('MyUnitPrivateRouteTable',
