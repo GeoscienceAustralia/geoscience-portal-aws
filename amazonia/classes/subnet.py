@@ -5,59 +5,58 @@ from troposphere import ec2, Tags, Ref, Join
 class Subnet(object):
     def __init__(self, **kwargs):
         """
-        Class to Create subnets route tables and assiociate the two
+        Class to create subnets and associate a route table to it
         AWS CloudFormation - http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-subnet.html
         Troposphere - https://github.com/cloudtools/troposphere/blob/master/troposphere/ec2.py
-        :param az - Availability Zone
+        :param stack: Stack template object
+        :param route_table: Public or private route table object from stack
+        :param az: Availability zone where the subnet will be deployed
         """
         super(Subnet, self).__init__()
-        vpc = kwargs['vpc']
-        stack = kwargs['stack']
 
-        sub_num = self.num(kwargs['cidr'])
-        subnet_title = 'subnet{0}'.format(sub_num + 1)
+        stack = kwargs['stack']
+        pub_or_pri = 'Public' if kwargs['route_table'] == stack.pub_route_table else 'Private'
+
+        """ Create Subnet
+        """
+        subnet_title = '{0}Subnet{1}'.format(pub_or_pri, kwargs['az'][-1:].upper())
         self.subnet = stack.add_resource(ec2.Subnet(subnet_title,
                                                     AvailabilityZone=kwargs['az'],
-                                                    VpcId=kwargs['vpc'],
-                                                    CidrBlock=self.sub_cidr(kwargs['vpc'].CidrBlock,
-                                                                            kwargs['route_table'].title),
+                                                    VpcId=Ref(stack.vpc),
+                                                    CidrBlock=self.sub_cidr(stack, pub_or_pri),
                                                     Tags=Tags(Name=Join("",
                                                                         [Ref('AWS::StackName'),
                                                                          '-', subnet_title]))))
 
-        """ Create route table associations
+        """ Create Route Table Associations
         """
-        self.add_associate_route_table(stack, self.subnet, kwargs['route_table'])
+        self.rt_association = self.add_associate_route_table(stack, self.subnet, kwargs['route_table'])
 
     @staticmethod
-    def num(cidr):
-        """ Function to extract the 3rd octet from the Subnet cidr to determine availability zone and name subnets
-        """
-        cidr_split = cidr.split('.')
-
-        return cidr_split[2]
-
-    @staticmethod
-    def sub_cidr(vpc_cidr, route_table_title):
+    def sub_cidr(stack, pub_or_pri):
         """
         Function to help create Class C subnet CIDRs from Class A VPC CIDRs
-        :param vpc_cidr: VPC CIDR to be broken down into subnets e.g. 10.0.0.0/8
-        :param num: Number of the Subnet
-        :return:
+        :param stack: Stack template object
+        :param pub_or_pri: boolean for public or private subnet determined by route table
+        :return: Subnet CIDR based on Public or Private and previous subnets created e.g. 10.1.2.0/24 or 10.0.1.0/24
         """
-        # TODO test Subnet CIDR returns correctly from vpc CIDR fo rmultiple subnets
-        vpc_split = vpc_cidr.split('.')
-        vpc_split[2] = num
-        vpc_last = vpc_split[3].split('/')
-        vpc_last[1] = '24'
-        vpc_split[3] = '/'.join(vpc_last)
+        # 3rd Octect: Obtain length of pub or pri subnet list
+        octect_3 = len(stack.pub_sub_list) if pub_or_pri == 'Public' else len(stack.pri_sub_list)
+        # 2nd Octect: set to '0' for public subnets, set to '1' for private subnets
+        octect_2 = '0' if pub_or_pri == 'Public' else '1'
+        vpc_split = stack.vpc.CidrBlock.split('.')      # separate VPC CIDR for renaming
+        vpc_split[1] = octect_2                         # Set 2nd octect based on length of subnet list
+        vpc_split[2] = octect_3                         # set 3rd octect based on public or private
+        vpc_last = vpc_split[3].split('/')              # split last group to change subnet mask
+        vpc_last[1] = '24'                              # set subnet mask
+        vpc_split[3] = '/'.join(vpc_last)               # join last group for subnet mask
 
         return '.'.join(vpc_split)
 
     @staticmethod
     def add_associate_route_table(stack, subnet, route_table):
         """
-        Function to create a route toable association with a subnet and add it to the stack template
+        Function to create a route table association
         AWS CloudFormation - http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-subnet-route-table-assoc.html
         Troposphere - https://github.com/cloudtools/troposphere/blob/master/troposphere/ec2.py
         """
