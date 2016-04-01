@@ -1,14 +1,29 @@
 #!/usr/bin/python3
 
-from amazonia.classes.elb import Elb
-from troposphere import ec2, Ref, Tags, Template
+from amazonia.classes.subnet import Subnet
+from troposphere import ec2, Ref, Template
 
 
 def main():
+    stack = Template()
+    az_b = 'ap-southeast-2b'
+    az_c = 'ap-southeast-2c'
+    stack.pri_sub_list = ['PrivateSubnetA']
+    stack.pub_sub_list = ['PublicSubnetA', 'PublicSubnetA']
 
-    vpc = ec2.VPC('MyVPC',
-                  CidrBlock='10.0.0.0/16')
+    stack.vpc = stack.add_resource(ec2.VPC('MyVPC',
+                                           CidrBlock='10.0.0.0/16'))
+    stack.pub_route_table = stack.add_resource(ec2.RouteTable('MyUnitPublicRouteTable',
+                                                              VpcId=Ref(stack.vpc)))
+    stack.pri_route_table = stack.add_resource(ec2.RouteTable('MyUnitPrivateRouteTable',
+                                                              VpcId=Ref(stack.vpc)))
+    pubsubnet3 = Subnet(stack=stack,
+                        route_table=stack.pub_route_table,
+                        az=az_c)
+    prisubnet2 = Subnet(stack=stack,
+                        route_table=stack.pri_route_table,
+                        az=az_b)
 
-
+    print(stack.to_json(indent=2, separators=(',', ': ')))
 if __name__ == "__main__":
     main()

@@ -19,14 +19,17 @@ class Subnet(object):
 
         """ Create Subnet
         """
-        subnet_title = '{0}Subnet{1}'.format(pub_or_pri, kwargs['az'][-1:].upper())
+        subnet_title = '{0}Subnet{1}'.format(pub_or_pri,
+                                             kwargs['az'][-1:].upper())
         self.subnet = stack.add_resource(ec2.Subnet(subnet_title,
                                                     AvailabilityZone=kwargs['az'],
                                                     VpcId=Ref(stack.vpc),
-                                                    CidrBlock=self.sub_cidr(stack, pub_or_pri),
+                                                    CidrBlock=self.sub_cidr(stack,
+                                                                            pub_or_pri),
                                                     Tags=Tags(Name=Join("",
                                                                         [Ref('AWS::StackName'),
-                                                                         '-', subnet_title]))))
+                                                                         '-',
+                                                                         subnet_title]))))
 
         """ Create Route Table Associations
         """
@@ -46,7 +49,7 @@ class Subnet(object):
         octect_2 = '0' if pub_or_pri == 'Public' else '1'
         vpc_split = stack.vpc.CidrBlock.split('.')      # separate VPC CIDR for renaming
         vpc_split[1] = octect_2                         # Set 2nd octect based on length of subnet list
-        vpc_split[2] = octect_3                         # set 3rd octect based on public or private
+        vpc_split[2] = str(octect_3)                    # set 3rd octect based on public or private
         vpc_last = vpc_split[3].split('/')              # split last group to change subnet mask
         vpc_last[1] = '24'                              # set subnet mask
         vpc_split[3] = '/'.join(vpc_last)               # join last group for subnet mask
