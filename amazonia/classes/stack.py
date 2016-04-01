@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-from troposphere import Template, ec2
+from troposphere import Ref, Template, ec2
 
 from amazonia.classes.single_instance import SingleInstance
 from amazonia.classes.subnet import Subnet
@@ -24,7 +24,7 @@ class Stack(Template):
         :param jump_instance_type: instance type for jumphost
         :param nat_image_id: AMI for nat
         :param nat_instance_type: instance type for nat
-        :param units: list of unit tuples (title, protocol, port, path2ping, minsize, maxsize, instance_id,
+        :param units: list of unit dicts (title, protocol, port, path2ping, minsize, maxsize, image_id,
          instance_type, userdata)
         """
         super(Stack, self).__init__()
@@ -33,19 +33,19 @@ class Stack(Template):
         self.keypair = kwargs['keypair']
         self.availability_zones = kwargs['availability_zones']
         self.vpc_cidr = kwargs['vpc_cidr']
-        
+
         self.units = []
         self.private_subnets = self.public_subnets = []
 
         self.vpc = self.add_resource(ec2.VPC(self.title + "Vpc", CidrBlock=self.vpc_cidr))
         self.internet_gateway = self.add_resource(ec2.InternetGateway(title=self.title + "Ig"))
         self.gateway_attachment = self.add_resource(ec2.VPCGatewayAttachment(title=self.internet_gateway.title + "Atch",
-                                                                             VpcId=self.vpc,
-                                                                             InternetGatewayId=self.internet_gateway))
+                                                                             VpcId=Ref(self.vpc),
+                                                                             InternetGatewayId=Ref(self.internet_gateway)))
         self.public_route_table = self.add_resource(ec2.RouteTable(title=self.title + 'PubRt',
-                                                                   VpcId=self.vpc))
+                                                                   VpcId=Ref(self.vpc)))
         self.private_route_table = self.add_resource(ec2.RouteTable(title=self.title + 'PriRt',
-                                                                    VpcId=self.vpc))
+                                                                    VpcId=Ref(self.vpc)))
         for az in self.availability_zones:
             self.private_subnets.append(Subnet(stack=self,
                                                route_table=self.private_route_table,
