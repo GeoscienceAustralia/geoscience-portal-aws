@@ -12,7 +12,7 @@ def main():
     stack.pub_sub_list = ['PublicSubnetA', 'PublicSubnetA']
 
     stack.vpc = stack.add_resource(ec2.VPC('MyVPC',
-                                           CidrBlock='10.0.0.0/8'))
+                                           CidrBlock='10.0.0.0/16'))
     stack.pub_route_table = stack.add_resource(ec2.RouteTable('MyUnitPublicRouteTable',
                                                               VpcId=Ref(stack.vpc)))
     stack.pri_route_table = stack.add_resource(ec2.RouteTable('MyUnitPrivateRouteTable',
@@ -20,9 +20,9 @@ def main():
     pubsubnet3 = Subnet(stack=stack,
                         route_table=stack.pub_route_table,
                         az=az_c)
-    prisubnet2 = Subnet(stack=stack,
-                        route_table=stack.pri_route_table,
-                        az=az_b)
+    # prisubnet2 = Subnet(stack=stack,
+    #                     route_table=stack.pri_route_table,
+    #                     az=az_b)
 
     print(stack.to_json(indent=2, separators=(',', ': ')))
 if __name__ == "__main__":
