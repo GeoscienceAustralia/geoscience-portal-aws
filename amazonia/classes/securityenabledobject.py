@@ -18,8 +18,8 @@ class SecurityEnabledObject(object):
         self.stack = kwargs['stack']
         self.title = kwargs['title']
         self.security_group = self.create_security_group(kwargs['vpc'])
-        self.ingress = None
-        self.egress = None
+        self.ingress = []
+        self.egress = []
 
     def add_flow(self, other, port, protocol):
         """
@@ -43,14 +43,14 @@ class SecurityEnabledObject(object):
         :param protocol: Protocol to send, and receive traffic on
         """
         name = self.title + port + "From" + other.title + port
-        self.ingress = self.stack.add_resource(ec2.SecurityGroupIngress(
+        self.ingress.append(self.stack.add_resource(ec2.SecurityGroupIngress(
             name,
             IpProtocol=protocol,
             FromPort=port,
             ToPort=port,
             GroupId=Ref(self.security_group),
             SourceSecurityGroupId=GetAtt(other.security_group.title, "GroupId")
-            ))
+            )))
 
     def add_egress(self, other, port, protocol):
         """
@@ -63,14 +63,14 @@ class SecurityEnabledObject(object):
         :param protocol: Protocol to send, and receive traffic on
         """
         name = self.title + port + "To" + other.title + port
-        self.egress = self.stack.add_resource(ec2.SecurityGroupEgress(
+        self.egress.append(self.stack.add_resource(ec2.SecurityGroupEgress(
             name,
             IpProtocol=protocol,
             FromPort=port,
             ToPort=port,
             GroupId=Ref(self.security_group),
             DestinationSecurityGroupId=GetAtt(other.security_group.title, "GroupId")
-            ))
+            )))
 
     def create_security_group(self, vpc):
         """
@@ -81,7 +81,7 @@ class SecurityEnabledObject(object):
         :param vpc: The VPC that the security group should live in
         :return: The security group for this SecurityEnabledObject
         """
-        name = self.title + "SG"
+        name = self.title + "Sg"
         return self.stack.add_resource(
                     ec2.SecurityGroup(
                         name,

@@ -46,7 +46,7 @@ class SingleInstance(SecurityEnabledObject):
         """
         Function that add the IP output required for single instances depending if it is a NAT or JumpHost
         :param nat: A NAT boolean is defined by the SourceDestCheck=False flag for extracting the ip
-        :param subnet: A subnetwhere the instance lives required for output.
+        :param subnet: A subnet where the instance lives required for output.
         :return: Troposphere Output object containing IP details
         """
 
