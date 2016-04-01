@@ -33,27 +33,25 @@ class Stack(Template):
         self.keypair = kwargs['keypair']
         self.availability_zones = kwargs['availability_zones']
         self.vpc_cidr = kwargs['vpc_cidr']
-        self.internet_gateway = self.gateway_attachment = None
-        self.nat = self.jump = None
+        
         self.units = []
         self.private_subnets = self.public_subnets = []
-        self.pub_route_table = self.pri_route_table = None
 
         self.vpc = self.add_resource(ec2.VPC(self.title + "Vpc", CidrBlock=self.vpc_cidr))
         self.internet_gateway = self.add_resource(ec2.InternetGateway(title=self.title + "Ig"))
         self.gateway_attachment = self.add_resource(ec2.VPCGatewayAttachment(title=self.internet_gateway.title + "Atch",
                                                                              VpcId=self.vpc,
                                                                              InternetGatewayId=self.internet_gateway))
-        self.pub_route_table = self.add_resource(ec2.RouteTable(title=self.title + 'PubRt',
-                                                                VpcId=self.vpc))
-        self.pri_route_table = self.add_resource(ec2.RouteTable(title=self.title + 'PriRt',
-                                                                VpcId=self.vpc))
+        self.public_route_table = self.add_resource(ec2.RouteTable(title=self.title + 'PubRt',
+                                                                   VpcId=self.vpc))
+        self.private_route_table = self.add_resource(ec2.RouteTable(title=self.title + 'PriRt',
+                                                                    VpcId=self.vpc))
         for az in self.availability_zones:
             self.private_subnets.append(Subnet(stack=self,
-                                               route_table=self.pri_route_table,
+                                               route_table=self.private_route_table,
                                                az=az))
             self.public_subnets.append(Subnet(stack=self,
-                                              route_table=self.pub_route_table,
+                                              route_table=self.public_route_table,
                                               az=az))
 
         self.jump = SingleInstance(
