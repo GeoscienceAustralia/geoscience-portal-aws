@@ -20,9 +20,9 @@ def main():
     pubsubnet3 = Subnet(stack=stack,
                         route_table=stack.pub_route_table,
                         az=az_c)
-    # prisubnet2 = Subnet(stack=stack,
-    #                     route_table=stack.pri_route_table,
-    #                     az=az_b)
+    prisubnet2 = Subnet(stack=stack,
+                        route_table=stack.pri_route_table,
+                        az=az_b)
 
     print(stack.to_json(indent=2, separators=(',', ': ')))
 if __name__ == "__main__":
