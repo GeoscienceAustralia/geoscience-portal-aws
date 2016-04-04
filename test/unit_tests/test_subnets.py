@@ -6,6 +6,8 @@ from amazonia.classes.subnet import Subnet
 
 
 def setup_resources():
+    """ Sets Up stack resources
+    """
     global stack, pub_route_table, pri_route_table, az
     stack = Template()
     stack.pri_sub_list = []
@@ -74,19 +76,21 @@ def test_add_associate_route_table():
 
 
 def az_num(az_list):
-    """ Validate number of subnets for a Single, Dual and Triple AZ senario
+    """ Helper function to validate number of subnets for a Single, Dual and Triple AZ senario passed in from test_az_num()
     """
     setup_resources()
     pub_subnets = []
     pri_subnets = []
     for a in az_list:
-        helper_pub_subnet = pub_subnets.append(create_subnet(stack=stack, az=a, route_table=stack.pub_route_table))
-        helper_pri_subnet = pri_subnets.append(create_subnet(stack=stack, az=a, route_table=stack.pri_route_table))
+        pub_subnets.append(create_subnet(stack=stack, az=a, route_table=stack.pub_route_table))  # Append Public subnet
+        pri_subnets.append(create_subnet(stack=stack, az=a, route_table=stack.pri_route_table))  # Append Private subnet
     assert_equals(len(az_list), len(pub_subnets))
     assert_equals(len(az_list), len(pri_subnets))
 
 
 def test_az_num():
+    """ Validate number of subnets for a Single, Dual and Triple AZ senario passing to az_num(az_list) to validate length
+    """
     az_list = ['ap-southeast-2a', 'ap-southeast-2b', 'ap-southeast-2c']
     while len(az_list) > 0:
         print(len(az_list))
