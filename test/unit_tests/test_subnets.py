@@ -5,19 +5,20 @@ from troposphere import Template, ec2, Ref
 from amazonia.classes.subnet import Subnet
 import re
 
+stack = Template()
+stack.pri_sub_list = stack.pub_sub_list = []
+stack.vpc = stack.add_resource(ec2.VPC('MyVPC',
+                                       CidrBlock='10.0.0.0/16'))
+stack.pub_route_table = stack.add_resource(ec2.RouteTable('MyUnitPublicRouteTable',
+                                                          VpcId=Ref(stack.vpc)))
+stack.pri_route_table = stack.add_resource(ec2.RouteTable('MyUnitPrivateRouteTable',
+                                                          VpcId=Ref(stack.vpc)))
+az = ['ap-southeast-2a', 'ap-southeast-2b', 'ap-southeast-2c']
+
 
 def test_pub_or_pri():
     """ Validate that public/private subnet is correctly identified from route_table
     """
-    stack = Template()
-    stack.pri_sub_list = stack.pub_sub_list = []
-    stack.vpc = stack.add_resource(ec2.VPC('MyVPC',
-                                           CidrBlock='10.0.0.0/16'))
-    stack.pub_route_table = stack.add_resource(ec2.RouteTable('MyUnitPublicRouteTable',
-                                                              VpcId=Ref(stack.vpc)))
-    stack.pri_route_table = stack.add_resource(ec2.RouteTable('MyUnitPrivateRouteTable',
-                                                              VpcId=Ref(stack.vpc)))
-    az = ['ap-southeast-2a', 'ap-southeast-2b', 'ap-southeast-2c']
 
     for a in az:
         helper_pub_subnet = create_subnet(stack=stack, az=a, route_table=stack.pub_route_table)
@@ -25,16 +26,6 @@ def test_pub_or_pri():
         helper_pri_subnet = create_subnet(stack=stack, az=a, route_table=stack.pri_route_table)
         assert_equals(helper_pri_subnet.pub_or_pri, 'Private')
 
-#
-# def test_subnet_title():
-#     """ Validate that subnet title is correctly created base don inputs
-#     """
-#     pub_or_pri_list = ['Public', 'Private']
-#     test_pub_or_pri()
-#     for pub_or_pri in pub_or_pri_list:
-#         assert_true(re.match(pub_or_pri, helper_pub_subnet.subnet.title))
-#         assert_true(re.match(pub_or_pri, helper_pri_subnet.subnet.title))
-#         assert_equals(az[-1:].upper(), helper_pri_subnet.subnet.title[-1:])
 #
 #
 # def test_sub_cidr():
