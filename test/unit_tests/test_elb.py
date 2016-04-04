@@ -79,6 +79,9 @@ def test_security_group():
 def create_elb(**kwargs):
     """
     Helper function to create Elb Troposhpere object to interate through.
+    :param port - port for traffic
+    :param protocol: protocol for traffic
+    :param path2ping: path to test page
     :return: Troposphere object for Elb,
     """
     vpc = 'vpc-12345'

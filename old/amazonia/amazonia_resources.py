@@ -143,7 +143,7 @@ def switch_availability_zone(num=-1):
 
 def add_vpc(template, cidr):
     """
-        Creates a VPC resource and adds it to the given template object.
+    Creates a VPC resource and adds it to the given template object.
     """
 
     global num_vpcs
