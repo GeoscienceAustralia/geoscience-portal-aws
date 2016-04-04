@@ -6,7 +6,8 @@ from amazonia.classes.subnet import Subnet
 import re
 
 stack = Template()
-stack.pri_sub_list = stack.pub_sub_list = []
+stack.pri_sub_list = []
+stack.pub_sub_list = []
 stack.vpc = stack.add_resource(ec2.VPC('MyVPC',
                                        CidrBlock='10.0.0.0/16'))
 stack.pub_route_table = stack.add_resource(ec2.RouteTable('MyUnitPublicRouteTable',
@@ -26,17 +27,19 @@ def test_pub_or_pri():
         helper_pri_subnet = create_subnet(stack=stack, az=a, route_table=stack.pri_route_table)
         assert_equals(helper_pri_subnet.pub_or_pri, 'Private')
 
-#
-#
-# def test_sub_cidr():
-#     """ Validate that subnet CIDR is correctly created for private/public subnets, number of subnet
-#     """
-#     helper_pub_subnet = Subnet.sub_cidr(stack=stack, 'Public')
-#     helper_pri_subnet = Subnet.sub_cidr(stack=stack, 'Private')
-#     assert_equals(helper_pub_subnet, '10.0.0.0/24')
-#     assert_equals(helper_pri_subnet, '10.0.0.0/24')
-#
-#
+
+def test_sub_cidr():
+    """ Validate that subnet CIDR is correctly created for private/public subnets, number of subnet
+    """
+    for num in range(len(az)):
+        helper_pub_subnet = Subnet.sub_cidr(stack, 'Public')
+        helper_pri_subnet = Subnet.sub_cidr(stack, 'Private')
+        stack.pub_sub_list.append(helper_pub_subnet)
+        stack.pri_sub_list.append(helper_pri_subnet)
+        assert_equals(helper_pub_subnet, ''.join(['10.0.', str(num), '.0/24']))
+        assert_equals(helper_pri_subnet, ''.join(['10.0.', str(num + 100), '.0/24']))
+
+
 # def test_add_associate_route_table():
 #     """ Validate route association created
 #     """
