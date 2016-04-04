@@ -20,23 +20,23 @@ def main():
                                                               VpcId=Ref(stack.vpc)))
 
     pubsubnet1 = stack.pub_sub_list.append(Subnet(stack=stack,
-                        route_table=stack.pub_route_table,
-                        az=az_a))
+                                                  route_table=stack.pub_route_table,
+                                                  az=az_a))
     pubsubnet2 = stack.pub_sub_list.append(Subnet(stack=stack,
-                        route_table=stack.pub_route_table,
-                        az=az_b))
+                                                  route_table=stack.pub_route_table,
+                                                  az=az_b))
     pubsubnet3 = stack.pub_sub_list.append(Subnet(stack=stack,
-                        route_table=stack.pub_route_table,
-                        az=az_c))
+                                                  route_table=stack.pub_route_table,
+                                                  az=az_c))
     prisubnet1 = stack.pri_sub_list.append(Subnet(stack=stack,
-                        route_table=stack.pri_route_table,
-                        az=az_a))
+                                                  route_table=stack.pri_route_table,
+                                                  az=az_a))
     prisubnet2 = stack.pri_sub_list.append(Subnet(stack=stack,
-                        route_table=stack.pri_route_table,
-                        az=az_b))
+                                                  route_table=stack.pri_route_table,
+                                                  az=az_b))
     prisubnet3 = stack.pri_sub_list.append(Subnet(stack=stack,
-                        route_table=stack.pri_route_table,
-                        az=az_c))
+                                                  route_table=stack.pri_route_table,
+                                                  az=az_c))
 
     print(stack.to_json(indent=2, separators=(',', ': ')))
 if __name__ == "__main__":
