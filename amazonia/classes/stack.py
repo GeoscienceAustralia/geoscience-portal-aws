@@ -47,7 +47,8 @@ class Stack(Template):
         """ Create Subnets
         """
 
-        self.pri_sub_list = self.pub_sub_list = []
+        self.pri_sub_list = []
+        self.pub_sub_list = []
         pub_pri_sub_lists = [self.pri_sub_list, self.pub_sub_list]
 
         for sub_list in pub_pri_sub_lists:
