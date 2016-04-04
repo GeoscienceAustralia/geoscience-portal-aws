@@ -18,17 +18,17 @@ class Subnet(object):
         super(Subnet, self).__init__()
 
         stack = kwargs['stack']
-        pub_or_pri = 'Public' if kwargs['route_table'] == stack.pub_route_table else 'Private'
+        self.pub_or_pri = 'Public' if kwargs['route_table'] == stack.pub_route_table else 'Private'
 
         """ Create Subnet
         """
-        subnet_title = '{0}Subnet{1}'.format(pub_or_pri,
+        subnet_title = '{0}Subnet{1}'.format(self.pub_or_pri,
                                              kwargs['az'][-1:].upper())
         self.subnet = stack.add_resource(ec2.Subnet(subnet_title,
                                                     AvailabilityZone=kwargs['az'],
                                                     VpcId=Ref(stack.vpc),
                                                     CidrBlock=self.sub_cidr(stack,
-                                                                            pub_or_pri),
+                                                                            self.pub_or_pri),
                                                     Tags=Tags(Name=Join("",
                                                                         [Ref('AWS::StackName'),
                                                                          '-',
@@ -64,7 +64,9 @@ class Subnet(object):
         Troposphere - https://github.com/cloudtools/troposphere/blob/master/troposphere/ec2.py
         """
 
-        route_table_ass = stack.add_resource(ec2.SubnetRouteTableAssociation(route_table.title + 'Association',
+        route_table_ass = stack.add_resource(ec2.SubnetRouteTableAssociation(route_table.title +
+                                                                             subnet.title +
+                                                                             'Association',
                                                                              RouteTableId=Ref(route_table),
                                                                              SubnetId=Ref(subnet)))
         return route_table_ass
