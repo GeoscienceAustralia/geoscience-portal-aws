@@ -8,7 +8,10 @@ class Subnet(object):
         Class to create subnets and associate a route table to it
         AWS CloudFormation - http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-subnet.html
         Troposphere - https://github.com/cloudtools/troposphere/blob/master/troposphere/ec2.py
-        :param stack: Stack template object
+        :param stack: Stack template object with required:
+                      * VPC w/ CIDR block,
+                      * Public and private route tables,
+                      * Initialised public and private subnet lists
         :param route_table: Public or private route table object from stack
         :param az: Availability zone where the subnet will be deployed
         """
@@ -44,11 +47,8 @@ class Subnet(object):
         :return: Subnet CIDR based on Public or Private and previous subnets created e.g. 10.1.2.0/24 or 10.0.1.0/24
         """
         # 3rd Octect: Obtain length of pub or pri subnet list
-        octect_3 = len(stack.pub_sub_list) if pub_or_pri == 'Public' else len(stack.pri_sub_list)
-        # 2nd Octect: set to '0' for public subnets, set to '1' for private subnets
-        octect_2 = '0' if pub_or_pri == 'Public' else '1'
+        octect_3 = len(stack.pub_sub_list) if pub_or_pri == 'Public' else len(stack.pri_sub_list) + 100
         vpc_split = stack.vpc.CidrBlock.split('.')      # separate VPC CIDR for renaming
-        vpc_split[1] = octect_2                         # Set 2nd octect based on length of subnet list
         vpc_split[2] = str(octect_3)                    # set 3rd octect based on public or private
         vpc_last = vpc_split[3].split('/')              # split last group to change subnet mask
         vpc_last[1] = '24'                              # set subnet mask
