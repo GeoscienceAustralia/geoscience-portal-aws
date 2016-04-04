@@ -21,7 +21,7 @@ class Subnet(object):
         """
         subnet_title = '{0}Subnet{1}'.format(pub_or_pri,
                                              kwargs['az'][-1:].upper())
-        self.subnet = stack.add_resource(ec2.Subnet(subnet_title,
+        self.subnet = stack.template.add_resource(ec2.Subnet(subnet_title,
                                                     AvailabilityZone=kwargs['az'],
                                                     VpcId=Ref(stack.vpc),
                                                     CidrBlock=self.sub_cidr(stack,
@@ -64,7 +64,8 @@ class Subnet(object):
         Troposphere - https://github.com/cloudtools/troposphere/blob/master/troposphere/ec2.py
         """
 
-        route_table_ass = stack.add_resource(ec2.SubnetRouteTableAssociation(route_table.title + 'Association',
+        route_table_ass = stack.template.add_resource(ec2.SubnetRouteTableAssociation(subnet.title + route_table.title +
+                                                                             'Association',
                                                                              RouteTableId=Ref(route_table),
                                                                              SubnetId=Ref(subnet)))
         return route_table_ass

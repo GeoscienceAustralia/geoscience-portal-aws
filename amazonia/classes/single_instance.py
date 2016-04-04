@@ -20,7 +20,7 @@ class SingleInstance(SecurityEnabledObject):
 
         super(SingleInstance, self).__init__(vpc=kwargs['vpc'], title=kwargs['title'], stack=kwargs['stack'])
 
-        self.single = self.stack.add_resource(
+        self.single = self.stack.template.add_resource(
                            ec2.Instance(
                                kwargs['title'],
                                KeyName=kwargs['keypair'],
@@ -31,16 +31,16 @@ class SingleInstance(SecurityEnabledObject):
                                    AssociatePublicIpAddress=True,
                                    DeviceIndex="0",
                                    DeleteOnTermination=True,
-                                   SubnetId=Ref(kwargs['subnet']),
+                                   SubnetId=Ref(kwargs['subnet'].subnet),
                                )],
                                SourceDestCheck=False if kwargs['title'][:3].lower() == 'nat' else True,
                                Tags=Tags(Name=Join("", [Ref('AWS::StackName'), '-', kwargs['title']]))
                            ))
 
         if self.single.SourceDestCheck == 'true':
-            self.si_output(nat=False, subnet=kwargs['subnet'])
+            self.si_output(nat=False, subnet=kwargs['subnet'].subnet)
         else:
-            self.si_output(nat=True, subnet=kwargs['subnet'])
+            self.si_output(nat=True, subnet=kwargs['subnet'].subnet)
 
     def si_output(self, **kwargs):
         """
@@ -55,7 +55,7 @@ class SingleInstance(SecurityEnabledObject):
         else:
             net_interface = "PublicIp"
 
-        self.stack.add_output(
+        self.stack.template.add_output(
              Output(
                  self.single.title,
                  Description='{0} address of {1} single instance'.format(net_interface, self.single.title),

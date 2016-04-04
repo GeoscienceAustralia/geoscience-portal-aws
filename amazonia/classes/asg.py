@@ -23,7 +23,7 @@ class Asg(SecurityEnabledObject):
         :param userdata: Instance boot script
         :param service_role_arn: AWS IAM Role with Code Deploy permissions
         """
-        self.title = kwargs['title']+'Asg'
+        self.title = kwargs['title'] + 'Asg'
         super(Asg, self).__init__(vpc=kwargs['vpc'], title=self.title, stack=kwargs['stack'])
         self.asg = None
         self.lc = None
@@ -60,12 +60,12 @@ class Asg(SecurityEnabledObject):
         :param instance_type: Instance type to create instances of e.g. 't2.micro' or 't2.nano'
         :param userdata: Instance boot script
         """
-        availability_zones = [subnet.AvailabilityZone for subnet in kwargs['subnets']]
-        self.asg = self.stack.add_resource(AutoScalingGroup(
+        availability_zones = [subnet.subnet.AvailabilityZone for subnet in kwargs['subnets']]
+        self.asg = self.stack.template.add_resource(AutoScalingGroup(
             kwargs['title'],
             MinSize=kwargs['minsize'],
             MaxSize=kwargs['maxsize'],
-            VPCZoneIdentifier=kwargs['subnets'],
+            VPCZoneIdentifier=[subnet.subnet for subnet in kwargs['subnets']],
             AvailabilityZones=availability_zones,
             LoadBalancerNames=[kwargs['load_balancer'].title],
         )
@@ -94,7 +94,7 @@ class Asg(SecurityEnabledObject):
         """
         launch_config_title = kwargs['title'] + 'Lc'
 
-        self.lc = self.stack.add_resource(LaunchConfiguration(
+        self.lc = self.stack.template.add_resource(LaunchConfiguration(
             launch_config_title,
             AssociatePublicIpAddress=False,
             ImageId=kwargs['image_id'],
@@ -117,9 +117,9 @@ class Asg(SecurityEnabledObject):
         cd_app_title = kwargs['title'] + 'Cda'
         cd_deploygroup_title = kwargs['title'] + 'Cdg'
 
-        self.cd_app = self.stack.add_resource(codedeploy.Application(cd_app_title,
-                                                                     ApplicationName=kwargs['title']))
-        self.cd_deploygroup = self.stack.add_resource(
+        self.cd_app = self.stack.template.add_resource(codedeploy.Application(cd_app_title,
+                                                                              ApplicationName=kwargs['title']))
+        self.cd_deploygroup = self.stack.template.add_resource(
             codedeploy.DeploymentGroup(cd_deploygroup_title,
                                        ApplicationName=self.cd_app.title,
                                        AutoScalingGroups=[self.asg.title],

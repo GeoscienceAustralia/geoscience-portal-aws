@@ -7,7 +7,7 @@ from amazonia.classes.subnet import Subnet
 from amazonia.classes.unit import Unit
 
 
-class Stack(Template):
+class Stack(object):
     def __init__(self, **kwargs):
         """
         Create a vpc, nat, jumphost, internet gateway, public/private route tables, public/private subnets
@@ -29,23 +29,26 @@ class Stack(Template):
         """
         super(Stack, self).__init__()
         self.title = kwargs['title']
+        self.template = Template()
         self.code_deploy_service_role = kwargs['code_deploy_service_role']
         self.keypair = kwargs['keypair']
         self.availability_zones = kwargs['availability_zones']
         self.vpc_cidr = kwargs['vpc_cidr']
 
         self.units = []
-        self.private_subnets = self.public_subnets = []
+        self.private_subnets = []
+        self.public_subnets = []
 
-        self.vpc = self.add_resource(ec2.VPC(self.title + "Vpc", CidrBlock=self.vpc_cidr))
-        self.internet_gateway = self.add_resource(ec2.InternetGateway(title=self.title + "Ig"))
-        self.gateway_attachment = self.add_resource(ec2.VPCGatewayAttachment(title=self.internet_gateway.title + "Atch",
-                                                                             VpcId=Ref(self.vpc),
-                                                                             InternetGatewayId=Ref(self.internet_gateway)))
-        self.public_route_table = self.add_resource(ec2.RouteTable(title=self.title + 'PubRt',
-                                                                   VpcId=Ref(self.vpc)))
-        self.private_route_table = self.add_resource(ec2.RouteTable(title=self.title + 'PriRt',
-                                                                    VpcId=Ref(self.vpc)))
+        self.vpc = self.template.add_resource(ec2.VPC(self.title + "Vpc", CidrBlock=self.vpc_cidr))
+        self.internet_gateway = self.template.add_resource(ec2.InternetGateway(title=self.title + "Ig"))
+        self.gateway_attachment = self.template.add_resource(
+            ec2.VPCGatewayAttachment(title=self.internet_gateway.title + "Atch",
+                                     VpcId=Ref(self.vpc),
+                                     InternetGatewayId=Ref(self.internet_gateway)))
+        self.public_route_table = self.template.add_resource(ec2.RouteTable(title=self.title + 'PubRt',
+                                                                            VpcId=Ref(self.vpc)))
+        self.private_route_table = self.template.add_resource(ec2.RouteTable(title=self.title + 'PriRt',
+                                                                             VpcId=Ref(self.vpc)))
         for az in self.availability_zones:
             self.private_subnets.append(Subnet(stack=self,
                                                route_table=self.private_route_table,
@@ -75,20 +78,20 @@ class Stack(Template):
         )
 
         for unit in kwargs['units']:
-            self.units.append(Unit(title=unit.title,
+            self.units.append(Unit(title=unit['title'],
                                    vpc=self.vpc,
                                    stack=self,
-                                   protocol=unit.protocol,
-                                   port=unit.port,
-                                   path2ping=unit.path2ping,
+                                   protocol=unit['protocol'],
+                                   port=unit['port'],
+                                   path2ping=unit['path2ping'],
                                    public_subnets=self.public_subnets,
                                    private_subnets=self.private_subnets,
-                                   minsize=unit.minsize,
-                                   maxsize=unit.maxsize,
+                                   minsize=unit['minsize'],
+                                   maxsize=unit['maxsize'],
                                    keypair=self.keypair,
-                                   image_id=unit.image_id,
-                                   instance_type=unit.instance_type,
-                                   userdata=unit.userdata,
+                                   image_id=unit['image_id'],
+                                   instance_type=unit['instance_type'],
+                                   userdata=unit['userdata'],
                                    service_role_arn=self.code_deploy_service_role,
                                    nat=self.nat,
                                    jump=self.jump,

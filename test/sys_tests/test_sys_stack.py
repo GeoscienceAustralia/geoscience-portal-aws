@@ -15,8 +15,8 @@ packages:
 runcmd:
  - service httpd start
     """
-    image_id = 'ami-893f53b3',
-    instance_type = 't2.nano',
+    image_id = 'ami-893f53b3'
+    instance_type = 't2.nano'
     stack = Stack(
         title='testStack',
         code_deploy_service_role='instance-iam-role-InstanceProfile-OGL42SZSIQRK',
@@ -46,7 +46,7 @@ runcmd:
                 'instance_type': instance_type,
                 'userdata': userdata}],
     )
-    print(stack.to_json(indent=2, separators=(',', ': ')))
+    print(stack.template.to_json(indent=2, separators=(',', ': ')))
 
 
 if __name__ == '__main__':
