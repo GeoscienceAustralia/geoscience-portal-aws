@@ -8,11 +8,11 @@ class Subnet(object):
         Class to create subnets and associate a route table to it
         AWS CloudFormation - http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-subnet.html
         Troposphere - https://github.com/cloudtools/troposphere/blob/master/troposphere/ec2.py
-        :param stack: Stack template object with required:
-                      * VPC w/ CIDR block,
-                      * Public and private route tables,
-                      * Initialised public and private subnet lists
+        :param template: Troposhere template object
+        :param cidr: cidr for subnet
+        :param vpc: VPC to create subnet in
         :param route_table: Public or private route table object from stack
+        :param is_public: boolean inidicating if subnet is public or not
         :param az: Availability zone where the subnet will be deployed
         """
         super(Subnet, self).__init__()
@@ -44,6 +44,7 @@ class Subnet(object):
         AWS CloudFormation -
         http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-subnet-route-table-assoc.html
         Troposphere - https://github.com/cloudtools/troposphere/blob/master/troposphere/ec2.py
+        :param route_table: Public or private route table object from stack
         """
 
         route_table_ass = self.template.add_resource(ec2.SubnetRouteTableAssociation(route_table.title +
