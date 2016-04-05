@@ -84,7 +84,7 @@ class Stack(object):
         )
 
         for unit in kwargs['units']:
-            self.units.append(Unit(title=unit['title'],
+            self.units.append(Unit(title=self.title + unit['title'],
                                    vpc=self.vpc,
                                    template=self.template,
                                    protocol=unit['protocol'],

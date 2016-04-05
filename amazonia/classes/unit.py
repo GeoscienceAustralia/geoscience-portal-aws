@@ -9,7 +9,7 @@ class Unit(object):
     def __init__(self, **kwargs):
         """
         Create an Amazonia unit, with associated Amazonia ELB and ASG
-        :param title: Title of the autoscaling application e.g 'webApp1', 'api2' or 'dataprocessing'
+        :param title: Title of the autoscaling application  prefixedx with Stack name e.g 'MyStackWebApp1', 'MyStackApi2' or 'MyStackDataprocessing'
         :param vpc: Troposphere vpc object, required for SecurityEnabledObject class
         :param stack: Troposphere stack to append resources to
         :param protocol: protocol for ELB and webserver to communicate via
