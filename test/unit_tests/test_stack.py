@@ -40,3 +40,18 @@ def create_stack(**kwargs):
         userdata=userdata
     )
     return stack
+
+@with_setup(setup_resources)
+def test_sub_cidr():
+    """ Validate that subnet CIDR is correctly created for private/public subnets for number of availablity zones
+    """
+    for num in range(len(az)):
+        # For public subnets
+        helper_pub_subnet = Subnet.sub_cidr(stack, 'Public')
+        stack.pub_sub_list.append(helper_pub_subnet)
+        assert_equals(helper_pub_subnet, ''.join(['10.0.', str(num), '.0/24']))
+
+        # For private subnets
+        helper_pri_subnet = Subnet.sub_cidr(stack, 'Private')
+        stack.pri_sub_list.append(helper_pri_subnet)
+        assert_equals(helper_pri_subnet, ''.join(['10.0.', str(num + 100), '.0/24']))

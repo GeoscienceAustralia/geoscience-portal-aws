@@ -8,17 +8,17 @@ from troposphere import Template, ec2
 def test_security_enabled_object():
     template = Template()
     myvpc = ec2.VPC('myVpc', CidrBlock='10.0.0.0/16')
-    myobj = SecurityEnabledObject(title="Unit01Web", vpc=myvpc, stack=template)
+    myobj = SecurityEnabledObject(title="Unit01Web", vpc=myvpc, template=template)
 
     assert_equals(myobj.title, "Unit01Web")
     assert_equals(myobj.security_group.title, "Unit01WebSg")
-    assert_equals(myobj.stack, template)
+    assert_equals(myobj.template, template)
 
 
 def test_create_sg():
     template = Template()
     myvpc = ec2.VPC('myVpc', CidrBlock='10.0.0.0/16')
-    myobj = SecurityEnabledObject(title="Unit01Web", vpc=myvpc, stack=template)
+    myobj = SecurityEnabledObject(title="Unit01Web", vpc=myvpc, template=template)
 
     assert_equals(myobj.security_group.title, "Unit01WebSg")
     assert_equals(myobj.security_group.GroupDescription, "Security group")
@@ -28,8 +28,8 @@ def test_create_sg():
 def test_add_flow():
     template = Template()
     myvpc = ec2.VPC('myVpc', CidrBlock='10.0.0.0/16')
-    myobj = SecurityEnabledObject(title="Unit01Web", vpc=myvpc, stack=template)
-    otherobj = SecurityEnabledObject(title="Unit02Web", vpc=myvpc, stack=template)
+    myobj = SecurityEnabledObject(title="Unit01Web", vpc=myvpc, template=template)
+    otherobj = SecurityEnabledObject(title="Unit02Web", vpc=myvpc, template=template)
 
     myobj.add_flow(otherobj, '80', 'tcp')
 
@@ -47,8 +47,8 @@ def test_add_flow():
 def test_add_ingress():
     template = Template()
     myvpc = ec2.VPC('myVpc', CidrBlock='10.0.0.0/16')
-    myobj = SecurityEnabledObject(title="Unit01Web", vpc=myvpc, stack=template)
-    otherobj = SecurityEnabledObject(title="Unit02Web", vpc=myvpc, stack=template)
+    myobj = SecurityEnabledObject(title="Unit01Web", vpc=myvpc, template=template)
+    otherobj = SecurityEnabledObject(title="Unit02Web", vpc=myvpc, template=template)
 
     myobj.add_ingress(otherobj, '80', "tcp")
 
@@ -61,8 +61,8 @@ def test_add_ingress():
 def test_add_egress():
     template = Template()
     myvpc = ec2.VPC('myVpc', CidrBlock='10.0.0.0/16')
-    myobj = SecurityEnabledObject(title="Unit01Web", vpc=myvpc, stack=template)
-    otherobj = SecurityEnabledObject(title="Unit02Web", vpc=myvpc, stack=template)
+    myobj = SecurityEnabledObject(title="Unit01Web", vpc=myvpc, template=template)
+    otherobj = SecurityEnabledObject(title="Unit02Web", vpc=myvpc, template=template)
 
     myobj.add_egress(otherobj, "80", "tcp")
 

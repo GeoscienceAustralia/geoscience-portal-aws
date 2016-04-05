@@ -92,5 +92,5 @@ def create_elb(**kwargs):
               protocol=kwargs.get('protocol', 'HTTP'),
               vpc=vpc,
               path2ping=kwargs.get('path2ping', 'index.html'),
-              stack=Template())
+              template=Template())
     return elb

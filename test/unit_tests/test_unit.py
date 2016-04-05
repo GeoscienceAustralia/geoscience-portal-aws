@@ -38,14 +38,14 @@ runcmd:
                          si_instance_type='t2.nano',
                          vpc=vpc,
                          subnet=public_subnets[0],
-                         stack=template)
+                         template=template)
     jump = SingleInstance(title='jump',
                           keypair='pipeline',
                           si_image_id='ami-893f53b3',
                           si_instance_type='t2.nano',
                           vpc=vpc,
                           subnet=public_subnets[0],
-                          stack=template)
+                          template=template)
 
 
 @with_setup(setup_resources())
@@ -82,7 +82,7 @@ def create_unit(**kwargs):
     unit = Unit(
         title=kwargs['title'],
         vpc=vpc,
-        stack=template,
+        template=template,
         protocol='HTTP',
         port='80',
         path2ping='HTTP:8080/error/noindex.html',
