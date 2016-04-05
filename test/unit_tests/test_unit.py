@@ -54,7 +54,7 @@ def test_unit():
     unit = create_unit(title=title)
     assert_equals(unit.asg.asg.title, title + 'Asg')
     assert_equals(unit.elb.elb.title, title + 'Elb')
-    assert_equals(unit.asg.asg.LoadBalancerNames, [title + 'Elb'])
+    [assert_is(type(lbn), Ref) for lbn in unit.asg.asg.LoadBalancerNames]
     assert_equals(len(unit.asg.egress), 2)
     assert_equals(len(unit.asg.ingress), 2)
     assert_equals(len(unit.elb.ingress), 0)
@@ -85,7 +85,7 @@ def create_unit(**kwargs):
         template=template,
         protocol='HTTP',
         port='80',
-        path2ping='HTTP:8080/error/noindex.html',
+        path2ping='index.html',
         public_subnets=public_subnets,
         private_subnets=private_subnets,
         minsize=1,
