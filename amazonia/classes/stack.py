@@ -64,7 +64,7 @@ class Stack(object):
                                               ).subnet)
 
         self.jump = SingleInstance(
-            title=self.title + 'jump',
+            title=self.title + 'Jump',
             keypair=self.keypair,
             si_image_id=kwargs['jump_image_id'],
             si_instance_type=kwargs['jump_instance_type'],
@@ -74,7 +74,7 @@ class Stack(object):
         )
 
         self.nat = SingleInstance(
-            title=self.title + 'nat',
+            title=self.title + 'Nat',
             keypair=self.keypair,
             si_image_id=kwargs['nat_image_id'],
             si_instance_type=kwargs['nat_instance_type'],
