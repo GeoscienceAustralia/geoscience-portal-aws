@@ -2,8 +2,9 @@ from nose.tools import *
 
 from amazonia.classes.stack import Stack
 
-userdata = availability_zones = keypair = image_id = instance_type = code_deploy_service_role = vpc_cidr = \
+userdata = keypair = image_id = instance_type = code_deploy_service_role = vpc_cidr = \
     port = protocol = desiredsize = path2ping = None
+availability_zones = []
 
 
 def setup_resources():

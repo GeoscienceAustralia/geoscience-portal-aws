@@ -67,7 +67,7 @@ class Asg(SecurityEnabledObject):
             MaxSize=kwargs['maxsize'],
             VPCZoneIdentifier=[Ref(subnet.title) for subnet in kwargs['subnets']],
             AvailabilityZones=availability_zones,
-            LoadBalancerNames=[kwargs['load_balancer'].title],
+            LoadBalancerNames=[Ref(kwargs['load_balancer'])],
         )
         )
         self.asg.LaunchConfigurationName = Ref(self.add_launch_config(

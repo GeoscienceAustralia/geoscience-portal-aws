@@ -59,7 +59,7 @@ def test_asg():
         [assert_is(type(subnet_id), Ref) for subnet_id in asg.asg.VPCZoneIdentifier]
         assert_is(type(asg.asg.LaunchConfigurationName), Ref)
         assert_equals(asg.asg.AvailabilityZones, ['ap-southeast-2a'])
-        assert_equals(asg.asg.LoadBalancerNames, ['testElb'])
+        [assert_is(type(lbn), Ref) for lbn in asg.asg.LoadBalancerNames]
         assert_equals(asg.asg.HealthCheckType, 'ELB')
         assert_equals(asg.asg.HealthCheckGracePeriod, 300)
         assert_equals(asg.lc.title, title + 'Asg' + 'Lc')
