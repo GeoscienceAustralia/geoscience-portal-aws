@@ -85,7 +85,7 @@ def create_unit(**kwargs):
         template=template,
         protocol='HTTP',
         port='80',
-        path2ping='HTTP:8080/error/noindex.html',
+        path2ping='index.html',
         public_subnets=public_subnets,
         private_subnets=private_subnets,
         minsize=1,
