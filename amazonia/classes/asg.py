@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-from troposphere import Base64, codedeploy
+from troposphere import Base64, codedeploy, Ref
 from troposphere.autoscaling import AutoScalingGroup, LaunchConfiguration
 
 from amazonia.classes.securityenabledobject import SecurityEnabledObject
@@ -65,7 +65,7 @@ class Asg(SecurityEnabledObject):
             kwargs['title'],
             MinSize=kwargs['minsize'],
             MaxSize=kwargs['maxsize'],
-            VPCZoneIdentifier=kwargs['subnets'],
+            VPCZoneIdentifier=[Ref(subnet.title) for subnet in kwargs['subnets']],
             AvailabilityZones=availability_zones,
             LoadBalancerNames=[kwargs['load_balancer'].title],
         )
@@ -101,7 +101,7 @@ class Asg(SecurityEnabledObject):
             InstanceMonitoring=False,
             InstanceType=kwargs['instance_type'],
             KeyName=kwargs['keypair'],
-            SecurityGroups=[self.security_group.name],
+            SecurityGroups=[Ref(self.security_group.name)],
         ))
         self.lc.UserData = Base64(kwargs['userdata'])
         return launch_config_title
