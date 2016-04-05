@@ -27,7 +27,7 @@ class Stack(object):
          instance_type, userdata)
         """
         super(Stack, self).__init__()
-        self.title = Ref('AWS::StackName')
+        self.title = kwargs['title']
         self.template = Template()
         self.code_deploy_service_role = kwargs['code_deploy_service_role']
         self.keypair = kwargs['keypair']
