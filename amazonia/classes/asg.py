@@ -70,13 +70,13 @@ class Asg(SecurityEnabledObject):
             LoadBalancerNames=[kwargs['load_balancer'].title],
         )
         )
-        self.asg.LaunchConfigurationName = self.add_launch_config(
+        self.asg.LaunchConfigurationName = Ref(self.add_launch_config(
             title=kwargs['title'],
             keypair=kwargs['keypair'],
             image_id=kwargs['image_id'],
             instance_type=kwargs['instance_type'],
             userdata=kwargs['userdata'],
-        )
+        ))
         self.asg.HealthCheckType = 'ELB'
         self.asg.HealthCheckGracePeriod = 300
 
