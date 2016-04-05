@@ -56,7 +56,8 @@ def test_asg():
         assert_equals(asg.asg.title, title + 'Asg')
         assert_equals(asg.asg.MinSize, 1)
         assert_equals(asg.asg.MaxSize, 1)
-        assert_equals(asg.asg.VPCZoneIdentifier, [subnet])
+        [assert_is(type(subnet_id), Ref) for subnet_id in asg.asg.VPCZoneIdentifier]
+        assert_is(type(asg.asg.LaunchConfigurationName), Ref)
         assert_equals(asg.asg.AvailabilityZones, ['ap-southeast-2a'])
         assert_equals(asg.asg.LoadBalancerNames, ['testElb'])
         assert_equals(asg.asg.HealthCheckType, 'ELB')
@@ -65,7 +66,7 @@ def test_asg():
         assert_equals(asg.lc.ImageId, 'ami-893f53b3')
         assert_equals(asg.lc.InstanceType, 't2.nano')
         assert_equals(asg.lc.KeyName, 'pipeline')
-        assert_equals(asg.lc.SecurityGroups, [asg.security_group.name])
+        [assert_is(type(sg), Ref) for sg in asg.lc.SecurityGroups]
         assert_equals(asg.cd_app.title, title + 'Asg' + 'Cda')
         assert_equals(asg.cd_app.ApplicationName, title + 'Asg')
         assert_equals(asg.cd_deploygroup.title, title + 'Asg' + 'Cdg')

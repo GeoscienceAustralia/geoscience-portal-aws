@@ -2,9 +2,13 @@
 
 from nose.tools import *
 from troposphere import Template, ec2, Ref
+
 from amazonia.classes.subnet import Subnet
 
-vpc = template = public_route_table = private_route_table = az = public_subnets = private_subnets = None
+vpc = template = public_route_table = private_route_table = None
+az = []
+public_subnets = []
+private_subnets = []
 
 
 def setup_resources():
@@ -38,6 +42,7 @@ def test_pub_or_pri():
         # For private subnets
         helper_pri_subnet = create_subnet(template=template, az=a, route_table=private_route_table, is_public=False)
         assert_equals(helper_pri_subnet.pub_or_pri, 'Private')
+
 
 @with_setup(setup_resources)
 def test_add_associate_route_table():
