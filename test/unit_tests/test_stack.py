@@ -29,7 +29,7 @@ def setup_resources():
     port = '80'
     protocol = 'HTTP'
     desiredsize = 1
-    path2ping = 'HTTP:8080/error/noindex.html'
+    path2ping = 'index.html'
 
 
 @with_setup(setup_resources())
