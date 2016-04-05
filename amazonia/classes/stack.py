@@ -15,6 +15,7 @@ class Stack(object):
         AWS CloudFormation -
          http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-instance.html
         Troposphere - https://github.com/cloudtools/troposphere/blob/master/troposphere/ec2.py
+        :param title: name of stack
         :param code_deploy_service_role: ARN to code deploy IAM role
         :param keypair: ssh keypair to be used throughout stack
         :param availability_zones: availability zones to use
