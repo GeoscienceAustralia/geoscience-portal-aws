@@ -50,12 +50,14 @@ class Stack(object):
                                                                              VpcId=Ref(self.vpc)))
         for az in self.availability_zones:
             self.private_subnets.append(Subnet(template=self.template,
+                                               stack_title=self.title,
                                                route_table=self.private_route_table,
                                                az=az,
                                                vpc=self.vpc,
                                                is_public=False,
                                                cidr=self.generate_subnet_cidr(is_public=False)).subnet)
             self.public_subnets.append(Subnet(template=self.template,
+                                              stack_title=self.title,
                                               route_table=self.public_route_table,
                                               az=az,
                                               vpc=self.vpc,
