@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-from troposphere import Ref, Template, ec2, Join
+from troposphere import Ref, Template, ec2
 
 from amazonia.classes.single_instance import SingleInstance
 from amazonia.classes.subnet import Subnet
