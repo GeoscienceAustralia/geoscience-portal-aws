@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-from troposphere import Ref, Template, ec2
+from troposphere import Ref, Template, ec2, Join
 
 from amazonia.classes.single_instance import SingleInstance
 from amazonia.classes.subnet import Subnet
@@ -15,7 +15,6 @@ class Stack(object):
         AWS CloudFormation -
          http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-instance.html
         Troposphere - https://github.com/cloudtools/troposphere/blob/master/troposphere/ec2.py
-        :param title: name of stack
         :param code_deploy_service_role: ARN to code deploy IAM role
         :param keypair: ssh keypair to be used throughout stack
         :param availability_zones: availability zones to use
@@ -28,7 +27,7 @@ class Stack(object):
          instance_type, userdata)
         """
         super(Stack, self).__init__()
-        self.title = kwargs['title']
+        self.title = Ref('AWS::StackName')
         self.template = Template()
         self.code_deploy_service_role = kwargs['code_deploy_service_role']
         self.keypair = kwargs['keypair']
@@ -39,15 +38,15 @@ class Stack(object):
         self.private_subnets = []
         self.public_subnets = []
 
-        self.vpc = self.template.add_resource(ec2.VPC(self.title + "Vpc", CidrBlock=self.vpc_cidr))
-        self.internet_gateway = self.template.add_resource(ec2.InternetGateway(title=self.title + "Ig"))
+        self.vpc = self.template.add_resource(ec2.VPC(Join('', [self.title, 'Vpc']), CidrBlock=self.vpc_cidr))
+        self.internet_gateway = self.template.add_resource(ec2.InternetGateway(title=Join('', [self.title, 'Ig'])))
         self.gateway_attachment = self.template.add_resource(
-            ec2.VPCGatewayAttachment(title=self.internet_gateway.title + "Atch",
+            ec2.VPCGatewayAttachment(title=Join('', [self.internet_gateway.title, 'Atch']),
                                      VpcId=Ref(self.vpc),
                                      InternetGatewayId=Ref(self.internet_gateway)))
-        self.public_route_table = self.template.add_resource(ec2.RouteTable(title=self.title + 'PubRt',
+        self.public_route_table = self.template.add_resource(ec2.RouteTable(title=Join('', [self.title, 'PubRt']),
                                                                             VpcId=Ref(self.vpc)))
-        self.private_route_table = self.template.add_resource(ec2.RouteTable(title=self.title + 'PriRt',
+        self.private_route_table = self.template.add_resource(ec2.RouteTable(title=Join('', [self.title, 'PriRt']),
                                                                              VpcId=Ref(self.vpc)))
         for az in self.availability_zones:
             self.private_subnets.append(Subnet(template=self.template,
@@ -65,7 +64,7 @@ class Stack(object):
                                               ).subnet)
 
         self.jump = SingleInstance(
-            title=self.title + 'jump',
+            title=Join('', [self.title, 'jump']),
             keypair=self.keypair,
             si_image_id=kwargs['jump_image_id'],
             si_instance_type=kwargs['jump_instance_type'],
@@ -75,7 +74,7 @@ class Stack(object):
         )
 
         self.nat = SingleInstance(
-            title=self.title + 'nat',
+            title=Join('', [self.title, 'nat']),
             keypair=self.keypair,
             si_image_id=kwargs['nat_image_id'],
             si_instance_type=kwargs['nat_instance_type'],
