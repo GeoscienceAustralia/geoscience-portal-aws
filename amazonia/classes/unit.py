@@ -52,16 +52,16 @@ class Unit(object):
             load_balancer=self.elb.elb,
             service_role_arn=kwargs['service_role_arn'],
         )
-        self.elb.add_flow(other=self.asg, protocol=kwargs['protocol'], port=kwargs['port'])
-        self.asg.add_flow(other=kwargs['nat'], protocol='HTTP', port='80')
-        self.asg.add_flow(other=kwargs['nat'], protocol='HTTPS', port='443')
-        kwargs['jump'].add_flow(other=self.asg, protocol='SSH', port='22')
+        self.elb.add_flow(other=self.asg, port=kwargs['port'])
+        self.asg.add_flow(other=kwargs['nat'], port='80')
+        self.asg.add_flow(other=kwargs['nat'], port='443')
+        kwargs['jump'].add_flow(other=self.asg, port='22')
 
-    def add_unit_flow(self, other, protocol, port):
+    def add_unit_flow(self, other, port):
         """
         Create security group flow from this Amazonia unit's ASG to another unit's ELB
         :param other: Other Amazonia Unit
         :param protocol: protocol for webserver and ELBto communicate via
         :param port: port for webserver and ELB to communicate via
         """
-        self.asg.add_flow(other=other.elb, protocol=protocol, port=port)
+        self.asg.add_flow(other=other.elb, port=port)

@@ -84,7 +84,7 @@ runcmd:
         jump=jump,
     )
 
-    unit1.add_unit_flow(other=unit2, protocol='HTTP', port='80')
+    unit1.add_unit_flow(other=unit2, port='80')
     print(template.to_json(indent=2, separators=(',', ': ')))
 
 

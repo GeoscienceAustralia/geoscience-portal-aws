@@ -21,7 +21,7 @@ class SecurityEnabledObject(object):
         self.ingress = []
         self.egress = []
 
-    def add_flow(self, other, port, protocol):
+    def add_flow(self, other, port):
         """
         A function that will add security group rules to 'other' from this SecurityEnabledObject.
         Including an incoming rule on the 'other' SecurityEnabledObject
@@ -29,10 +29,10 @@ class SecurityEnabledObject(object):
         :param port: Port to send, and receive traffic on
         :param protocol: Protocol to send, and receive traffic on
         """
-        other.add_ingress(self, port, protocol)
-        self.add_egress(other, port, protocol)
+        other.add_ingress(self, port)
+        self.add_egress(other, port)
 
-    def add_ingress(self, other, port, protocol):
+    def add_ingress(self, other, port):
         """
         Add an ingress rule to this SecurityEnabledObject
         Creates a Troposphere SecurityGroupIngress object
@@ -45,14 +45,14 @@ class SecurityEnabledObject(object):
         name = self.title + port + "From" + other.title + port
         self.ingress.append(self.template.add_resource(ec2.SecurityGroupIngress(
             name,
-            IpProtocol=protocol,
+            IpProtocol='tcp',
             FromPort=port,
             ToPort=port,
             GroupId=Ref(self.security_group),
             SourceSecurityGroupId=GetAtt(other.security_group.title, "GroupId")
             )))
 
-    def add_egress(self, other, port, protocol):
+    def add_egress(self, other, port):
         """
         Add an egress rule to this SecurityEnabledObject
         Creates a Troposphere SecurityGroupEgress object
@@ -65,7 +65,7 @@ class SecurityEnabledObject(object):
         name = self.title + port + "To" + other.title + port
         self.egress.append(self.template.add_resource(ec2.SecurityGroupEgress(
             name,
-            IpProtocol=protocol,
+            IpProtocol='tcp',
             FromPort=port,
             ToPort=port,
             GroupId=Ref(self.security_group),
