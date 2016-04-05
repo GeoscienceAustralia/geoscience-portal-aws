@@ -31,7 +31,7 @@ def test_add_flow():
     myobj = SecurityEnabledObject(title="Unit01Web", vpc=myvpc, template=template)
     otherobj = SecurityEnabledObject(title="Unit02Web", vpc=myvpc, template=template)
 
-    myobj.add_flow(otherobj, '80', 'tcp')
+    myobj.add_flow(otherobj, '80')
 
     assert_equals(otherobj.ingress[0].title, "Unit02Web80FromUnit01Web80")
     assert_equals(otherobj.ingress[0].IpProtocol, "tcp")
@@ -50,7 +50,7 @@ def test_add_ingress():
     myobj = SecurityEnabledObject(title="Unit01Web", vpc=myvpc, template=template)
     otherobj = SecurityEnabledObject(title="Unit02Web", vpc=myvpc, template=template)
 
-    myobj.add_ingress(otherobj, '80', "tcp")
+    myobj.add_ingress(otherobj, '80')
 
     assert_equals(myobj.ingress[0].title, "Unit01Web80FromUnit02Web80")
     assert_equals(myobj.ingress[0].IpProtocol, "tcp")
@@ -64,7 +64,7 @@ def test_add_egress():
     myobj = SecurityEnabledObject(title="Unit01Web", vpc=myvpc, template=template)
     otherobj = SecurityEnabledObject(title="Unit02Web", vpc=myvpc, template=template)
 
-    myobj.add_egress(otherobj, "80", "tcp")
+    myobj.add_egress(otherobj, "80")
 
     assert_equals(myobj.egress[0].title, "Unit01Web80ToUnit02Web80")
     assert_equals(myobj.egress[0].IpProtocol, "tcp")
