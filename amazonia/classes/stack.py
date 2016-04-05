@@ -96,3 +96,21 @@ class Stack(object):
                                    nat=self.nat,
                                    jump=self.jump,
                                    ))
+
+
+    def generate_subnet_cidr(self, is_public):
+        """
+        Function to help create Class C subnet CIDRs from Class A VPC CIDRs
+        :param stack: Stack template object
+        :param pub_or_pri: boolean for public or private subnet determined by route table
+        :return: Subnet CIDR based on Public or Private and previous subnets created e.g. 10.1.2.0/24 or 10.0.1.0/24
+        """
+        # 3rd Octect: Obtain length of pub or pri subnet list
+        octect_3 = len(self.public_subnets) if is_public else len(self.private_subnets) + 100
+        cidr_split = self.vpc.CidrBlock.split('.')  # separate VPC CIDR for renaming
+        cidr_split[2] = str(octect_3)  # set 3rd octect based on public or private
+        cidr_last = cidr_split[3].split('/')  # split last group to change subnet mask
+        cidr_last[1] = '24'  # set subnet mask
+        cidr_split[3] = '/'.join(cidr_last)  # join last group for subnet mask
+
+        return '.'.join(cidr_split)
