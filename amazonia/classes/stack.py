@@ -38,15 +38,15 @@ class Stack(object):
         self.private_subnets = []
         self.public_subnets = []
 
-        self.vpc = self.template.add_resource(ec2.VPC(Join('', [self.title, 'Vpc']), CidrBlock=self.vpc_cidr))
-        self.internet_gateway = self.template.add_resource(ec2.InternetGateway(title=Join('', [self.title, 'Ig'])))
+        self.vpc = self.template.add_resource(ec2.VPC(self.title + 'Vpc', CidrBlock=self.vpc_cidr))
+        self.internet_gateway = self.template.add_resource(ec2.InternetGateway(self.title + 'Ig'))
         self.gateway_attachment = self.template.add_resource(
-            ec2.VPCGatewayAttachment(title=Join('', [self.internet_gateway.title, 'Atch']),
+            ec2.VPCGatewayAttachment(self.internet_gateway.title + 'Atch',
                                      VpcId=Ref(self.vpc),
                                      InternetGatewayId=Ref(self.internet_gateway)))
-        self.public_route_table = self.template.add_resource(ec2.RouteTable(title=Join('', [self.title, 'PubRt']),
+        self.public_route_table = self.template.add_resource(ec2.RouteTable(self.title + 'PubRt',
                                                                             VpcId=Ref(self.vpc)))
-        self.private_route_table = self.template.add_resource(ec2.RouteTable(title=Join('', [self.title, 'PriRt']),
+        self.private_route_table = self.template.add_resource(ec2.RouteTable(self.title + 'PriRt',
                                                                              VpcId=Ref(self.vpc)))
         for az in self.availability_zones:
             self.private_subnets.append(Subnet(template=self.template,
@@ -64,7 +64,7 @@ class Stack(object):
                                               ).subnet)
 
         self.jump = SingleInstance(
-            title=Join('', [self.title, 'jump']),
+            title=self.title + 'jump',
             keypair=self.keypair,
             si_image_id=kwargs['jump_image_id'],
             si_instance_type=kwargs['jump_instance_type'],
@@ -74,7 +74,7 @@ class Stack(object):
         )
 
         self.nat = SingleInstance(
-            title=Join('', [self.title, 'nat']),
+            title=self.title + 'nat',
             keypair=self.keypair,
             si_image_id=kwargs['nat_image_id'],
             si_instance_type=kwargs['nat_instance_type'],
