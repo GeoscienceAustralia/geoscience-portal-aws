@@ -1,90 +1,121 @@
 #!/usr/bin/python3
 
-from troposphere import Template, ec2, Tags
-from amazonia.classes.subnet import Subnet
+from troposphere import Ref, Template, ec2
+
 from amazonia.classes.single_instance import SingleInstance
+from amazonia.classes.subnet import Subnet
+from amazonia.classes.unit import Unit
 
 
-class Stack(Template):
-    def __init__(self, invpc='', keypair_nat='', keypair_jump='', title=''):  # TODO confirm kwargs to be passed in
-        """ Public Class to create a Triple AZ environment in a vpc """
+class Stack(object):
+    def __init__(self, **kwargs):
+        """
+        Create a vpc, nat, jumphost, internet gateway, public/private route tables, public/private subnets
+         and collection of Amazonia units
+        AWS CloudFormation -
+         http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-instance.html
+        Troposphere - https://github.com/cloudtools/troposphere/blob/master/troposphere/ec2.py
+        :param title: name of stack
+        :param code_deploy_service_role: ARN to code deploy IAM role
+        :param keypair: ssh keypair to be used throughout stack
+        :param availability_zones: availability zones to use
+        :param vpc_cidr: cidr pattern for vpc
+        :param jump_image_id: AMI for jumphost
+        :param jump_instance_type: instance type for jumphost
+        :param nat_image_id: AMI for nat
+        :param nat_instance_type: instance type for nat
+        :param units: list of unit dicts (title, protocol, port, path2ping, minsize, maxsize, image_id,
+         instance_type, userdata)
+        """
         super(Stack, self).__init__()
-        self.title = title  # title of unit
-        vpc_cidr = '10.0.0.0/24'   # TODO Change VPC_CIDR to CIDR generator
-        availability_zones = ['ap-southeast-2a', 'ap-southeast-2b', 'ap-southeast-2c']  # TODO read in AZ list from yaml
+        self.title = kwargs['title']
+        self.template = Template()
+        self.code_deploy_service_role = kwargs['code_deploy_service_role']
+        self.keypair = kwargs['keypair']
+        self.availability_zones = kwargs['availability_zones']
+        self.vpc_cidr = kwargs['vpc_cidr']
 
-        if invpc == "":
-            self.vpc = add_vpc(self, vpc_cidr)
-        else:
-            self.vpc = invpc
+        self.units = []
+        self.private_subnets = []
+        self.public_subnets = []
 
+        self.vpc = self.template.add_resource(ec2.VPC(self.title + "Vpc", CidrBlock=self.vpc_cidr))
+        self.internet_gateway = self.template.add_resource(ec2.InternetGateway(title=self.title + "Ig"))
+        self.gateway_attachment = self.template.add_resource(
+            ec2.VPCGatewayAttachment(title=self.internet_gateway.title + "Atch",
+                                     VpcId=Ref(self.vpc),
+                                     InternetGatewayId=Ref(self.internet_gateway)))
+        self.public_route_table = self.template.add_resource(ec2.RouteTable(title=self.title + 'PubRt',
+                                                                            VpcId=Ref(self.vpc)))
+        self.private_route_table = self.template.add_resource(ec2.RouteTable(title=self.title + 'PriRt',
+                                                                             VpcId=Ref(self.vpc)))
+        for az in self.availability_zones:
+            self.private_subnets.append(Subnet(template=self.template,
+                                               route_table=self.private_route_table,
+                                               az=az,
+                                               vpc=self.vpc,
+                                               is_public=False,
+                                               cidr=self.generate_subnet_cidr(is_public=False)).subnet)
+            self.public_subnets.append(Subnet(template=self.template,
+                                              route_table=self.public_route_table,
+                                              az=az,
+                                              vpc=self.vpc,
+                                              is_public=True,
+                                              cidr=self.generate_subnet_cidr(is_public=True)
+                                              ).subnet)
+
+        self.jump = SingleInstance(
+            title=self.title + 'jump',
+            keypair=self.keypair,
+            si_image_id=kwargs['jump_image_id'],
+            si_instance_type=kwargs['jump_instance_type'],
+            subnet=self.public_subnets[0],
+            vpc=self.vpc,
+            template=self.template
+        )
+
+        self.nat = SingleInstance(
+            title=self.title + 'nat',
+            keypair=self.keypair,
+            si_image_id=kwargs['nat_image_id'],
+            si_instance_type=kwargs['nat_instance_type'],
+            subnet=self.public_subnets[0],
+            vpc=self.vpc,
+            template=self.template
+        )
+
+        for unit in kwargs['units']:
+            self.units.append(Unit(title=unit['title'],
+                                   vpc=self.vpc,
+                                   template=self.template,
+                                   protocol=unit['protocol'],
+                                   port=unit['port'],
+                                   path2ping=unit['path2ping'],
+                                   public_subnets=self.public_subnets,
+                                   private_subnets=self.private_subnets,
+                                   minsize=unit['minsize'],
+                                   maxsize=unit['maxsize'],
+                                   keypair=self.keypair,
+                                   image_id=unit['image_id'],
+                                   instance_type=unit['instance_type'],
+                                   userdata=unit['userdata'],
+                                   service_role_arn=self.code_deploy_service_role,
+                                   nat=self.nat,
+                                   jump=self.jump,
+                                   ))
+
+    def generate_subnet_cidr(self, is_public):
         """
-        Create Internet Gateway
-        AWS CloudFormation - http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-internet-gateway.html
-        Troposphere - https://github.com/cloudtools/troposphere/blob/master/troposphere/ec2.py
+        Function to help create Class C subnet CIDRs from Class A VPC CIDRs
+        :param is_public: boolean for public or private subnet determined by route table
+        :return: Subnet CIDR based on Public or Private and previous subnets created e.g. 10.1.2.0/24 or 10.0.1.0/24
         """
-        # TODO Internet Gateway Unit Tests: validate that internet_gateway=internet_gateway_attachment.InternetGatewayId
-        # TODO Internet Gateway Sys Tests: Connect from instance to internet site
-        self.internet_gateway = add_internet_gateway(self)  # TODO rewrite internetgateway
-        self.internet_gateway_attachment = add_internet_gateway_attachment(self, self.vpc, self.internet_gateway)
+        # 3rd Octect: Obtain length of pub or pri subnet list
+        octect_3 = len(self.public_subnets) if is_public else len(self.private_subnets) + 100
+        cidr_split = self.vpc.CidrBlock.split('.')  # separate VPC CIDR for renaming
+        cidr_split[2] = str(octect_3)  # set 3rd octect based on public or private
+        cidr_last = cidr_split[3].split('/')  # split last group to change subnet mask
+        cidr_last[1] = '24'  # set subnet mask
+        cidr_split[3] = '/'.join(cidr_last)  # join last group for subnet mask
 
-        """
-        Create Route Tables
-        AWS CloudFormation - http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-route-table.html
-        Troposphere - https://github.com/cloudtools/troposphere/blob/master/troposphere/ec2.py
-        """
-        self.pub_route_table = self.add_resource(ec2.RouteTable('{0}PublicRouteTable'.format(self.title),
-                                                                VpcId=self.vpc,
-                                                                Tags=Tags(
-                                                                    Name='{0}PublicRouteTable'.format(self.title))))
-
-        self.pri_route_table = self.add_resource(ec2.RouteTable('{0}PrivateRouteTable'.format(self.title),
-                                                                VpcId=self.vpc,
-                                                                Tags=Tags(
-                                                                    Name='{0}PrivateRouteTable'.format(self.title)
-                                                                )))
-
-        """ Create Subnets
-        """
-
-        self.pri_sub_list = []
-        self.pub_sub_list = []
-        pub_pri_sub_lists = [self.pri_sub_list, self.pub_sub_list]
-
-        for sub_list in pub_pri_sub_lists:
-            for az in availability_zones:
-                sub_list.append(Subnet(stack=self,
-                                       internet_gateway=self.internet_gateway,
-                                       route_table=self.get_route_table(sub_list),
-                                       availability_zone=az,
-                                       cidr=vpc_cidr))
-
-        # TODO Rewrite -add_route_ingress_via_gateway(self, self.public_route_table, self.internet_gateway, PUBLIC_CIDR)
-
-        """ Create NAT and Jumpbox
-        """
-        self.nat = SingleInstance(stack=self, subnet=self.pub_sub_list[0], keypair=keypair_nat)
-        self.jump = SingleInstance(stack=self, subnet=self.pub_sub_list[0], keypair=keypair_jump)
-
-        """ Create Private Subnets
-        """
-
-        for sub_num in range(az, 2*az):
-                self.pri_sub_list.append(Subnet(stack=self,
-                                                route_table=self.private_route_table,
-                                                nat=self.nat,
-                                                cidr=self.cidr_mgt(vpc_cidr, sub_num)))
-
-        # TODO Rewrite - add_route_egress_via_NAT(stack, self.private_route_table, self.nat)
-
-        """ Create Unit
-        """
-        # read in yaml['units']
-        for unit in units:
-            Unit(**kwargs)
-
-    def get_route_table(self, sub_list):  # TODO Write unit test for get_route_table
-        if sub_list == self.pub_sub_list:
-            return self.pub_route_table
-        else:
-            return self.pri_route_table
+        return '.'.join(cidr_split)

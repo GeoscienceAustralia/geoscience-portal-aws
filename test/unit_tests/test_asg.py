@@ -92,5 +92,5 @@ def create_asg(**kwargs):
               load_balancer=load_balancer,
               userdata=userdata,
               service_role_arn='instance-iam-role-InstanceProfile-OGL42SZSIQRK',
-              stack=template)
+              template=template)
     return asg

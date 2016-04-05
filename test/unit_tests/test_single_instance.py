@@ -20,7 +20,7 @@ def test_nat_single_instance():
         print('SourceDestCheck='.format(si_sdc))
         assert_equals(si_sdc, 'false')
 
-        sio = si.stack.outputs[title].Description
+        sio = si.template.outputs[title].Description
         print(sio)
         assert_in('PrivateIp', sio)
 
@@ -40,7 +40,7 @@ def test_not_nat_single_instance():
         print('SourceDestCheck='.format(si_sdc))
         assert_equals(si_sdc, 'true')
 
-        sio = si.stack.outputs[title].Description
+        sio = si.template.outputs[title].Description
         print(sio)
         assert_in('PublicIp', sio)
 
@@ -60,5 +60,5 @@ def create_si(title):
                         si_instance_type='t2.nano',
                         vpc=vpc,
                         subnet=subnet,
-                        stack=template)
+                        template=template)
     return si

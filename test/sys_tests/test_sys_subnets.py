@@ -5,39 +5,63 @@ from troposphere import ec2, Ref, Template
 
 
 def main():
-    stack = Template()
+    template = Template()
     az_a = 'ap-southeast-2a'
     az_b = 'ap-southeast-2b'
     az_c = 'ap-southeast-2c'
-    stack.pri_sub_list = []
-    stack.pub_sub_list = []
 
-    stack.vpc = stack.add_resource(ec2.VPC('MyVPC',
-                                           CidrBlock='10.0.0.0/16'))
-    stack.pub_route_table = stack.add_resource(ec2.RouteTable('MyUnitPublicRouteTable',
-                                                              VpcId=Ref(stack.vpc)))
-    stack.pri_route_table = stack.add_resource(ec2.RouteTable('MyUnitPrivateRouteTable',
-                                                              VpcId=Ref(stack.vpc)))
+    private_subnets = []
+    public_subnets = []
 
-    pubsubnet1 = stack.pub_sub_list.append(Subnet(stack=stack,
-                                                  route_table=stack.pub_route_table,
-                                                  az=az_a))
-    pubsubnet2 = stack.pub_sub_list.append(Subnet(stack=stack,
-                                                  route_table=stack.pub_route_table,
-                                                  az=az_b))
-    pubsubnet3 = stack.pub_sub_list.append(Subnet(stack=stack,
-                                                  route_table=stack.pub_route_table,
-                                                  az=az_c))
-    prisubnet1 = stack.pri_sub_list.append(Subnet(stack=stack,
-                                                  route_table=stack.pri_route_table,
-                                                  az=az_a))
-    prisubnet2 = stack.pri_sub_list.append(Subnet(stack=stack,
-                                                  route_table=stack.pri_route_table,
-                                                  az=az_b))
-    prisubnet3 = stack.pri_sub_list.append(Subnet(stack=stack,
-                                                  route_table=stack.pri_route_table,
-                                                  az=az_c))
+    vpc = template.add_resource(ec2.VPC('MyVPC',
+                                        CidrBlock='10.0.0.0/16'))
+    public_route_table = template.add_resource(ec2.RouteTable('MyUnitPublicRouteTable',
+                                                              VpcId=Ref(vpc)))
+    private_route_table = template.add_resource(ec2.RouteTable('MyUnitPrivateRouteTable',
+                                                               VpcId=Ref(vpc)))
 
-    print(stack.to_json(indent=2, separators=(',', ': ')))
+    public_subnets.append(Subnet(template=template,
+                                 route_table=public_route_table,
+                                 az=az_a,
+                                 cidr='10.0.1.0/24',
+                                 vpc=vpc,
+                                 is_public=True))
+    public_subnets.append(Subnet(template=template,
+                                 route_table=public_route_table,
+                                 az=az_b,
+                                 cidr='10.0.2.0/24',
+                                 vpc=vpc,
+                                 is_public=True))
+    public_subnets.append(Subnet(template=template,
+                                 route_table=public_route_table,
+                                 az=az_c,
+                                 cidr='10.0.3.0/24',
+                                 vpc=vpc,
+                                 is_public=True))
+    private_subnets.append(Subnet(template=template,
+                                  route_table=private_route_table,
+                                  az=az_a,
+                                  cidr='10.0.101.0/24',
+                                  vpc=vpc,
+                                  is_public=False
+                                  ))
+    private_subnets.append(Subnet(template=template,
+                                  route_table=private_route_table,
+                                  az=az_b,
+                                  cidr='10.0.102.0/24',
+                                  vpc=vpc,
+                                  is_public=False
+                                  ))
+    private_subnets.append(Subnet(template=template,
+                                  route_table=private_route_table,
+                                  az=az_c,
+                                  cidr='10.0.103.0/24',
+                                  vpc=vpc,
+                                  is_public=False
+                                  ))
+
+    print(template.to_json(indent=2, separators=(',', ': ')))
+
+
 if __name__ == "__main__":
     main()

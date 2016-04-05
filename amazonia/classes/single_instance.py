@@ -18,9 +18,9 @@ class SingleInstance(SecurityEnabledObject):
         :param subnet: Troposhere object for subnet created e.g. 'sub_pub1'
         """
 
-        super(SingleInstance, self).__init__(vpc=kwargs['vpc'], title=kwargs['title'], stack=kwargs['stack'])
+        super(SingleInstance, self).__init__(vpc=kwargs['vpc'], title=kwargs['title'], template=kwargs['template'])
 
-        self.single = self.stack.add_resource(
+        self.single = self.template.add_resource(
                            ec2.Instance(
                                kwargs['title'],
                                KeyName=kwargs['keypair'],
@@ -55,7 +55,7 @@ class SingleInstance(SecurityEnabledObject):
         else:
             net_interface = "PublicIp"
 
-        self.stack.add_output(
+        self.template.add_output(
              Output(
                  self.single.title,
                  Description='{0} address of {1} single instance'.format(net_interface, self.single.title),
