@@ -39,24 +39,26 @@ class Stack(object):
         self.private_subnets = []
         self.public_subnets = []
 
-        self.vpc = self.template.add_resource(ec2.VPC(self.title + "Vpc", CidrBlock=self.vpc_cidr))
-        self.internet_gateway = self.template.add_resource(ec2.InternetGateway(title=self.title + "Ig"))
+        self.vpc = self.template.add_resource(ec2.VPC(self.title + 'Vpc', CidrBlock=self.vpc_cidr))
+        self.internet_gateway = self.template.add_resource(ec2.InternetGateway(self.title + 'Ig'))
         self.gateway_attachment = self.template.add_resource(
-            ec2.VPCGatewayAttachment(title=self.internet_gateway.title + "Atch",
+            ec2.VPCGatewayAttachment(self.internet_gateway.title + 'Atch',
                                      VpcId=Ref(self.vpc),
                                      InternetGatewayId=Ref(self.internet_gateway)))
-        self.public_route_table = self.template.add_resource(ec2.RouteTable(title=self.title + 'PubRt',
+        self.public_route_table = self.template.add_resource(ec2.RouteTable(self.title + 'PubRt',
                                                                             VpcId=Ref(self.vpc)))
-        self.private_route_table = self.template.add_resource(ec2.RouteTable(title=self.title + 'PriRt',
+        self.private_route_table = self.template.add_resource(ec2.RouteTable(self.title + 'PriRt',
                                                                              VpcId=Ref(self.vpc)))
         for az in self.availability_zones:
             self.private_subnets.append(Subnet(template=self.template,
+                                               stack_title=self.title,
                                                route_table=self.private_route_table,
                                                az=az,
                                                vpc=self.vpc,
                                                is_public=False,
                                                cidr=self.generate_subnet_cidr(is_public=False)).subnet)
             self.public_subnets.append(Subnet(template=self.template,
+                                              stack_title=self.title,
                                               route_table=self.public_route_table,
                                               az=az,
                                               vpc=self.vpc,
@@ -65,7 +67,7 @@ class Stack(object):
                                               ).subnet)
 
         self.jump = SingleInstance(
-            title=self.title + 'jump',
+            title=self.title + 'Jump',
             keypair=self.keypair,
             si_image_id=kwargs['jump_image_id'],
             si_instance_type=kwargs['jump_instance_type'],
@@ -75,7 +77,7 @@ class Stack(object):
         )
 
         self.nat = SingleInstance(
-            title=self.title + 'nat',
+            title=self.title + 'Nat',
             keypair=self.keypair,
             si_image_id=kwargs['nat_image_id'],
             si_instance_type=kwargs['nat_instance_type'],
@@ -85,7 +87,7 @@ class Stack(object):
         )
 
         for unit in kwargs['units']:
-            self.units.append(Unit(title=unit['title'],
+            self.units.append(Unit(title=self.title + unit['title'],
                                    vpc=self.vpc,
                                    template=self.template,
                                    protocol=unit['protocol'],
