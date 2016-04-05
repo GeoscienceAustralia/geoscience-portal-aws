@@ -22,9 +22,9 @@ class Elb(SecurityEnabledObject):
 
         """
         self.title = kwargs['title'] + 'Elb'
-        super(Elb, self).__init__(vpc=kwargs['vpc'], title=self.title, stack=kwargs['stack'])
+        super(Elb, self).__init__(vpc=kwargs['vpc'], title=self.title, template=kwargs['template'])
 
-        self.elb = self.stack.template.add_resource(
+        self.elb = self.template.add_resource(
                     elb.LoadBalancer(self.title,
                                      CrossZone=True,
                                      HealthCheck=elb.HealthCheck(Target='{0}:{1}/{2}'.format(kwargs['protocol'].upper(),
@@ -40,10 +40,10 @@ class Elb(SecurityEnabledObject):
                                                              InstanceProtocol=kwargs['protocol'].upper())],
                                      Scheme='internet-facing',
                                      SecurityGroups=[Ref(self.security_group)],
-                                     Subnets=[Ref(x.subnet) for x in kwargs['subnets']],
+                                     Subnets=[Ref(x) for x in kwargs['subnets']],
                                      Tags=Tags(Name=self.title)))
 
-        self.stack.template.add_output(Output(
+        self.template.add_output(Output(
             self.elb.title,
             Description='URL of the {0} website'.format(self.elb.title),
             Value=Join('', ['http://', GetAtt(self.elb, 'DNSName')])

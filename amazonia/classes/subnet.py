@@ -24,8 +24,7 @@ class Subnet(object):
 
         """ Create Subnet
         """
-        subnet_title = '{0}Subnet{1}'.format(self.pub_or_pri,
-                                             kwargs['az'][-1:].upper())
+        subnet_title = self.pub_or_pri + 'Subnet' + kwargs['az'][-1:].upper()
         self.subnet = self.template.add_resource(ec2.Subnet(subnet_title,
                                                             AvailabilityZone=kwargs['az'],
                                                             VpcId=Ref(self.vpc),

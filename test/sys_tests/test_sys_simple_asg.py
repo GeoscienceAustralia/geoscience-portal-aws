@@ -40,21 +40,21 @@ runcmd:
                                      Subnets=[subnet])
 
     template = Template()
-    asg = Asg(title='simple',
-              keypair='pipeline',
-              image_id='ami-893f53b3',
-              instance_type='t2.nano',
-              vpc=vpc,
-              subnets=[subnet],
-              availability_zones=['ap-southeast-2a'],
-              minsize=1,
-              maxsize=1,
-              load_balancer=load_balancer,
-              userdata=userdata,
-              service_role_arn='instance-iam-role-InstanceProfile-OGL42SZSIQRK',
-              stack=template)
+    Asg(title='simple',
+        keypair='pipeline',
+        image_id='ami-893f53b3',
+        instance_type='t2.nano',
+        vpc=vpc,
+        subnets=[subnet],
+        availability_zones=['ap-southeast-2a'],
+        minsize=1,
+        maxsize=1,
+        load_balancer=load_balancer,
+        userdata=userdata,
+        service_role_arn='instance-iam-role-InstanceProfile-OGL42SZSIQRK',
+        template=template)
 
-    print(asg.stack.to_json(indent=2, separators=(',', ': ')))
+    print(template.to_json(indent=2, separators=(',', ': ')))
 
 
 if __name__ == '__main__':

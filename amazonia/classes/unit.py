@@ -28,11 +28,11 @@ class Unit(object):
         :param jump: jump instance for inbound ssh
         """
         super(Unit, self).__init__()
-        self.stack = kwargs['stack']
+        self.template = kwargs['template']
         self.elb = Elb(
             vpc=kwargs['vpc'],
             title=kwargs['title'],
-            stack=self.stack,
+            template=self.template,
             protocol=kwargs['protocol'],
             port=kwargs['port'],
             path2ping=kwargs['path2ping'],
@@ -41,7 +41,7 @@ class Unit(object):
         self.asg = Asg(
             vpc=kwargs['vpc'],
             title=kwargs['title'],
-            stack=self.stack,
+            template=self.template,
             subnets=kwargs['private_subnets'],
             minsize=kwargs['minsize'],
             maxsize=kwargs['maxsize'],

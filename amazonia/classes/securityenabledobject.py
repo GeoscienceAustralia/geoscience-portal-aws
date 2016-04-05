@@ -15,7 +15,7 @@ class SecurityEnabledObject(object):
 
         super(SecurityEnabledObject, self).__init__()
 
-        self.stack = kwargs['stack']
+        self.template = kwargs['template']
         self.title = kwargs['title']
         self.security_group = self.create_security_group(kwargs['vpc'])
         self.ingress = []
@@ -43,7 +43,7 @@ class SecurityEnabledObject(object):
         :param protocol: Protocol to send, and receive traffic on
         """
         name = self.title + port + "From" + other.title + port
-        self.ingress.append(self.stack.template.add_resource(ec2.SecurityGroupIngress(
+        self.ingress.append(self.template.add_resource(ec2.SecurityGroupIngress(
             name,
             IpProtocol=protocol,
             FromPort=port,
@@ -63,7 +63,7 @@ class SecurityEnabledObject(object):
         :param protocol: Protocol to send, and receive traffic on
         """
         name = self.title + port + "To" + other.title + port
-        self.egress.append(self.stack.template.add_resource(ec2.SecurityGroupEgress(
+        self.egress.append(self.template.add_resource(ec2.SecurityGroupEgress(
             name,
             IpProtocol=protocol,
             FromPort=port,
@@ -82,7 +82,7 @@ class SecurityEnabledObject(object):
         :return: The security group for this SecurityEnabledObject
         """
         name = self.title + "Sg"
-        return self.stack.template.add_resource(
+        return self.template.add_resource(
                     ec2.SecurityGroup(
                         name,
                         GroupDescription="Security group",

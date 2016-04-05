@@ -50,12 +50,19 @@ class Stack(object):
         self.private_route_table = self.template.add_resource(ec2.RouteTable(title=self.title + 'PriRt',
                                                                              VpcId=Ref(self.vpc)))
         for az in self.availability_zones:
-            self.private_subnets.append(Subnet(stack=self,
+            self.private_subnets.append(Subnet(template=self.template,
                                                route_table=self.private_route_table,
-                                               az=az))
-            self.public_subnets.append(Subnet(stack=self,
+                                               az=az,
+                                               vpc=self.vpc,
+                                               is_public=False,
+                                               cidr=self.generate_subnet_cidr(is_public=False)).subnet)
+            self.public_subnets.append(Subnet(template=self.template,
                                               route_table=self.public_route_table,
-                                              az=az))
+                                              az=az,
+                                              vpc=self.vpc,
+                                              is_public=True,
+                                              cidr=self.generate_subnet_cidr(is_public=True)
+                                              ).subnet)
 
         self.jump = SingleInstance(
             title=self.title + 'jump',
@@ -64,7 +71,7 @@ class Stack(object):
             si_instance_type=kwargs['jump_instance_type'],
             subnet=self.public_subnets[0],
             vpc=self.vpc,
-            stack=self
+            template=self.template
         )
 
         self.nat = SingleInstance(
@@ -74,13 +81,13 @@ class Stack(object):
             si_instance_type=kwargs['nat_instance_type'],
             subnet=self.public_subnets[0],
             vpc=self.vpc,
-            stack=self
+            template=self.template
         )
 
         for unit in kwargs['units']:
             self.units.append(Unit(title=unit['title'],
                                    vpc=self.vpc,
-                                   stack=self,
+                                   template=self.template,
                                    protocol=unit['protocol'],
                                    port=unit['port'],
                                    path2ping=unit['path2ping'],
@@ -97,12 +104,10 @@ class Stack(object):
                                    jump=self.jump,
                                    ))
 
-
     def generate_subnet_cidr(self, is_public):
         """
         Function to help create Class C subnet CIDRs from Class A VPC CIDRs
-        :param stack: Stack template object
-        :param pub_or_pri: boolean for public or private subnet determined by route table
+        :param is_public: boolean for public or private subnet determined by route table
         :return: Subnet CIDR based on Public or Private and previous subnets created e.g. 10.1.2.0/24 or 10.0.1.0/24
         """
         # 3rd Octect: Obtain length of pub or pri subnet list
