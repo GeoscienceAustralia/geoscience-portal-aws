@@ -57,6 +57,7 @@ def test_asg():
         assert_equals(asg.asg.MinSize, 1)
         assert_equals(asg.asg.MaxSize, 1)
         [assert_is(type(subnet_id), Ref) for subnet_id in asg.asg.VPCZoneIdentifier]
+        assert_is(type(asg.asg.LaunchConfigurationName), Ref)
         assert_equals(asg.asg.AvailabilityZones, ['ap-southeast-2a'])
         assert_equals(asg.asg.LoadBalancerNames, ['testElb'])
         assert_equals(asg.asg.HealthCheckType, 'ELB')
