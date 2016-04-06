@@ -74,7 +74,7 @@ class Stack(object):
                                               cidr=self.generate_subnet_cidr(is_public=True)
                                               ).subnet)
 
-        """ Add Jumpbox and NAT
+        """ Add Jumpbox and NAT and associated security group ingress and egress rules
         """
         self.jump = SingleInstance(
             title=self.title + 'Jump',
@@ -85,6 +85,8 @@ class Stack(object):
             vpc=self.vpc,
             template=self.template
         )
+        self.jump.add_si_ingress(other='124.47.132.132/32', port='22')
+        self.jump.add_si_ingress(other='192.104.44.0/22', port='22')
 
         self.nat = SingleInstance(
             title=self.title + 'Nat',
@@ -95,6 +97,8 @@ class Stack(object):
             vpc=self.vpc,
             template=self.template
         )
+        self.nat.add_si_egress(other='0.0.0.0/0', port='80')
+        self.nat.add_si_egress(other='0.0.0.0/0', port='443')
 
         """ Add Routes
         """

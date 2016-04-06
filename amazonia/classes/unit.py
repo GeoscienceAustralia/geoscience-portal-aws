@@ -53,8 +53,8 @@ class Unit(object):
             service_role_arn=kwargs['service_role_arn'],
         )
         self.elb.add_flow(other=self.asg, port=kwargs['port'])
-        self.asg.add_flow(other=kwargs['nat'], port='80')
-        self.asg.add_flow(other=kwargs['nat'], port='443')
+        self.asg.add_flow(other=kwargs['nat'], port='80')  # TODO Do we need for this for asg to nat to internet??
+        self.asg.add_flow(other=kwargs['nat'], port='443')  # TODO ditto
         kwargs['jump'].add_flow(other=self.asg, port='22')
 
     def add_unit_flow(self, other, port):
