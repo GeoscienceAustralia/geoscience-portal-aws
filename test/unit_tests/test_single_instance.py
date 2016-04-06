@@ -31,7 +31,7 @@ def test_not_nat_single_instance():
     to be disabled and the PrivateIp to be displayed in the output.
     :return: Pass
     """
-    jump_titles = ['jump', 'Jump', '2Jump', 'other', 'natjump']
+    jump_titles = ['jump', 'Jump', '2Jump', 'other', 'natjump', 'testStackJump']
 
     for title in jump_titles:
         si = create_si(title)
