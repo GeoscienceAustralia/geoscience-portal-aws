@@ -53,6 +53,26 @@ class SecurityEnabledObject(object):
             SourceSecurityGroupId=GetAtt(other.security_group.title, 'GroupId')
             )))
 
+    def add_egress(self, other, port):
+        """
+        Add an egress rule to this SecurityEnabledObject
+        Creates a Troposphere SecurityGroupEgress object
+        AWS Cloud Formation: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-security-group-egress.html
+        Troposphere link: https://github.com/cloudtools/troposphere/blob/master/troposphere/ec2.py
+        :param other: The SecurityEnabledObject that will be sending traffic to this SecurityEnabledObject
+        :param port: Port to send, and receive traffic on
+        :param protocol: Protocol to send, and receive traffic on
+        """
+        name = self.title + port + 'To' + other.title + port
+        self.egress.append(self.template.add_resource(ec2.SecurityGroupEgress(
+            name,
+            IpProtocol='tcp',
+            FromPort=port,
+            ToPort=port,
+            GroupId=Ref(self.security_group),
+            DestinationSecurityGroupId=GetAtt(other.security_group.title, 'GroupId')
+            )))
+
     def add_si_ingress(self, other, port):
         """
         Add an ingress rule for Jumpboxes to this SecurityEnabledObject
@@ -90,26 +110,6 @@ class SecurityEnabledObject(object):
             GroupId=Ref(self.security_group),
             CidrIp=other
         )))
-
-    def add_egress(self, other, port):
-        """
-        Add an egress rule to this SecurityEnabledObject
-        Creates a Troposphere SecurityGroupEgress object
-        AWS Cloud Formation: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-security-group-egress.html
-        Troposphere link: https://github.com/cloudtools/troposphere/blob/master/troposphere/ec2.py
-        :param other: The SecurityEnabledObject that will be sending traffic to this SecurityEnabledObject
-        :param port: Port to send, and receive traffic on
-        :param protocol: Protocol to send, and receive traffic on
-        """
-        name = self.title + port + 'To' + other.title + port
-        self.egress.append(self.template.add_resource(ec2.SecurityGroupEgress(
-            name,
-            IpProtocol='tcp',
-            FromPort=port,
-            ToPort=port,
-            GroupId=Ref(self.security_group),
-            DestinationSecurityGroupId=GetAtt(other.security_group.title, 'GroupId')
-            )))
 
     def create_security_group(self, vpc):
         """

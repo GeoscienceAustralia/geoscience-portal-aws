@@ -97,8 +97,8 @@ class Stack(object):
             vpc=self.vpc,
             template=self.template
         )
-        self.nat.add_si_egress(other='0.0.0.0/0', port='80')
-        self.nat.add_si_egress(other='0.0.0.0/0', port='443')
+        self.nat.add_si_ingress(other='0.0.0.0/0', port='80')
+        self.nat.add_si_ingress(other='0.0.0.0/0', port='443')
 
         """ Add Routes
         """
