@@ -33,7 +33,7 @@ class SingleInstance(SecurityEnabledObject):
                                    DeleteOnTermination=True,
                                    SubnetId=Ref(kwargs['subnet']),
                                )],
-                               SourceDestCheck=False if kwargs['title'][:3].lower() == 'nat' else True,
+                               SourceDestCheck=False if kwargs['title'][-3:].lower() == 'nat' else True,
                                Tags=Tags(Name=Join("", [Ref('AWS::StackName'), '-', kwargs['title']]))
                            ))
 
