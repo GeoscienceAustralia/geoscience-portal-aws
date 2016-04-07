@@ -25,7 +25,7 @@ class Stack(object):
         :param nat_image_id: AMI for nat
         :param nat_instance_type: instance type for nat
         :param units: list of unit dicts (title, protocol, port, path2ping, minsize, maxsize, image_id, instance_type, userdata)
-        :param home_cidr: a list of dictionary objects of 'title' and 'ip' to be used
+        :param home_cidr: a list of tuple objects of 'title'(0) and 'ip'(1) to be used
          to create ingress rules for ssh to jumpboxes from home/office/company premises
         """
         super(Stack, self).__init__()
@@ -36,7 +36,7 @@ class Stack(object):
         self.availability_zones = kwargs['availability_zones']
         self.vpc_cidr = kwargs['vpc_cidr']
         self.home_cidr = kwargs['home_cidr']
-        self.public_cidr = {'title': 'public_ip', 'ip': '0.0.0.0/0'}
+        self.public_cidr = ('PublicIp', '0.0.0.0/0')
 
         self.units = []
         self.private_subnets = []
@@ -88,8 +88,8 @@ class Stack(object):
             vpc=self.vpc,
             template=self.template
         )
-        self.jump.add_si_ingress(other='124.47.132.132/32', port='22')
-        self.jump.add_si_ingress(other='192.104.44.0/22', port='22')
+
+        [self.jump.add_ingress(other=home_cidr, port='22') for home_cidr in self.home_cidr]
 
         self.nat = SingleInstance(
             title=self.title + 'Nat',
@@ -100,9 +100,8 @@ class Stack(object):
             vpc=self.vpc,
             template=self.template
         )
-        
-        self.nat.add_ingress(other='0.0.0.0/0', port='80')
-        self.nat.add_ingress(other='0.0.0.0/0', port='443')
+
+        [self.nat.add_ingress(other=self.public_cidr, port=port) for port in ['80', '443']]
 
         """ Add Routes
         """
