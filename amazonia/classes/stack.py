@@ -15,7 +15,7 @@ class Stack(object):
         AWS CloudFormation -
          http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-instance.html
         Troposphere - https://github.com/cloudtools/troposphere/blob/master/troposphere/ec2.py
-        :param title: name of stack
+        :param stack_title: name of stack
         :param code_deploy_service_role: ARN to code deploy IAM role
         :param keypair: ssh keypair to be used throughout stack
         :param availability_zones: availability zones to use
@@ -24,12 +24,12 @@ class Stack(object):
         :param jump_instance_type: instance type for jumphost
         :param nat_image_id: AMI for nat
         :param nat_instance_type: instance type for nat
-        :param units: list of unit dicts (title, protocol, port, path2ping, minsize, maxsize, image_id, instance_type, userdata)
+        :param units: list of unit dicts (unit_title, protocol, port, path2ping, minsize, maxsize, image_id, instance_type, userdata)
         :param home_cidr: a list of tuple objects of 'title'(0) and 'ip'(1) to be used
          to create ingress rules for ssh to jumpboxes from home/office/company premises
         """
         super(Stack, self).__init__()
-        self.title = kwargs['title']
+        self.title = kwargs['stack_title']
         self.template = Template()
         self.code_deploy_service_role = kwargs['code_deploy_service_role']
         self.keypair = kwargs['keypair']
@@ -120,7 +120,7 @@ class Stack(object):
         """ Add Units
         """
         for unit in kwargs['units']:
-            self.units.append(Unit(title=self.title + unit['title'],
+            self.units.append(Unit(title=self.title + unit['unit_title'],
                                    vpc=self.vpc,
                                    template=self.template,
                                    protocol=unit['protocol'],
