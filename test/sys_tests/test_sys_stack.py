@@ -26,6 +26,7 @@ runcmd:
         jump_instance_type=instance_type,
         nat_image_id=image_id,
         nat_instance_type=instance_type,
+        home_cidr=[('GA', '192.104.44.129/32')],
         units=[{'title': 'app1',
                 'protocol': 'HTTP',
                 'port': '80',

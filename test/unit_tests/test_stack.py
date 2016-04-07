@@ -9,7 +9,7 @@ availability_zones = []
 
 def setup_resources():
     global userdata, availability_zones, keypair, image_id, instance_type, code_deploy_service_role, vpc_cidr, \
-        port, protocol, desiredsize, path2ping
+        port, protocol, desiredsize, path2ping, home_cidr
     userdata = """
     #cloud-config
     repo_update: true
@@ -27,6 +27,7 @@ def setup_resources():
     instance_type = 't2.nano'
     code_deploy_service_role = 'instance-iam-role-InstanceProfile-OGL42SZSIQRK'
     vpc_cidr = '10.0.0.0/16'
+    home_cidr = [('GA1', '124.47.132.132/32'), ('GA2', '192.104.44.0/22')]
     port = '80'
     protocol = 'HTTP'
     desiredsize = 1
@@ -51,13 +52,14 @@ def test_stack():
 
 def create_stack(title):
     global userdata, availability_zones, keypair, image_id, instance_type, code_deploy_service_role, vpc_cidr, port, \
-        protocol, desiredsize, path2ping
+        protocol, desiredsize, path2ping, home_cidr
     stack = Stack(
         title=title,
         code_deploy_service_role=code_deploy_service_role,
         keypair=keypair,
         availability_zones=availability_zones,
         vpc_cidr=vpc_cidr,
+        home_cidr=home_cidr,
         jump_image_id=image_id,
         jump_instance_type=instance_type,
         nat_image_id=image_id,
