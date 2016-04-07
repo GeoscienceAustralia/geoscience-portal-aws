@@ -36,7 +36,11 @@ with open('./amazonia/classes/amazonia_ga_defaults.yaml', 'r') as default_yaml:
 units = stack_data['units']
 # print(units)
 
+
+# TODO YAML some DICTS
+
 for unit_title, unit_values in units.items():
+
     unit_title = unit_title
     print(unit_title)
     protocol = unit_values.get('protocol', default_data['protocol'])
@@ -49,6 +53,7 @@ for unit_title, unit_values in units.items():
 #     unit_title = units.get('unit', 'unit' + str(unit_num))
 #     unit_num += 1
 #     print(unit_title)
+
 """ Call Stack
 """
 
