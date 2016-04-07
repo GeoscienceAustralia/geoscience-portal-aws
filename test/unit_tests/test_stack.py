@@ -23,7 +23,7 @@ def setup_resources():
         """
     availability_zones = ['ap-southeast-2a', 'ap-southeast-2b', 'ap-southeast-2c']
     keypair = 'pipeline'
-    image_id = 'ami-893f53b3'
+    image_id = 'ami-162c0c75'
     instance_type = 't2.nano'
     code_deploy_service_role = 'instance-iam-role-InstanceProfile-OGL42SZSIQRK'
     vpc_cidr = '10.0.0.0/16'
