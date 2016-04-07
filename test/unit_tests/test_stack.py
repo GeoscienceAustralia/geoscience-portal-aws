@@ -37,7 +37,7 @@ def setup_resources():
 @with_setup(setup_resources())
 def test_stack():
     title = 'app'
-    stack = create_stack(title=title)
+    stack = create_stack(stack_title=title)
     assert_equals(stack.title, title)
 
     for num in range(len(availability_zones)):
@@ -50,11 +50,11 @@ def test_stack():
         assert_equals(private_subnet.CidrBlock, ''.join(['10.0.', str(num + 100), '.0/24']))
 
 
-def create_stack(title):
+def create_stack(stack_title):
     global userdata, availability_zones, keypair, image_id, instance_type, code_deploy_service_role, vpc_cidr, port, \
         protocol, desiredsize, path2ping, home_cidr
     stack = Stack(
-        title=title,
+        stack_title=stack_title,
         code_deploy_service_role=code_deploy_service_role,
         keypair=keypair,
         availability_zones=availability_zones,
@@ -64,7 +64,7 @@ def create_stack(title):
         jump_instance_type=instance_type,
         nat_image_id=image_id,
         nat_instance_type=instance_type,
-        units=[{'title': 'app1',
+        units=[{'unit_title': 'app1',
                 'protocol': protocol,
                 'port': port,
                 'path2ping': path2ping,
@@ -73,7 +73,7 @@ def create_stack(title):
                 'image_id': image_id,
                 'instance_type': instance_type,
                 'userdata': userdata},
-               {'title': 'app2',
+               {'unit_title': 'app2',
                 'protocol': protocol,
                 'port': port,
                 'path2ping': path2ping,

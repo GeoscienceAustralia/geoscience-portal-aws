@@ -28,7 +28,7 @@ runcmd:
     image_id = 'ami-893f53b3'
     instance_type = 't2.nano'
     stack = Stack(
-        title='testStack',
+        stack_title='testStack',
         code_deploy_service_role='instance-iam-role-InstanceProfile-OGL42SZSIQRK',
         keypair='pipeline',
         availability_zones=['ap-southeast-2a', 'ap-southeast-2b', 'ap-southeast-2c'],
@@ -38,7 +38,7 @@ runcmd:
         nat_image_id=image_id,
         nat_instance_type=instance_type,
         home_cidr=[('GA1', '124.47.132.132/32'), ('GA2', '192.104.44.0/22')],
-        units=[{'title': 'app1',
+        units=[{'unit_title': 'app1',
                 'protocol': 'HTTP',
                 'port': '80',
                 'path2ping': 'index.html',
@@ -47,7 +47,7 @@ runcmd:
                 'image_id': image_id,
                 'instance_type': instance_type,
                 'userdata': userdata},
-               {'title': 'app2',
+               {'unit_title': 'app2',
                 'protocol': 'HTTP',
                 'port': '80',
                 'path2ping': 'index.html',
