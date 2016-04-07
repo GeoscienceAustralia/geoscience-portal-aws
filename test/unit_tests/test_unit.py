@@ -34,14 +34,14 @@ runcmd:
                                  CidrBlock='10.0.2.0/24')]
     nat = SingleInstance(title='Nat',
                          keypair='pipeline',
-                         si_image_id='ami-893f53b3',
+                         si_image_id='ami-162c0c75',
                          si_instance_type='t2.nano',
                          vpc=vpc,
                          subnet=public_subnets[0],
                          template=template)
     jump = SingleInstance(title='Jump',
                           keypair='pipeline',
-                          si_image_id='ami-893f53b3',
+                          si_image_id='ami-162c0c75',
                           si_instance_type='t2.nano',
                           vpc=vpc,
                           subnet=public_subnets[0],
@@ -57,7 +57,7 @@ def test_unit():
     [assert_is(type(lbn), Ref) for lbn in unit.asg.asg.LoadBalancerNames]
     assert_equals(len(unit.asg.egress), 2)
     assert_equals(len(unit.asg.ingress), 2)
-    assert_equals(len(unit.elb.ingress), 0)
+    assert_equals(len(unit.elb.ingress), 2)
     assert_equals(len(unit.elb.egress), 1)
 
 
@@ -68,12 +68,12 @@ def test_unit_association():
     unit1.add_unit_flow(other=unit2, port='80')
     assert_equals(len(unit1.asg.egress), 3)
     assert_equals(len(unit1.asg.ingress), 2)
-    assert_equals(len(unit1.elb.ingress), 0)
+    assert_equals(len(unit1.elb.ingress), 2)
     assert_equals(len(unit1.elb.egress), 1)
 
     assert_equals(len(unit2.asg.egress), 2)
     assert_equals(len(unit2.asg.ingress), 2)
-    assert_equals(len(unit2.elb.ingress), 1)
+    assert_equals(len(unit2.elb.ingress), 3)
     assert_equals(len(unit2.elb.egress), 1)
 
 
@@ -91,7 +91,7 @@ def create_unit(**kwargs):
         minsize=1,
         maxsize=1,
         keypair='pipeline',
-        image_id='ami-893f53b3',
+        image_id='ami-162c0c75',
         instance_type='t2.nano',
         userdata=userdata,
         service_role_arn='instance-iam-role-InstanceProfile-OGL42SZSIQRK',

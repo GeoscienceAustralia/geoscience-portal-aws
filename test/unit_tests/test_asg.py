@@ -63,7 +63,7 @@ def test_asg():
         assert_equals(asg.asg.HealthCheckType, 'ELB')
         assert_equals(asg.asg.HealthCheckGracePeriod, 300)
         assert_equals(asg.lc.title, title + 'Asg' + 'Lc')
-        assert_equals(asg.lc.ImageId, 'ami-893f53b3')
+        assert_equals(asg.lc.ImageId, 'ami-162c0c75')
         assert_equals(asg.lc.InstanceType, 't2.nano')
         assert_equals(asg.lc.KeyName, 'pipeline')
         [assert_is(type(sg), Ref) for sg in asg.lc.SecurityGroups]
@@ -83,7 +83,7 @@ def create_asg(**kwargs):
 
     asg = Asg(title=kwargs['title'],
               keypair='pipeline',
-              image_id='ami-893f53b3',
+              image_id='ami-162c0c75',
               instance_type='t2.nano',
               vpc=vpc,
               subnets=[subnet],
