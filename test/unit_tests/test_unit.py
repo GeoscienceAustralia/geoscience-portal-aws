@@ -32,14 +32,14 @@ runcmd:
                                  AvailabilityZone='ap-southeast-2a',
                                  VpcId=Ref(vpc),
                                  CidrBlock='10.0.2.0/24')]
-    nat = SingleInstance(title='nat',
+    nat = SingleInstance(title='Nat',
                          keypair='pipeline',
                          si_image_id='ami-893f53b3',
                          si_instance_type='t2.nano',
                          vpc=vpc,
                          subnet=public_subnets[0],
                          template=template)
-    jump = SingleInstance(title='jump',
+    jump = SingleInstance(title='Jump',
                           keypair='pipeline',
                           si_image_id='ami-893f53b3',
                           si_instance_type='t2.nano',
