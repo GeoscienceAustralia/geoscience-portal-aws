@@ -35,15 +35,6 @@ runcmd:
                 'maxsize': 1,
                 'image_id': image_id,
                 'instance_type': instance_type,
-                'userdata': userdata},
-               {'title': 'app2',
-                'protocol': 'HTTP',
-                'port': '80',
-                'path2ping': 'index.html',
-                'minsize': 1,
-                'maxsize': 1,
-                'image_id': image_id,
-                'instance_type': instance_type,
                 'userdata': userdata}],
     )
     print(stack.template.to_json(indent=2, separators=(',', ': ')))
