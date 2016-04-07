@@ -17,7 +17,7 @@ runcmd:
     image_id = 'ami-893f53b3'
     instance_type = 't2.nano'
     stack = Stack(
-        title='testStack',
+        stack_title='testStack',
         code_deploy_service_role='instance-iam-role-InstanceProfile-OGL42SZSIQRK',
         keypair='pipeline',
         availability_zones=['ap-southeast-2a', 'ap-southeast-2b', 'ap-southeast-2c'],
@@ -35,7 +35,8 @@ runcmd:
                 'maxsize': 1,
                 'image_id': image_id,
                 'instance_type': instance_type,
-                'userdata': userdata}],
+                'userdata': userdata}]
+
     )
     print(stack.template.to_json(indent=2, separators=(',', ': ')))
 
