@@ -37,7 +37,7 @@ class SecurityEnabledObject(object):
         Creates a Troposphere SecurityGroupIngress object
         AWS Cloud Formation: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-security-group-ingress.html
         Troposphere link: https://github.com/cloudtools/troposphere/blob/master/troposphere/ec2.py
-        :param other: The SecurityEnabledObject that we are expecting traffic from
+        :param other: The SecurityEnabledObject that we are expecting traffic from, other[0] = title, other[1] = ip
         :param port: Port to send, and receive traffic on
         """
         if type(other) is SecurityEnabledObject:
@@ -66,7 +66,7 @@ class SecurityEnabledObject(object):
         Creates a Troposphere SecurityGroupEgress object
         AWS Cloud Formation: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-security-group-egress.html
         Troposphere link: https://github.com/cloudtools/troposphere/blob/master/troposphere/ec2.py
-        :param other: The SecurityEnabledObject that will be sending traffic to this SecurityEnabledObject
+        :param other: The SecurityEnabledObject that will be sending traffic to this SecurityEnabledObject other[0] = title, other[1] = ip
         :param port: Port to send, and receive traffic on
         """
         if type(other) is SecurityEnabledObject:

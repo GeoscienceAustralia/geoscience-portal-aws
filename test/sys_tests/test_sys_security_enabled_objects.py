@@ -48,9 +48,8 @@ def main():
     # Add traffic from web to api
     seo2_web.add_flow(seo3_api, '80')
     seo2_web.add_flow(seo3_api, '443')
-    
-    print(template.to_json(indent=2, separators=(',', ': ')))
 
+    print(template.to_json(indent=2, separators=(',', ': ')))
 
 if __name__ == "__main__":
     main()
