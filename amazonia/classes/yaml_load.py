@@ -1,39 +1,30 @@
 #!/usr/bin/python3
 
-# import yaml
+import yaml
 
 """
 User values to be used for YAML ingestion and overwrite GA yaml_defaults
 """
+import yaml
+
+with open("./amazonia/classes/amazonia.yaml", 'r') as stack_yaml:
+    try:
+        print(yaml.load(stack_yaml))
+        stack_data = yaml.load(stack_yaml)
+    except yaml.YAMLError as exception:
+        print(exception)
 
 
-userdata = """
-#cloud-config
-repo_update: true
 
-packages:
- - httpd
-
-runcmd:
- - service httpd start
+""" Validate YAML Values
 """
 
-image_id = 'ami-893f53b3'
-instance_type = 't2.nano'
-stack_title = 'testStack',
-code_deploy_service_role = 'instance-iam-role-InstanceProfile-OGL42SZSIQRK',
-keypair = 'pipeline',
-availability_zones = ['ap-southeast-2a', 'ap-southeast-2b', 'ap-southeast-2c'],
-vpc_cidr = '10.0.0.0/16',
-jump_image_id = image_id,
-jump_instance_type = instance_type,
-nat_image_id = image_id,
-nat_instance_type = instance_type,
-home_cidr = [('GA1', '124.47.132.132/32'), ('GA2', '192.104.44.0/22')],
-unit_title ='app1',
-protocol = 'HTTP',
-port = '80',
-path2ping = 'index.html',
-minsize = 1,
-maxsize = 1
+# def validate_stack_title(stack_title):
+    # TODO stack_title must be alphanumeric
 
+# def validate_cidr():
+    # TODO cidr[0] must must cidr notation
+    # TODO cidr[1] must be alphanumeric
+
+# def unencrypted_access_keys():
+    # TODO regex for enecrypted
