@@ -4,17 +4,27 @@ from amazonia.classes.stack import Stack
 
 
 def main():
+#     userdata = """
+# #cloud-config
+# repo_update: true
+# repo_upgrade: all
+#
+# packages:
+#  - httpd
+#
+# runcmd:
+#  - service httpd start
+#     """
     userdata = """
 #cloud-config
 repo_update: true
-repo_upgrade: all
 
 packages:
  - httpd
 
 runcmd:
- - service httpd start
-    """
+ - service httpd start"""
+
     image_id = 'ami-893f53b3'
     instance_type = 't2.nano'
     stack = Stack(

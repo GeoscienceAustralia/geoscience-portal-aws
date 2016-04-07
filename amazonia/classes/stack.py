@@ -39,16 +39,24 @@ class Stack(object):
         self.private_subnets = []
         self.public_subnets = []
 
+        """ Add VPC and Internet Gateway with Attachment
+        """
         self.vpc = self.template.add_resource(ec2.VPC(self.title + 'Vpc', CidrBlock=self.vpc_cidr))
         self.internet_gateway = self.template.add_resource(ec2.InternetGateway(self.title + 'Ig'))
         self.gateway_attachment = self.template.add_resource(
             ec2.VPCGatewayAttachment(self.internet_gateway.title + 'Atch',
                                      VpcId=Ref(self.vpc),
                                      InternetGatewayId=Ref(self.internet_gateway)))
+
+        """ Add Public and Private Route Tables
+        """
         self.public_route_table = self.template.add_resource(ec2.RouteTable(self.title + 'PubRt',
                                                                             VpcId=Ref(self.vpc)))
         self.private_route_table = self.template.add_resource(ec2.RouteTable(self.title + 'PriRt',
                                                                              VpcId=Ref(self.vpc)))
+
+        """ Add Public and Private Subnets
+        """
         for az in self.availability_zones:
             self.private_subnets.append(Subnet(template=self.template,
                                                stack_title=self.title,
@@ -66,6 +74,8 @@ class Stack(object):
                                               cidr=self.generate_subnet_cidr(is_public=True)
                                               ).subnet)
 
+        """ Add Jumpbox and NAT and associated security group ingress and egress rules
+        """
         self.jump = SingleInstance(
             title=self.title + 'Jump',
             keypair=self.keypair,
@@ -75,6 +85,8 @@ class Stack(object):
             vpc=self.vpc,
             template=self.template
         )
+        self.jump.add_si_ingress(other='124.47.132.132/32', port='22')
+        self.jump.add_si_ingress(other='192.104.44.0/22', port='22')
 
         self.nat = SingleInstance(
             title=self.title + 'Nat',
@@ -85,7 +97,25 @@ class Stack(object):
             vpc=self.vpc,
             template=self.template
         )
+        self.nat.add_si_ingress(other='0.0.0.0/0', port='80')
+        self.nat.add_si_ingress(other='0.0.0.0/0', port='443')
 
+        """ Add Routes
+        """
+        self.public_route = self.template.add_resource(ec2.Route(self.title + 'PubRtInboundRoute',
+                                                                 GatewayId=Ref(self.internet_gateway),
+                                                                 RouteTableId=Ref(self.public_route_table),
+                                                                 DestinationCidrBlock='0.0.0.0/0'))
+        self.public_route.DependsOn = self.gateway_attachment.title
+
+        self.private_route = self.template.add_resource(ec2.Route(self.title + 'PriRtOutboundRoute',
+                                                                  InstanceId=Ref(self.nat.single),
+                                                                  RouteTableId=Ref(self.private_route_table),
+                                                                  DestinationCidrBlock='0.0.0.0/0'))  # TODO should this be more specific to the VPC CIDR?
+        self.private_route.DependsOn = self.gateway_attachment.title
+
+        """ Add Units
+        """
         for unit in kwargs['units']:
             self.units.append(Unit(title=self.title + unit['title'],
                                    vpc=self.vpc,

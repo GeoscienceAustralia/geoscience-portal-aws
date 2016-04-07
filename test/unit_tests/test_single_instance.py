@@ -11,7 +11,7 @@ def test_nat_single_instance():
     to be enabled and the PrivateIp to be displayed in the output.
     :return: Pass
     """
-    nat_titles = ['nat', 'nat1', 'nat33', 'NAT', 'natjump', 'NAT2']
+    nat_titles = ['Nat', '1Nat', '33Nat', 'NAT', 'JumpNat', '2NAT', 'testStackNat']
 
     for title in nat_titles:
         si = create_si(title)
@@ -31,7 +31,7 @@ def test_not_nat_single_instance():
     to be disabled and the PrivateIp to be displayed in the output.
     :return: Pass
     """
-    jump_titles = ['jump', 'jump2', 'other', 'jumpnat']
+    jump_titles = ['jump', 'Jump', '2Jump', 'other', 'natjump', 'testStackJump']
 
     for title in jump_titles:
         si = create_si(title)
