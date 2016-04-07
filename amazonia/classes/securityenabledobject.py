@@ -40,8 +40,7 @@ class SecurityEnabledObject(object):
         :param other: The SecurityEnabledObject that we are expecting traffic from, other[0] = title, other[1] = ip
         :param port: Port to send, and receive traffic on
         """
-        if type(other) is SecurityEnabledObject:
-
+        if isinstance(other, SecurityEnabledObject):
             name = self.title + port + 'From' + other.title + port
             self.ingress.append(self.template.add_resource(ec2.SecurityGroupIngress(
                 name,
@@ -69,7 +68,7 @@ class SecurityEnabledObject(object):
         :param other: The SecurityEnabledObject that will be sending traffic to this SecurityEnabledObject other[0] = title, other[1] = ip
         :param port: Port to send, and receive traffic on
         """
-        if type(other) is SecurityEnabledObject:
+        if isinstance(other, SecurityEnabledObject):
             name = self.title + port + 'To' + other.title + port
             self.egress.append(self.template.add_resource(ec2.SecurityGroupEgress(
                 name,
