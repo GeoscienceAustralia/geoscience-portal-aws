@@ -85,8 +85,7 @@ class Stack(object):
             vpc=self.vpc,
             template=self.template
         )
-        self.jump.add_si_ingress(other='124.47.132.132/32', port='22')
-        self.jump.add_si_ingress(other='192.104.44.0/22', port='22')
+        self.jump.add_si_ingress(other='192.104.44.129/32', port='22')
 
         self.nat = SingleInstance(
             title=self.title + 'Nat',

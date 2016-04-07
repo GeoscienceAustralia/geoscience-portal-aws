@@ -4,17 +4,6 @@ from amazonia.classes.stack import Stack
 
 
 def main():
-#     userdata = """
-# #cloud-config
-# repo_update: true
-# repo_upgrade: all
-#
-# packages:
-#  - httpd
-#
-# runcmd:
-#  - service httpd start
-#     """
     userdata = """
 #cloud-config
 repo_update: true
