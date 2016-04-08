@@ -46,8 +46,8 @@ runcmd:
     app_image_id = 'ami-f2210191'
     instance_type = 't2.nano'
     stack = Stack(
-        stack_title='testStack',
-        code_deploy_service_role='instance-iam-role-InstanceProfile-OGL42SZSIQRK',
+        stack_title='test',
+        code_deploy_service_role='arn:aws:iam::658691668407:role/CodeDeployServiceRole',
         keypair='pipeline',
         availability_zones=['ap-southeast-2a', 'ap-southeast-2b', 'ap-southeast-2c'],
         vpc_cidr='10.0.0.0/16',

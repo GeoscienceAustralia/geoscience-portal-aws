@@ -29,10 +29,10 @@ class Elb(SecurityEnabledObject):
                                      CrossZone=True,
                                      HealthCheck=elb.HealthCheck(Target=kwargs['protocol'].upper() + ':' +
                                                                  kwargs['port'] + kwargs['path2ping'],
-                                                                 HealthyThreshold='2',
+                                                                 HealthyThreshold='10',
                                                                  UnhealthyThreshold='2',
-                                                                 Interval='60',
-                                                                 Timeout='30'),
+                                                                 Interval='300',
+                                                                 Timeout='60'),
                                      Listeners=[elb.Listener(LoadBalancerPort=kwargs['port'],
                                                              Protocol=kwargs['protocol'].upper(),
                                                              InstancePort=kwargs['port'],

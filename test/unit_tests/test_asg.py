@@ -68,7 +68,7 @@ def test_asg():
         assert_equals(asg.lc.KeyName, 'pipeline')
         [assert_is(type(sg), Ref) for sg in asg.lc.SecurityGroups]
         assert_equals(asg.cd_app.title, title + 'Asg' + 'Cda')
-        assert_equals(asg.cd_app.ApplicationName, title + 'Asg')
+        [assert_is(type(sg), Ref) for sg in asg.cd_app.ApplicationName]
         assert_equals(asg.cd_deploygroup.title, title + 'Asg' + 'Cdg')
         assert_equals(asg.cd_deploygroup.AutoScalingGroups, [title + 'Asg'])
         assert_equals(asg.cd_deploygroup.ServiceRoleArn, 'instance-iam-role-InstanceProfile-OGL42SZSIQRK')

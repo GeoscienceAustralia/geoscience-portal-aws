@@ -40,10 +40,10 @@ class Asg(SecurityEnabledObject):
             instance_type=kwargs['instance_type'],
             userdata=kwargs['userdata'],
         )
-        #self.add_cd_deploygroup(
-        #    title=self.title,
-        #    service_role_arn=kwargs['service_role_arn'],
-        #)
+        self.add_cd_deploygroup(
+            title=self.title,
+            service_role_arn=kwargs['service_role_arn'],
+        )
 
     def add_asg(self, **kwargs):
         """
@@ -121,8 +121,8 @@ class Asg(SecurityEnabledObject):
                                                                         ApplicationName=kwargs['title']))
         self.cd_deploygroup = self.template.add_resource(
             codedeploy.DeploymentGroup(cd_deploygroup_title,
-                                       ApplicationName=self.cd_app.title,
-                                       AutoScalingGroups=[self.asg.title],
+                                       ApplicationName=Ref(self.cd_app),
+                                       AutoScalingGroups=[Ref(self.asg)],
                                        DeploymentConfigName='CodeDeployDefault.OneAtATime',
                                        DeploymentGroupName=cd_deploygroup_title,
                                        ServiceRoleArn=kwargs['service_role_arn']))
