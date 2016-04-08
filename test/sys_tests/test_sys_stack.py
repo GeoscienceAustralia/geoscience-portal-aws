@@ -39,7 +39,7 @@ write_files:
     owner: root:root
 runcmd:
  - service httpd start
-    """
+"""
 
     nat_image_id = 'ami-162c0c75'
     jump_image_id = 'ami-162c0c75'
