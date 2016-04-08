@@ -23,22 +23,22 @@ runcmd:
  - service httpd start
 """
     userdata2 = """#cloud-config
-    repo_update: true
+repo_update: true
 
-    packages:
-     - httpd
+packages:
+ - httpd
 
-    write_files:
-    -   content: |
-            <html>
-            <body background="https://i.ytimg.com/vi/UJ8ZUubtkJo/maxresdefault.jpg">
-            </body>
-            </html>
-        path: /var/www/html/index.html
-        permissions: '0644'
-        owner: root:root
-    runcmd:
-     - service httpd start
+write_files:
+-   content: |
+        <html>
+        <body background="https://i.ytimg.com/vi/UJ8ZUubtkJo/maxresdefault.jpg">
+        </body>
+        </html>
+    path: /var/www/html/index.html
+    permissions: '0644'
+    owner: root:root
+runcmd:
+ - service httpd start
     """
 
     nat_image_id = 'ami-162c0c75'
