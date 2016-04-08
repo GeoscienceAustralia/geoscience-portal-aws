@@ -40,10 +40,10 @@ class Asg(SecurityEnabledObject):
             instance_type=kwargs['instance_type'],
             userdata=kwargs['userdata'],
         )
-        self.add_cd_deploygroup(
-            title=self.title,
-            service_role_arn=kwargs['service_role_arn'],
-        )
+        #self.add_cd_deploygroup(
+        #    title=self.title,
+        #    service_role_arn=kwargs['service_role_arn'],
+        #)
 
     def add_asg(self, **kwargs):
         """
