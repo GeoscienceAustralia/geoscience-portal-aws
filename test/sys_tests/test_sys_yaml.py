@@ -1,44 +1,22 @@
 #!/usr/bin/python3
 
-from amazonia.classes.elb import Elb
-from troposphere import ec2, Ref, Tags, Template
+import yaml
+from amazonia.classes.yaml import Yaml
 
 
 def main():
-    template = Template()
-    vpc = template.add_resource(ec2.VPC('MyVPC',
-                                        CidrBlock='10.0.0.0/16'))
+    with open('./test/sys_tests/amazonia.yaml', 'r') as stack_yaml:
+        user_stack_data = yaml.load(stack_yaml)
+        print('\nuser_stack_data=\n{0}\n'.format(user_stack_data))
 
-    internet_gateway = template.add_resource(ec2.InternetGateway('MyInternetGateway',
-                                                                 Tags=Tags(Name='MyInternetGateway')))
+    with open('./test/sys_tests/amazonia_ga_defaults.yaml', 'r') as default_yaml:
+        default_data = yaml.load(default_yaml)
+        print('\ndefault_data=\n{0}\n'.format(default_data))
 
-    template.add_resource(ec2.VPCGatewayAttachment('MyVPCGatewayAttachment',
-                                                   InternetGatewayId=Ref(internet_gateway),
-                                                   VpcId=Ref(vpc)))
+    yaml_return = Yaml(user_stack_data, default_data)
+    stack_input = yaml_return.united_data
 
-    public_subnets = [template.add_resource(ec2.Subnet('MyPubSub1',
-                                                       AvailabilityZone='ap-southeast-2a',
-                                                       VpcId=Ref(vpc),
-                                                       CidrBlock='10.0.1.0/24')),
-                      template.add_resource(ec2.Subnet('MyPubSub2',
-                                                       AvailabilityZone='ap-southeast-2b',
-                                                       VpcId=Ref(vpc),
-                                                       CidrBlock='10.0.2.0/24')),
-                      template.add_resource(ec2.Subnet('MyPubSub3',
-                                                       AvailabilityZone='ap-southeast-2c',
-                                                       VpcId=Ref(vpc),
-                                                       CidrBlock='10.0.3.0/24'))]
-
-    Elb(title='elb',
-        port='80',
-        subnets=public_subnets,
-        protocol='http',
-        vpc=vpc,
-        path2ping='index.html',
-        template=template)
-
-    print(template.to_json(indent=2, separators=(',', ': ')))
-
+    print('\nstack_input=\n{0}\n'.format(stack_input))
 
 if __name__ == "__main__":
     main()
