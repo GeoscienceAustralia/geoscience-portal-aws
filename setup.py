@@ -16,6 +16,7 @@ setup(
         'inflection',
         'nose',
         'hiera-py',
-        'pyyaml'
+        'pyyaml',
+        'iptools'
     ]
 )
