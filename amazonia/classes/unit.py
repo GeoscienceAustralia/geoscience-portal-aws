@@ -29,6 +29,7 @@ class Unit(object):
         """
         super(Unit, self).__init__()
         self.template = kwargs['template']
+        self.public_cidr = ('PublicIp', '0.0.0.0/0')
         self.elb = Elb(
             vpc=kwargs['vpc'],
             title=kwargs['title'],
@@ -52,6 +53,7 @@ class Unit(object):
             load_balancer=self.elb.elb,
             service_role_arn=kwargs['service_role_arn'],
         )
+        [self.elb.add_ingress(other=self.public_cidr, port=port) for port in ['80', '443']]
         self.elb.add_flow(other=self.asg, port=kwargs['port'])
         self.asg.add_flow(other=kwargs['nat'], port='80')  # TODO Do we need for this for asg to nat to internet??
         self.asg.add_flow(other=kwargs['nat'], port='443')  # TODO ditto

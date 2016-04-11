@@ -63,14 +63,14 @@ def test_asg():
         assert_equals(asg.asg.HealthCheckType, 'ELB')
         assert_equals(asg.asg.HealthCheckGracePeriod, 300)
         assert_equals(asg.lc.title, title + 'Asg' + 'Lc')
-        assert_equals(asg.lc.ImageId, 'ami-893f53b3')
+        assert_equals(asg.lc.ImageId, 'ami-162c0c75')
         assert_equals(asg.lc.InstanceType, 't2.nano')
         assert_equals(asg.lc.KeyName, 'pipeline')
         [assert_is(type(sg), Ref) for sg in asg.lc.SecurityGroups]
         assert_equals(asg.cd_app.title, title + 'Asg' + 'Cda')
-        assert_equals(asg.cd_app.ApplicationName, title + 'Asg')
+        assert_is(type(asg.cd_deploygroup.ApplicationName), Ref)
         assert_equals(asg.cd_deploygroup.title, title + 'Asg' + 'Cdg')
-        assert_equals(asg.cd_deploygroup.AutoScalingGroups, [title + 'Asg'])
+        [assert_is(type(cdasg), Ref) for cdasg in asg.cd_deploygroup.AutoScalingGroups]
         assert_equals(asg.cd_deploygroup.ServiceRoleArn, 'instance-iam-role-InstanceProfile-OGL42SZSIQRK')
 
 
@@ -83,7 +83,7 @@ def create_asg(**kwargs):
 
     asg = Asg(title=kwargs['title'],
               keypair='pipeline',
-              image_id='ami-893f53b3',
+              image_id='ami-162c0c75',
               instance_type='t2.nano',
               vpc=vpc,
               subnets=[subnet],

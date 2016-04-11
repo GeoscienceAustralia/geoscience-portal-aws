@@ -36,7 +36,7 @@ def test_target():
     """
     helper_elb = create_elb(protocol='HTTPS',
                             port='443',
-                            path2ping='test/index.html')
+                            path2ping='/test/index.html')
     assert_equals('HTTPS:443/test/index.html', helper_elb.elb.HealthCheck.Target)
 
 

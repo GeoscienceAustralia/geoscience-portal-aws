@@ -34,7 +34,7 @@ def main():
         subnets=public_subnets,
         protocol='http',
         vpc=vpc,
-        path2ping='index.html',
+        path2ping='/index.html',
         template=template)
 
     print(template.to_json(indent=2, separators=(',', ': ')))

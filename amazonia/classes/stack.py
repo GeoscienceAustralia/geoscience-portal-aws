@@ -101,8 +101,6 @@ class Stack(object):
             template=self.template
         )
 
-        [self.nat.add_ingress(other=self.public_cidr, port=port) for port in ['80', '443']]
-
         """ Add Routes
         """
         self.public_route = self.template.add_resource(ec2.Route(self.title + 'PubRtInboundRoute',
