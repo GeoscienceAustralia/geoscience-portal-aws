@@ -27,31 +27,44 @@ def set_values(stack_data, default_data):
     """ Assign values
     """
     united_data = dict()
-    # united_data['stack_title'] = stack_data.get('stack_title', default_data['stack_title'])
-    # united_data['code_deploy_service_role'] = stack_data.get('code_deploy_service_role', default_data['code_deploy_service_role'])
-    # united_data['keypair'] = stack_data.get('keypair', default_data['keypair'])
-    # united_data['availability_zones'] = stack_data.get('availability_zones', default_data['availability_zones'])
-    # united_data['vpc_cidr'] = stack_data.get('vpc_cidr', default_data['vpc_cidr'])
-    # united_data['jump_image_id'] = stack_data.get('jump_image_id', default_data['jump_image_id'])
-    # united_data['jump_instance_type'] = stack_data.get('jump_instance_type', default_data['jump_instance_type'])
-    # united_data['nat_image_id'] = stack_data.get('nat_image_id', default_data['nat_image_id'])
-    # united_data['nat_instance_type'] = stack_data.get('nat_instance_type', default_data['nat_instance_type'])
-    # united_data['home_cidr'] = stack_data.get('home_cidr', default_data['home_cidr'])
-    united_data['units'] = stack_data['units']
-    # print(united_data['units'])
+    stack_value_list = ['stack_title',
+                        'code_deploy_service_role',
+                        'keypair',
+                        'availability_zones',
+                        'vpc_cidr',
+                        'jump_image_id',
+                        'jump_instance_type',
+                        'nat_image_id',
+                        'nat_instance_type',
+                        'home_cidr',
+                        'units']
+
+    for value in stack_value_list:
+        united_data[value] = get_values(value)
+
+    unit_value_list = ['unit_title',
+                       'protocol',
+                       'port']
+
+    for unit_title, unit_values in stack_data['units'].items():
+        united_data['units'][unit_title] = unit_title
+        for unit_value in unit_value_list:
+            united_data['units'][unit_title][unit_value] = get_values(unit_values)
+
+    print(united_data)
 
 
     # TODO YAML some DICTS
 
-    for unit_title, unit_values in units.items():
-
-        unit_title = unit_title
-        # validate_title(united_data['unit_title'])
-        print(unit_title)
-        protocol = unit_values.get('protocol', default_data['protocol'])
-        print(protocol)
-        port = unit_values.get('port', default_data['port'])
-        print(port)
+    # for unit_title, unit_values in units.items():
+    #
+    #     unit_title = unit_title
+    #     # validate_title(united_data['unit_title'])
+    #     print(unit_title)
+    #     protocol = unit_values.get('protocol', default_data['protocol'])
+    #     print(protocol)
+    #     port = unit_values.get('port', default_data['port'])
+    #     print(port)
 
     # unit_num = 1
     # for unit in units:
@@ -65,6 +78,11 @@ def set_values(stack_data, default_data):
     # validate_cidr(united_data['vpc_cidr'])
 
     return united_data
+
+
+def get_values(value):
+    united_value = stack_data.get(value, default_data[value])
+    return united_value
 
 
 def create_stack(united_data):
