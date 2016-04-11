@@ -4,7 +4,7 @@ from amazonia.classes.stack import Stack
 
 
 def main():
-    userdata = """#cloud-config
+    userdata1 = """#cloud-config
 repo_update: true
 
 packages:
@@ -22,14 +22,32 @@ write_files:
 runcmd:
  - service httpd start
 """
+    userdata2 = """#cloud-config
+repo_update: true
+
+packages:
+ - httpd
+
+write_files:
+-   content: |
+        <html>
+        <body background="https://i.ytimg.com/vi/UJ8ZUubtkJo/maxresdefault.jpg">
+        </body>
+        </html>
+    path: /var/www/html/index.html
+    permissions: '0644'
+    owner: root:root
+runcmd:
+ - service httpd start
+"""
 
     nat_image_id = 'ami-162c0c75'
     jump_image_id = 'ami-162c0c75'
     app_image_id = 'ami-f2210191'
     instance_type = 't2.nano'
     stack = Stack(
-        stack_title='testStack',
-        code_deploy_service_role='instance-iam-role-InstanceProfile-OGL42SZSIQRK',
+        stack_title='test',
+        code_deploy_service_role='arn:aws:iam::658691668407:role/CodeDeployServiceRole',
         keypair='pipeline',
         availability_zones=['ap-southeast-2a', 'ap-southeast-2b', 'ap-southeast-2c'],
         vpc_cidr='10.0.0.0/16',
@@ -46,7 +64,17 @@ runcmd:
                 'maxsize': 1,
                 'image_id': app_image_id,
                 'instance_type': instance_type,
-                'userdata': userdata}]
+                'userdata': userdata1},
+               {'unit_title': 'app2',
+                'protocol': 'HTTP',
+                'port': '80',
+                'path2ping': '/index.html',
+                'minsize': 1,
+                'maxsize': 1,
+                'image_id': app_image_id,
+                'instance_type': instance_type,
+                'userdata': userdata2}
+               ]
 
     )
     print(stack.template.to_json(indent=2, separators=(',', ': ')))
