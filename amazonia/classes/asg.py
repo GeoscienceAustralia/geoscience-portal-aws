@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-from troposphere import Base64, codedeploy, Ref
+from troposphere import Base64, codedeploy, Ref, Tags, Join
 from troposphere.autoscaling import AutoScalingGroup, LaunchConfiguration
 
 from amazonia.classes.securityenabledobject import SecurityEnabledObject
@@ -68,6 +68,7 @@ class Asg(SecurityEnabledObject):
             VPCZoneIdentifier=[Ref(subnet.title) for subnet in kwargs['subnets']],
             AvailabilityZones=availability_zones,
             LoadBalancerNames=[Ref(kwargs['load_balancer'])],
+            Tags=Tags(Name=Join('', [Ref('AWS::StackName'), '-', kwargs['title']]))
         )
         )
         self.asg.LaunchConfigurationName = Ref(self.add_launch_config(
