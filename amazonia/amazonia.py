@@ -4,6 +4,8 @@ Ingest User YAML and GA defaults YAML and send to yaml class to return as one un
 
 """
 import yaml
+import sys
+import getopt
 from amazonia.classes.yaml import Yaml
 from amazonia.classes.stack import Stack
 
@@ -45,8 +47,16 @@ def __main__():
     Create list of stack input dictoinary objects from yaml class
     create stack from stack input dictionary
     """
-    user_stack_data = read_yaml('./amazonia/amazonia.yaml')
-    default_data = read_defaults('./amazonia/amazonia_ga_defaults.yaml')
+    user_stack_data = ''
+    default_data = ''
+    opts, args = getopt.getopt(sys.argv[1:], 'ud:', ['user_yaml', 'default_yaml'])
+    for opt, param in opts:
+        if opt in ('-y', '--yaml'):
+            # user_stack_data = read_yaml('./amazonia/amazonia.yaml')
+            user_stack_data = read_yaml(param)
+        elif opt in ('-d', '--default'):
+            # default_data = read_defaults('./amazonia/amazonia_ga_defaults.yaml')
+            default_data = read_defaults(param)
 
     stack_input = Yaml(user_stack_data, default_data)
 

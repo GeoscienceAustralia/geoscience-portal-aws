@@ -9,14 +9,14 @@ availability_zones:
   - ap-southeast-2a
   - ap-southeast-2b
   - ap-southeast-2c
-vpc_cidr: 10.0.0.0/16
+vpc_cidr: 10.0.0.0.0/16
 jump_image_id: ami-893f53b3
 jump_instance_type: t2.nano
 nat_image_id: ami-893f53b3
 nat_instance_type: t2.nano
 home_cidr:
-  - !!python/tuple [GA_1, 124.47.132.132/32]
-  - !!python/tuple [GA_2, 192.104.44.0/22]
+  - !!python/tuple [GA_1, 124.47.132.12.132/32]
+  - !!python/tuple [GA_2, 192.104.44.55.10/22]
 units:
   unit1:
     unit_title: app1
@@ -31,6 +31,7 @@ units:
       #cloud-config
       repo_update: true
       repo_upgrade: all
+      AKI3ISW6DFTLGVWEDYMQ
 
       packages:
        - httpd
@@ -49,7 +50,7 @@ units:
     userdata: |
       #cloud-config
       repo_update: true
-      repo_upgrade: all
+      repo_upgrade: 9VJrJAil2XtEC/B7g+Y+/Fmerk3iqyDH/UIhKjXk
 
       packages:
        - httpd

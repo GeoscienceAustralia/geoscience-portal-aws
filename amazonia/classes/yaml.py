@@ -50,8 +50,6 @@ class Yaml(object):
                            'maxsize']
 
         for unit_title, unit_values in self.user_stack_data['units'].items():
-            print('\nunit_title={0}\n'.format(unit_title))
-            print('\nunit_values={0}\n'.format(unit_values))
             for unit_value in unit_value_list:
                 self.united_data['units'][unit_title][unit_value] = self.get_unit_values(unit_title, unit_value)
 
@@ -59,18 +57,30 @@ class Yaml(object):
 
         """ Validate Data
         """
-        self.validate_title(self.united_data['stack_title'])                          # Validate stack title
-        validate_cidr(self.united_data['vpc_cidr'])                                 # Validate VPC CIDR
+        # Validate stack title
+        self.validate_title(self.united_data['stack_title'])
+
+        # Validate VPC CIDR # TODO Requires Error handling
+        if validate_cidr(self.united_data['vpc_cidr']) is False:
+            self.united_data['vpc_cidr'] = 'INVALID_CIDR'
+
+        # Validate Home CIDRs
+        for num, cidr in enumerate(self.united_data['home_cidr']):
+            if validate_cidr(cidr[1]) is False:
+                self.united_data['home_cidr'][num] = cidr[0], 'INVALID_CIDR'
 
         # Validate title of home_cidr tuple items
         self.united_data['home_cidr'] = [(self.validate_title(cidr[0]), cidr[1]) for cidr in self.united_data['home_cidr']]
+        # validate for unecrypted aws access ids and aws secret keys
+        for unit in self.united_data['units']:
+            if self.unencrypted_access_keys(self.united_data['units'][unit]['userdata']) == 'AWS_ACCESS_ID_FOUND':
+                self.united_data['units'][unit]['userdata'] = 'AWS_ACCESS_ID_FOUND'
+            elif self.unencrypted_access_keys(self.united_data['units'][unit]['userdata']) == 'AWS_SECRET_KEY_FOUND':
+                self.united_data['units'][unit]['userdata'] = 'AWS_SECRET_KEY_FOUND'
+            else:
+                pass
 
-        [print(cidr[0]) for cidr in self.united_data['home_cidr']]    # Validate title of home_cidr tuple items
-
-
-        # # validate for unecrypted aws access ids and aws secret keys
-        # [self.unencrypted_access_keys(self.united_data['units'][unit]['userdata']) for unit in self.united_data['units']]
-        # return self.united_data
+        return self.united_data
 
     def get_values(self, value):
         """
@@ -97,17 +107,16 @@ class Yaml(object):
     def validate_title(stack_or_unit_title):
         pattern = re.compile('[\W_]+')                           # pattern is one or more non work characters
         new_title = pattern.sub('', stack_or_unit_title)         # Regex sub nothing '' for pattern match
-        print('new_title={0}'.format(new_title))
         return new_title
 
     @staticmethod
-    def unencrypted_access_keys(string):
+    def unencrypted_access_keys(userdata):
         aws_access_id = re.compile('(?<![A-Z0-9])[A-Z0-9]{20}(?![A-Z0-9])')
         aws_secret_key = re.compile('(?<![A-Za-z0-9/+=])[A-Za-z0-9/+=]{40}(?![A-Za-z0-9/+=])')
 
-        if aws_access_id.search(string):
-            return 'AWS ACCESS ID FOUND'
-        elif aws_secret_key.search(string):
-            return 'AWS SECRET KEY FOUND'
+        if aws_access_id.search(userdata):
+            return 'AWS_ACCESS_ID_FOUND'
+        elif aws_secret_key.search(userdata):
+            return 'AWS_SECRET_KEY_FOUND'
         else:
-            return string
+            return userdata
