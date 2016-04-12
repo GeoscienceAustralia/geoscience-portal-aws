@@ -5,6 +5,8 @@ Overwrite GA defaults YAML with User YAML
 
 """
 import re
+import string
+import yaml
 from iptools.ipv4 import validate_cidr
 
 
@@ -55,14 +57,17 @@ class Yaml(object):
 
         print('\nunited_data={0}\n'.format(self.united_data))
 
-        # """ Validate Data
-        # """
-        # self.validate_title(self.united_data['stack_title'])                        # Validate stack title
-        # validate_cidr(self.united_data['vpc_cidr'])                                 # Validate VPC CIDR
-        #
-        # [self.validate_title(cidr[0]) for cidr in self.united_data['home_cidr']]    # Validate title of home_cidr tuple items
-        # [validate_cidr(cidr[1]) for cidr in self.united_data['home_cidr']]          # validate CIDR of home_cidr tuple items
-        #
+        """ Validate Data
+        """
+        self.validate_title(self.united_data['stack_title'])                          # Validate stack title
+        validate_cidr(self.united_data['vpc_cidr'])                                 # Validate VPC CIDR
+
+        # Validate title of home_cidr tuple items
+        self.united_data['home_cidr'] = [(self.validate_title(cidr[0]), cidr[1]) for cidr in self.united_data['home_cidr']]
+
+        [print(cidr[0]) for cidr in self.united_data['home_cidr']]    # Validate title of home_cidr tuple items
+
+
         # # validate for unecrypted aws access ids and aws secret keys
         # [self.unencrypted_access_keys(self.united_data['units'][unit]['userdata']) for unit in self.united_data['units']]
         # return self.united_data
@@ -90,9 +95,10 @@ class Yaml(object):
     """
     @staticmethod
     def validate_title(stack_or_unit_title):
-        pattern = re.compile('[\W_]+')                          # pattern is one or more non work characters
-        pattern.sub('', stack_or_unit_title.printable)          # Regex sub nothing '' for pattern match
-        return pattern
+        pattern = re.compile('[\W_]+')                           # pattern is one or more non work characters
+        new_title = pattern.sub('', stack_or_unit_title)         # Regex sub nothing '' for pattern match
+        print('new_title={0}'.format(new_title))
+        return new_title
 
     @staticmethod
     def unencrypted_access_keys(string):
