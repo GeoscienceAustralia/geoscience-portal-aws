@@ -18,7 +18,7 @@ home_cidr:
   - !!python/tuple [GA_1, 124.47.132.12.132/32]
   - !!python/tuple [GA_2, 192.104.44.55.10/22]
 units:
-  unit1:
+  -
     unit_title: app1
     image_id: ami-162c0c75
     instance_type: t2.nano
@@ -38,7 +38,7 @@ units:
 
       runcmd:
        - service httpd start
-  unit2:
+  -
     unit_title: app1
     image_id: ami-162c0c75
     instance_type: t2.nano

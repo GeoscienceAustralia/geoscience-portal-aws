@@ -18,15 +18,15 @@ jump_instance_type: instance_type
 nat_image_id: image_id
 nat_instance_type: instance_type
 home_cidr:
-  - ('GA1', '124.47.132.132/32')
-  - ('GA2', '192.104.44.0/22')
+  - !!python/tuple [GA_1, 124.47.132.132/32]
+  - !!python/tuple [GA_2, 192.104.44.10/22]
 unit_title: 'app1'
 protocol: 'HTTP'
 port: '80'
 path2ping: 'index.html'
 minsize: 1
 maxsize: 1
-
+units: blah
 
 ## YAML TIPS:
 #   Lists: are denoted by indented hypens

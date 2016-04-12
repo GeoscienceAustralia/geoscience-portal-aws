@@ -39,7 +39,7 @@ def create_stack(united_data):
     print(stack.template.to_json(indent=2, separators=(',', ': ')))
 
 
-def __main__():
+def main():
     """
     Ingest User YAML as user_stack_data
     Ingest GA defaults YAML as default_data
@@ -49,15 +49,19 @@ def __main__():
 
     parser = argparse.ArgumentParser()
     parser.add_argument('-y', '--yaml',
-                        default='./amazonia.yaml',
+                        default='./amazonia/amazonia.yaml',
                         help="Path to the user's amazonia yaml file")
     parser.add_argument('-d', '--default',
-                        default='./amazonia_ga_defaults.yaml',
+                        default='./amazonia/amazonia_ga_defaults.yaml',
                         help="Path to the user's amazonia default yaml file")
     args = parser.parse_args()
+    print(args)
 
     user_stack_data = read_yaml(args.yaml)
     default_data = read_yaml(args.default)
-    stack_input = Yaml(user_stack_data, default_data)
+    stack_input = Yaml(user_stack_data, default_data).united_data
 
-    create_stack(**stack_input.united_data)
+    create_stack(stack_input)
+
+if __name__ == "__main__":
+    main()

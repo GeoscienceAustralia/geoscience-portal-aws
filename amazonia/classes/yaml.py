@@ -49,11 +49,10 @@ class Yaml(object):
                            'minsize',
                            'maxsize']
 
+        # TODO convert dict to list of dicts
         for unit_title, unit_values in self.user_stack_data['units'].items():
             for unit_value in unit_value_list:
                 self.united_data['units'][unit_title][unit_value] = self.get_unit_values(unit_title, unit_value)
-
-        print('\nunited_data={0}\n'.format(self.united_data))
 
         """ Validate Data
         """
@@ -71,6 +70,7 @@ class Yaml(object):
 
         # Validate title of home_cidr tuple items
         self.united_data['home_cidr'] = [(self.validate_title(cidr[0]), cidr[1]) for cidr in self.united_data['home_cidr']]
+
         # validate for unecrypted aws access ids and aws secret keys
         for unit in self.united_data['units']:
             if self.unencrypted_access_keys(self.united_data['units'][unit]['userdata']) == 'AWS_ACCESS_ID_FOUND':
@@ -80,6 +80,7 @@ class Yaml(object):
             else:
                 pass
 
+        print('\nunited_data={0}\n'.format(self.united_data))
         return self.united_data
 
     def get_values(self, value):
