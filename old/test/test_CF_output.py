@@ -3,19 +3,24 @@ from amazonia import *
 from troposphere import Template
 
 
-def test_only_two_sydney_azs():
+def test_only_three_sydney_azs():
     assert_equals(amazonia_resources.current_az, 0)
     assert_equals(amazonia_resources.AVAILABILITY_ZONES[amazonia_resources.current_az], "ap-southeast-2a")
     switch_availability_zone()
     assert_equals(amazonia_resources.current_az, 1)
     assert_equals(amazonia_resources.AVAILABILITY_ZONES[amazonia_resources.current_az], "ap-southeast-2b")
     switch_availability_zone()
+    assert_equals(amazonia_resources.current_az, 2)
+    assert_equals(amazonia_resources.AVAILABILITY_ZONES[amazonia_resources.current_az], "ap-southeast-2c")
+    switch_availability_zone()
     assert_equals(amazonia_resources.current_az, 0)
     assert_equals(amazonia_resources.AVAILABILITY_ZONES[amazonia_resources.current_az], "ap-southeast-2a")
-
+    switch_availability_zone(2)
+    assert_equals(amazonia_resources.current_az, 2)
+    assert_equals(amazonia_resources.AVAILABILITY_ZONES[amazonia_resources.current_az], "ap-southeast-2c")
 
 def test_titles_are_alphanumeric():
-    title = "abc_bcde-c,d.e*f/g\h_i-j,k.l*m/n\o.p,q.r,s_t-u/v.w_x*y,z"
+    title = "abc_bcde-c,d.e*f/g\h_i-j,k.l*m/n\o.p,q.r,s_t-u/v.w_x*y,z."
 
     title = trimTitle(title)
 
@@ -52,6 +57,7 @@ def test_add_vpc():
 def test_add_subnet():
     template = Template()
     myvpc = add_vpc(template, VPC_CIDR)
+    switch_availability_zone(0)
 
     subnet = add_subnet(template, myvpc, PUBLIC_SUBNET_NAME, PUBLIC_SUBNET_AZ1_CIDR)
 
@@ -229,6 +235,7 @@ def test_add_auto_scaling_group():
     test_sg = add_security_group(template, myvpc)
     subnet = add_subnet(template, myvpc, PUBLIC_SUBNET_NAME, PUBLIC_SUBNET_AZ1_CIDR)
     lc = add_launch_config(template, "akeypair", [test_sg], WEB_IMAGE_ID, WEB_INSTANCE_TYPE)
+    switch_availability_zone(0)
 
     asg = add_auto_scaling_group(template, 4, [subnet], launch_configuration=lc)
 
@@ -236,6 +243,7 @@ def test_add_auto_scaling_group():
     assert_equals(asg.MinSize, ASG_MIN_INSTANCES)
     assert_equals(asg.MaxSize, 4)
     assert_equals(asg.AvailabilityZones, [AVAILABILITY_ZONES[current_az]])
+
 
 def test_add_db_subnet_group():
     template = Template()
@@ -248,6 +256,7 @@ def test_add_db_subnet_group():
     assert_equals(dbsubnetgroup.title, "DBSubnetGroup1")
     assert_equals(dbsubnetgroup.SubnetIds[1], subnet2)  # unable to test subnet1 here due to difficulties testing Ref.
 
+
 def test_add_db():
     template = Template()
     myvpc = add_vpc(template, VPC_CIDR)
@@ -256,6 +265,7 @@ def test_add_db():
     dbsubnetgroup = add_db_subnet_group(template, [subnet1, subnet2])
     sg1 = add_security_group(template, myvpc)
     sg2 = add_security_group(template, myvpc)
+    switch_availability_zone(0)
 
     db = add_db(template, "postgres", dbsubnetgroup, "testuser", "testpassword", [sg1, sg2])
 
@@ -277,3 +287,60 @@ def test_add_db():
     assert_equals(db.PubliclyAccessible, "false")
     assert_equals(db.StorageType, "standard")
     # Cannot test VPCSecurityGroups due to difficulties testing Ref
+
+
+def test_add_r53_hosted_zone():
+    template = Template()
+    myvpc = add_vpc(template, VPC_CIDR)
+
+    r53_hosted_zone_manual = add_r53_hosted_zone(template, myvpc, raw_r53_hosted_zone_title="test-hz.com.")
+    assert_equals(r53_hosted_zone_manual.Name, "test-hz.com.")
+
+
+def test_add_r53_record_set():
+    template = Template()
+    r53_hosted_zone = "test-hz.com."
+    r53_record_set_name = "testdns"
+    r53_resource_records = "10.0.0.5"
+    r53_type = "A"
+
+    r53_record_set = add_r53_record_set(template, r53_hosted_zone, r53_record_set_name, r53_resource_records, r53_type)
+
+    assert_equals(r53_record_set.ResourceRecords, ["10.0.0.5"])
+    assert_equals(r53_record_set.Type, "A")
+
+
+def test_add_cd_application():
+    template = Template()
+    cd_application = add_cd_application(template, app_name="testapp")
+
+    assert_equals(cd_application.ApplicationName, "testapp")
+
+
+def test_add_cd_deploygroup():
+    template = Template()
+    auto_scaling_group = "deploygrp-TestappEXPERIMENTALAutoScalingGroup1-1Q4F92R4M768L"
+
+    cd_deploygroup = add_cd_deploygroup(template, "testapp", auto_scaling_group, service_role_arn="arn:aws:iam::658695688407:role/CodeDeploy")
+
+    assert_equals(cd_deploygroup.ApplicationName, "testapp"),
+    assert_equals(cd_deploygroup.ServiceRoleArn, "arn:aws:iam::658695688407:role/CodeDeploy"),
+    assert_equals(cd_deploygroup.AutoScalingGroups, ["deploygrp-TestappEXPERIMENTALAutoScalingGroup1-1Q4F92R4M768L"])
+
+
+@raises(AttributeError)
+def test_add_elastic_ip():
+    template = Template()
+    myvpc = add_vpc(template, VPC_CIDR)
+
+    elastic_ip = add_elastic_ip(template, myvpc)
+    assert_not_equals(elastic_ip.InstanceId, "i-5c440b83")
+    raise AttributeError("This is a passing test as InstanceId is not passed in")
+
+
+def test_add_elastic_ip_with_instance():
+    template = Template()
+    myvpc = add_vpc(template, VPC_CIDR)
+
+    elastic_ip = add_elastic_ip(template, myvpc, "i-5c440b83")
+    assert_equals(elastic_ip.InstanceId, "i-5c440b83")

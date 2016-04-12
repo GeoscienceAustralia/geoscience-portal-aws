@@ -4,4 +4,3 @@
 """GA Amazonia Package that generates GA cloud formation classes"""
 
 
-

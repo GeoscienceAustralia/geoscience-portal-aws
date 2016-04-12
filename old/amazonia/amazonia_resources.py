@@ -6,7 +6,7 @@ The functions in this module generate cloud formation scripts that install commo
 
 """
 
-from troposphere import Ref, Tags, Join, Base64, GetAtt, ec2, rds
+from troposphere import Ref, Tags, Join, Base64, GetAtt, ec2, rds, route53, codedeploy
 from troposphere.autoscaling import AutoScalingGroup, LaunchConfiguration, Tag
 import troposphere.elasticloadbalancing as elb
 import inflection
@@ -22,7 +22,8 @@ try:
     NAT_IMAGE_ID = hiera_client.get('amazonia::nat_image_id')
     NAT_INSTANCE_TYPE = hiera_client.get('amazonia::nat_instance_type')
     ENVIRONMENT_NAME = hiera_client.get('amazonia::environment')
-    AVAILABILITY_ZONES = [hiera_client.get('amazonia::availability_zone1'), hiera_client.get('amazonia::availability_zone2')]
+    AVAILABILITY_ZONES = [hiera_client.get('amazonia::availability_zone1'), hiera_client.get('amazonia::availability_zone2'), hiera_client.get('amazonia::availability_zone3')]
+    REGION = AVAILABILITY_ZONES[0][:-1]
     WEB_IMAGE_ID = hiera_client.get('amazonia::web_image_id') # OLD AMI: "ami-c11856fb"  # BASE AMI: "ami-ba6f4ad9"
     WEB_INSTANCE_TYPE = hiera_client.get('amazonia::web_instance_type')
     ASG_MIN_INSTANCES = int(hiera_client.get('amazonia::asg_min_instances'))
@@ -32,8 +33,10 @@ try:
     VPC_CIDR = hiera_client.get('amazonia::vpc_cidr')
     PUBLIC_SUBNET_AZ1_CIDR = hiera_client.get('amazonia::public_subnet_az1_cidr')
     PUBLIC_SUBNET_AZ2_CIDR = hiera_client.get('amazonia::public_subnet_az2_cidr')
+    PUBLIC_SUBNET_AZ3_CIDR = hiera_client.get('amazonia::public_subnet_az3_cidr')
     PRIVATE_SUBNET_AZ1_CIDR = hiera_client.get('amazonia::private_subnet_az1_cidr')
     PRIVATE_SUBNET_AZ2_CIDR = hiera_client.get('amazonia::private_subnet_az2_cidr')
+    PRIVATE_SUBNET_AZ3_CIDR = hiera_client.get('amazonia::private_subnet_az3_cidr')
     PUBLIC_CIDR = hiera_client.get('amazonia::public_cidr')
     PUBLIC_SUBNET_NAME = hiera_client.get('amazonia::public_subnet_name')
     PRIVATE_SUBNET_NAME = hiera_client.get('amazonia::private_subnet_name')
@@ -52,7 +55,7 @@ except Exception:
         NAT_IMAGE_ID = variables['nat_image_id']
         NAT_INSTANCE_TYPE = variables['nat_instance_type']
         ENVIRONMENT_NAME = variables['environment']
-        AVAILABILITY_ZONES = [variables['availability_zone1'], variables['availability_zone2']]
+        AVAILABILITY_ZONES = [variables['availability_zone1'], variables['availability_zone2'], variables['availability_zone3']]
         WEB_IMAGE_ID = variables['web_image_id']
         WEB_INSTANCE_TYPE = variables['web_instance_type']
         ASG_MIN_INSTANCES = int(variables['asg_min_instances'])
@@ -62,8 +65,10 @@ except Exception:
         VPC_CIDR = variables['vpc_cidr']
         PUBLIC_SUBNET_AZ1_CIDR = variables['public_subnet_az1_cidr']
         PUBLIC_SUBNET_AZ2_CIDR = variables['public_subnet_az2_cidr']
+        PUBLIC_SUBNET_AZ3_CIDR = variables['public_subnet_az3_cidr']
         PRIVATE_SUBNET_AZ1_CIDR = variables['private_subnet_az1_cidr']
         PRIVATE_SUBNET_AZ2_CIDR = variables['private_subnet_az2_cidr']
+        PRIVATE_SUBNET_AZ3_CIDR = variables['private_subnet_az3_cidr']
         PUBLIC_CIDR = variables['public_cidr']
         PUBLIC_SUBNET_NAME = variables['public_subnet_name']
         PRIVATE_SUBNET_NAME = variables['private_subnet_name']
@@ -106,6 +111,11 @@ num_auto_scaling_groups = 0
 num_db = 0
 num_db_subnet_group = 0
 num_db_instance = 0
+num_r53_hosted_zone = 0
+num_r53_record_set = 0
+num_cd_deploygroup = 0
+num_elastic_ip = 0
+
 
 def isCfObject(object):
     if type(object) is str:
@@ -116,20 +126,24 @@ def isCfObject(object):
     return returnObject
 
 
-def switch_availability_zone():
+def switch_availability_zone(num=-1):
     """
-        A simple function to switch Availability zones.
+    A simple function to switch Availability zones.
+    :param num: the Availability zone number you want to switch to (0,1,2)
     """
-    global current_az
-    if current_az == 0:
-        current_az = 1
+
+    if num==-1:
+        global current_az
+        current_az += 1
+        if current_az == 3:
+            current_az = 0
     else:
-        current_az = 0
+        current_az = num
 
 
 def add_vpc(template, cidr):
     """
-        Creates a VPC resource and adds it to the given template object.
+    Creates a VPC resource and adds it to the given template object.
     """
 
     global num_vpcs
@@ -224,7 +238,7 @@ def add_internet_gateway_attachment(template, vpc, internet_gateway):
     return gateway_attachment
 
 
-def add_route_ingress_via_gateway(template, route_table, internet_gateway, cidr, dependson = ""):
+def add_route_ingress_via_gateway(template, route_table, internet_gateway, cidr, dependson=""):
     global num_routes
     num_routes += 1
     route = template.add_resource(ec2.Route(
@@ -403,39 +417,29 @@ def add_web_instance(template, key_pair_name, subnet, security_group, userdata, 
     return instance
 
 
-def add_load_balancer(template, subnets, healthcheck_target, security_groups, 
-            loadbalancerport="80", protocol="HTTP", 
-            instanceport="80", instanceprotocol="HTTP", 
-            resources="", dependson= ""):
+def add_load_balancer(template, subnets, healthcheck_target, security_groups, loadbalancerport="80", protocol="HTTP",
+                      instanceport="80", instanceprotocol="HTTP", resources="", dependson=""):
     global num_load_balancers
     num_load_balancers += 1
 
     non_alphanumeric_title = "ElasticLoadBalancer" + str(num_load_balancers)
     elb_title = trimTitle(non_alphanumeric_title)
 
-    return_elb = template.add_resource(elb.LoadBalancer(
-        elb_title,
-        CrossZone=True,
-        HealthCheck=elb.HealthCheck(
-            Target=healthcheck_target,
-            HealthyThreshold="2",
-            UnhealthyThreshold="5",
-            Interval="15",
-            Timeout="5",
-        ),
-        Listeners=[elb.Listener(
-            LoadBalancerPort = loadbalancerport,
-            Protocol         = protocol,
-            InstancePort     = instanceport,
-            InstanceProtocol = instanceprotocol,
-        )],
-        Scheme="internet-facing",
-        SecurityGroups=[isCfObject(x) for x in security_groups],
-        Subnets=[isCfObject(x) for x in subnets],
-        Tags=Tags(
-            Name=name_tag(elb_title),
-        ),
-    ))
+    return_elb = template.add_resource(elb.LoadBalancer(elb_title,
+                                                        CrossZone=True,
+                                                        HealthCheck=elb.HealthCheck(Target=healthcheck_target,
+                                                                                    HealthyThreshold="2",
+                                                                                    UnhealthyThreshold="5",
+                                                                                    Interval="15",
+                                                                                    Timeout="5"),
+                                                        Listeners=[elb.Listener(LoadBalancerPort=loadbalancerport,
+                                                                                Protocol=protocol,
+                                                                                InstancePort=instanceport,
+                                                                                InstanceProtocol=instanceprotocol)],
+                                                        Scheme="internet-facing",
+                                                        SecurityGroups=[isCfObject(x) for x in security_groups],
+                                                        Subnets=[isCfObject(x) for x in subnets],
+                                                        Tags=Tags(Name=name_tag(elb_title))))
 
     if not resources == "":
         return_elb.Instances = [isCfObject(x) for x in resources]
@@ -525,7 +529,8 @@ def trimTitle(old_title):
     badsymbols = ["-", "*", " ", ".", ",", "/", "\\"]
     for var in badsymbols:
         old_title = old_title.replace(var, "_")
-
+    if old_title[-1:] == "_":
+        old_title = old_title[:-1]
     new_title = inflection.camelize(old_title)
     return new_title
 
@@ -600,3 +605,136 @@ def add_db(template, engine, db_subnet_group, username, password, db_security_gr
                                               VPCSecurityGroups=[isCfObject(sg) for sg in db_security_groups],
                                               Tags=Tags(Name=name_tag(db_title))))
     return db
+
+
+def add_r53_hosted_zone(template, vpc, raw_r53_hosted_zone_title=""):
+
+    if raw_r53_hosted_zone_title == "":
+        global num_r53_hosted_zone
+        num_r53_hosted_zone += 1
+        non_alphanumeric_title = "R53HostedZone" + str(num_r53_hosted_zone)
+        r53_hosted_zone_title = trimTitle(non_alphanumeric_title)
+        r53_hosted_zone_name = Join("", [name_tag(r53_hosted_zone_title), ".com.au."])
+    else:
+        r53_hosted_zone_name = raw_r53_hosted_zone_title
+        r53_hosted_zone_title = trimTitle(r53_hosted_zone_name)
+
+    r53_hosted_zone_configuration = route53.HostedZoneConfiguration(Comment=r53_hosted_zone_title)
+    r53_hosted_zone_vpcs = route53.HostedZoneVPCs(VPCId=isCfObject(vpc),
+                                                  VPCRegion=REGION)
+    r53_hosted_zone = template.add_resource(route53.HostedZone(r53_hosted_zone_title,
+                                                               HostedZoneConfig=r53_hosted_zone_configuration,
+                                                               HostedZoneTags=Tags(Name=r53_hosted_zone_name),
+                                                               Name=r53_hosted_zone_name,
+                                                               VPCs=[r53_hosted_zone_vpcs]))
+
+    return r53_hosted_zone
+
+
+def add_r53_record_set(template, r53_hosted_zone, r53_record_set_name, r53_resource_records, r53_type):
+    global num_r53_record_set
+    num_r53_record_set += 1
+
+    non_alphanumeric_title = "R53RecordSet" + str(num_r53_record_set)
+    r53_record_set_title = trimTitle(non_alphanumeric_title)
+
+    if type(r53_hosted_zone) is str:
+        r53_hosted_zone_name = r53_hosted_zone
+    else:
+        r53_hosted_zone_name = r53_hosted_zone.Name
+
+    r53_record_set = template.add_resource(route53.RecordSetType(r53_record_set_title,
+                                                                 # AliasTarget=(AliasTarget, False),
+                                                                 # Comment=r53_record_set_title,
+                                                                 # Failover=(basestring, False),
+                                                                 # GeoLocation=(GeoLocation, False),
+                                                                 # HealthCheckId=(basestring, False),
+                                                                 HostedZoneId=isCfObject(r53_hosted_zone),
+                                                                 # HostedZoneName=(basestring, False),
+                                                                 Name=Join("", [r53_record_set_name, ".",
+                                                                                r53_hosted_zone_name]),
+                                                                 # Region=REGION,
+                                                                 ResourceRecords=[r53_resource_records],
+                                                                 # SetIdentifier=(basestring, False),
+                                                                 TTL=300,
+                                                                 Type=r53_type))
+
+    r53_record_set.DependsOn = [r53_hosted_zone.title]
+
+    return r53_record_set
+
+
+def add_cd_application(template, app_name):
+    """
+    AWS::CodeDeploy::Application
+    Function used to create Code Deploy Application Objects
+     - http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-codedeploy-application.html
+     - https://github.com/cloudtools/troposphere/blob/master/troposphere/codedeploy.py
+    :param template: Troposphere cloudformation template object
+    :param app_name: Name of Application which will be used to generate Code Deploy Application container
+    :return: Code Deploy Application troposphere object
+    """
+
+    cd_application = template.add_resource(codedeploy.Application(app_name, ApplicationName=app_name))
+
+    return cd_application
+
+
+def add_cd_deploygroup(template, cd_application, auto_scaling_group, service_role_arn=""):
+    """
+    AWS::CodeDeploy::DeploymentGroup
+    Function used to create Code Deploy DeploymentGroup Objects that will determine where applications get deployed to.
+     - http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-codedeploy-deploymentgroup.html
+     - https://github.com/cloudtools/troposphere/blob/master/troposphere/codedeploy.py
+    :param template: Troposphere cloudformation template object
+    :param cd_application: Troposhpere Code Deploy Application object or string of AWS Code Deploy Application object
+    :param auto_scaling_group: Troposhpere EC2 Autoscaling Group object or string of AWS EC2 Autoscaling Group object
+    :param service_role_arn: AWS IAM ROle with Code Deploy permissions
+    :return: Code Deploy DeploymentGroup troposphere object
+    """
+
+    global num_cd_deploygroup
+    num_cd_deploygroup += 1
+
+    non_alphanumeric_title = "CodeDeployGroup" + str(num_cd_deploygroup)
+    deploygroup_name = trimTitle(non_alphanumeric_title)
+
+    cd_deploygroup = template.add_resource(codedeploy.DeploymentGroup(deploygroup_name,
+                                                                      ApplicationName=isCfObject(cd_application),
+                                                                      AutoScalingGroups=[isCfObject(auto_scaling_group)],
+                                                                      # Deployment="",
+                                                                      DeploymentConfigName="CodeDeployDefault.OneAtATime",
+                                                                      DeploymentGroupName=name_tag("DeploymentGroup"),
+                                                                      # Ec2TagFilters=[ec2_tags],
+                                                                      # OnPremisesInstanceTagFilters="",
+                                                                      ServiceRoleArn=service_role_arn))
+    cd_deploygroup.DependsOn = [cd_application.title, auto_scaling_group.title]
+
+    return cd_deploygroup
+
+
+def add_elastic_ip(template, vpc, instance_id=""):
+    """
+    AWS::EC2::EIP
+    Function used to create an Elastic IP Object that will allocate an Elastic IP (EIP) address and can, optionally,
+    associate it with an Amazon EC2 instance.
+     - http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-eip.html
+     - https://github.com/cloudtools/troposphere/blob/master/troposphere/ec2.py
+    :param template: Troposphere cloudformation template object
+    :param vpc: AWS VPC troposhpere object or string
+    :param instance_id: Instance ID string to attach the elastic IP to
+    :return: Elastic IP troposhpere object
+    """
+
+    global num_elastic_ip
+    num_elastic_ip += 1
+
+    non_alphanumeric_title = "ElasticIP" + str(num_elastic_ip)
+    num_elastic_ip_name = trimTitle(non_alphanumeric_title)
+
+    elastic_ip = template.add_resource(ec2.EIP(num_elastic_ip_name,
+                                               Domain=isCfObject(vpc)))
+
+    if instance_id != "":
+        elastic_ip.InstanceId = instance_id
+    return elastic_ip
