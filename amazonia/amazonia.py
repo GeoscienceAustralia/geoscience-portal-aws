@@ -4,8 +4,7 @@ Ingest User YAML and GA defaults YAML and send to yaml class to return as one un
 
 """
 import yaml
-import sys
-import getopt
+import argparse
 from amazonia.classes.yaml import Yaml
 from amazonia.classes.stack import Stack
 
@@ -18,12 +17,12 @@ def read_yaml(user_yaml):
         return yaml.load(stack_yaml)
 
 
-def read_defaults(default_yaml):
-    """ Ingest  GA default YAML
-    """
-    with open(default_yaml, 'r') as default_yaml:
-        print(default_yaml)
-        return yaml.load(default_yaml)
+# def read_defaults(default_yaml):
+#     """ Ingest  GA default YAML
+#     """
+#     with open(default_yaml, 'r') as default_yaml:
+#         print(default_yaml)
+#         return yaml.load(default_yaml)
 
 
 def create_stack(united_data):
@@ -47,17 +46,18 @@ def __main__():
     Create list of stack input dictoinary objects from yaml class
     create stack from stack input dictionary
     """
-    user_stack_data = ''
-    default_data = ''
-    opts, args = getopt.getopt(sys.argv[1:], 'ud:', ['user_yaml', 'default_yaml'])
-    for opt, param in opts:
-        if opt in ('-y', '--yaml'):
-            # user_stack_data = read_yaml('./amazonia/amazonia.yaml')
-            user_stack_data = read_yaml(param)
-        elif opt in ('-d', '--default'):
-            # default_data = read_defaults('./amazonia/amazonia_ga_defaults.yaml')
-            default_data = read_defaults(param)
 
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-y', '--yaml',
+                        default='./amazonia.yaml',
+                        help="Path to the user's amazonia yaml file")
+    parser.add_argument('-d', '--default',
+                        default='./amazonia_ga_defaults.yaml',
+                        help="Path to the user's amazonia default yaml file")
+    args = parser.parse_args()
+
+    user_stack_data = read_yaml(args.yaml)
+    default_data = read_yaml(args.default)
     stack_input = Yaml(user_stack_data, default_data)
 
-    Stack(**stack_input.united_data)
+    create_stack(**stack_input.united_data)
