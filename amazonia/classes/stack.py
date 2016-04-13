@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-from troposphere import Ref, Template, ec2
+from troposphere import Ref, Template, ec2, Tags, Join
 
 from amazonia.classes.single_instance import SingleInstance
 from amazonia.classes.subnet import Subnet
@@ -44,8 +44,15 @@ class Stack(object):
 
         """ Add VPC and Internet Gateway with Attachment
         """
-        self.vpc = self.template.add_resource(ec2.VPC(self.title + 'Vpc', CidrBlock=self.vpc_cidr))
-        self.internet_gateway = self.template.add_resource(ec2.InternetGateway(self.title + 'Ig'))
+        vpc_name = self.title + 'Vpc'
+        self.vpc = self.template.add_resource(
+            ec2.VPC(
+                vpc_name, CidrBlock=self.vpc_cidr, Tags=Tags(Name=Join('', [Ref('AWS::StackName'), '-', vpc_name]))))
+
+        ig_name = self.title + 'Ig'
+        self.internet_gateway = self.template.add_resource(
+            ec2.InternetGateway(ig_name, Tags=Tags(Name=Join('', [Ref('AWS::StackName'), '-', ig_name]))))
+
         self.gateway_attachment = self.template.add_resource(
             ec2.VPCGatewayAttachment(self.internet_gateway.title + 'Atch',
                                      VpcId=Ref(self.vpc),
@@ -53,10 +60,15 @@ class Stack(object):
 
         """ Add Public and Private Route Tables
         """
-        self.public_route_table = self.template.add_resource(ec2.RouteTable(self.title + 'PubRt',
-                                                                            VpcId=Ref(self.vpc)))
-        self.private_route_table = self.template.add_resource(ec2.RouteTable(self.title + 'PriRt',
-                                                                             VpcId=Ref(self.vpc)))
+        public_rt_name = self.title + 'PubRt'
+        self.public_route_table = self.template.add_resource(
+            ec2.RouteTable(public_rt_name, VpcId=Ref(self.vpc),
+                           Tags=Tags(Name=Join('', [Ref('AWS::StackName'), '-', public_rt_name]))))
+
+        private_rt_name = self.title + 'PriRt'
+        self.private_route_table = self.template.add_resource(
+            ec2.RouteTable(private_rt_name, VpcId=Ref(self.vpc),
+                           Tags=Tags(Name=Join('', [Ref('AWS::StackName'), '-', private_rt_name]))))
 
         """ Add Public and Private Subnets
         """

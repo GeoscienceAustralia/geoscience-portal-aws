@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 
-from troposphere import Base64, codedeploy, Ref
-from troposphere.autoscaling import AutoScalingGroup, LaunchConfiguration
+from troposphere import Base64, codedeploy, Ref, Join
+from troposphere.autoscaling import AutoScalingGroup, LaunchConfiguration, Tag
 
 from amazonia.classes.securityenabledobject import SecurityEnabledObject
 
@@ -68,6 +68,7 @@ class Asg(SecurityEnabledObject):
             VPCZoneIdentifier=[Ref(subnet.title) for subnet in kwargs['subnets']],
             AvailabilityZones=availability_zones,
             LoadBalancerNames=[Ref(kwargs['load_balancer'])],
+            Tags=[Tag('Name', Join('', [Ref('AWS::StackName'), '-', kwargs['title']]), True)]
         )
         )
         self.asg.LaunchConfigurationName = Ref(self.add_launch_config(
@@ -118,12 +119,14 @@ class Asg(SecurityEnabledObject):
         cd_deploygroup_title = kwargs['title'] + 'Cdg'
 
         self.cd_app = self.template.add_resource(codedeploy.Application(cd_app_title,
-                                                                        ApplicationName=kwargs['title']))
+                                                                        ApplicationName=Join('', [Ref('AWS::StackName'),
+                                                                                                  '-', cd_app_title])))
         self.cd_deploygroup = self.template.add_resource(
             codedeploy.DeploymentGroup(cd_deploygroup_title,
                                        ApplicationName=Ref(self.cd_app),
                                        AutoScalingGroups=[Ref(self.asg)],
                                        DeploymentConfigName='CodeDeployDefault.OneAtATime',
-                                       DeploymentGroupName=cd_deploygroup_title,
+                                       DeploymentGroupName=Join('', [Ref('AWS::StackName'),
+                                                                     '-', cd_deploygroup_title]),
                                        ServiceRoleArn=kwargs['service_role_arn']))
         self.cd_deploygroup.DependsOn = [self.cd_app.title, self.asg.title]
