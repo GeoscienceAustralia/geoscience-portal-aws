@@ -25,6 +25,12 @@ class Asg(SecurityEnabledObject):
         :param service_role_arn: AWS IAM Role with Code Deploy permissions
         """
         super(Asg, self).__init__(vpc=vpc, title=title, template=template)
+        if maxsize < minsize:
+            print("Error: minsize must be lower than maxsize.")
+            print("Error: minsize {0}".format(minsize))
+            print("Error: maxsize {0}".format(maxsize))
+            exit(1)
+
         self.template = template
         self.title = title + 'Asg'
         self.trop_asg = None
