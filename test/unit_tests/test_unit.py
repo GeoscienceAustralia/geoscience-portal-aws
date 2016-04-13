@@ -52,9 +52,9 @@ runcmd:
 def test_unit():
     title = 'app'
     unit = create_unit(title=title)
-    assert_equals(unit.asg.asg.title, title + 'Asg')
+    assert_equals(unit.asg.trop_asg.title, title + 'Asg')
     assert_equals(unit.elb.elb.title, title + 'Elb')
-    [assert_is(type(lbn), Ref) for lbn in unit.asg.asg.LoadBalancerNames]
+    [assert_is(type(lbn), Ref) for lbn in unit.asg.trop_asg.LoadBalancerNames]
     assert_equals(len(unit.asg.egress), 2)
     assert_equals(len(unit.asg.ingress), 2)
     assert_equals(len(unit.elb.ingress), 2)
