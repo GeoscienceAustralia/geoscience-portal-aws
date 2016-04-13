@@ -2,7 +2,7 @@
 # Test Stack Yaml for Amazonia
 #
 
-stack_title: testStack
+stack_title: test_Stack
 code_deploy_service_role: instance-iam-role-InstanceProfile-OGL42SZSIQRK
 keypair: pipeline
 availability_zones:

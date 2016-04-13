@@ -12,8 +12,8 @@ def test_validate_title():
         assert_true(ch in string.printable for ch in new_string)
 
 
-def test_validate_cidr():
-    test_cidrs = ['test_Stack', 'test*String', 'test0String', 'test-string_']
-
-    for test_cidr in test_cidrs:
-        new_cidr = Yaml.v
+# def test_validate_cidr():
+#     test_cidrs = ['test_Stack', 'test*String', 'test0String', 'test-string_']
+#
+#     for test_cidr in test_cidrs:
+#         new_cidr = Yaml.v
