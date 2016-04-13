@@ -13,16 +13,7 @@ def read_yaml(user_yaml):
     """ Ingest user YAML
     """
     with open(user_yaml, 'r') as stack_yaml:
-        print(stack_yaml)
         return yaml.load(stack_yaml)
-
-
-# def read_defaults(default_yaml):
-#     """ Ingest  GA default YAML
-#     """
-#     with open(default_yaml, 'r') as default_yaml:
-#         print(default_yaml)
-#         return yaml.load(default_yaml)
 
 
 def create_stack(united_data):
@@ -59,7 +50,11 @@ def main():
 
     user_stack_data = read_yaml(args.yaml)
     default_data = read_yaml(args.default)
-    stack_input = Yaml(user_stack_data, default_data).united_data
+    print('user_stack_data=\n{0}\n'.format(user_stack_data))
+    print('default_data=\n{0}\n'.format(default_data))
+    yaml_return = Yaml(user_stack_data, default_data)
+    stack_input = yaml_return.united_data
+    print('stack_input=\n{0}\n'.format(stack_input))
 
     create_stack(stack_input)
 

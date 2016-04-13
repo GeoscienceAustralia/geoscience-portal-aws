@@ -2,7 +2,7 @@
 # GA's default values to be used for YAML ingestion and overwritten by user values
 #
 
-userdata: ''
+userdata: 'NO_USERDATA'
 image_id: 'ami-893f53b3'
 instance_type: 't2.nano'
 stack_title: 'GAtestStack'
@@ -19,8 +19,8 @@ jump_instance_type: 't2.nano'
 nat_image_id: 'ami-893f53b3'
 nat_instance_type: 't2.nano'
 home_cidr:
-  - !!python/tuple [GA_1, 124.47.132.12.132/32]
-  - !!python/tuple [GA_2, 192.104.44.55.10/22]
+  - !!python/tuple ['GA_1', '124.47.132.12.132/32']
+  - !!python/tuple ['GA_2', '192.104.44.55.10/22']
 unit_title: 'app1'
 protocol: 'HTTP'
 port: '80'
