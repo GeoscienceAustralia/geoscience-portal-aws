@@ -37,7 +37,7 @@ units:
       runcmd:
        - service httpd start
   -
-    unit_title: 'app1'
+    unit_title: 'app2'
     image_id: 'ami-162c0c75'
     instance_type: 't2.nano'
     protocol: 'HTTP'
