@@ -16,9 +16,7 @@ class Yaml(object):
         :return: Cloud Formation template
         """
         self.user_stack_data = user_stack_data
-        print('user_stack_data=\n{0}\n'.format(user_stack_data))
         self.default_data = default_data
-        print('default_data=\n{0}\n'.format(default_data))
         self.united_data = dict()
         self.stack_key_list = list()
         self.unit_key_list = list()
@@ -85,8 +83,6 @@ class Yaml(object):
                 self.united_data['units'][unit]['userdata'] = 'AWS_SECRET_KEY_FOUND'
             else:
                 pass
-
-        print('\nunited_data={0}\n'.format(self.united_data))
 
     def get_values(self, value):
         """

@@ -46,15 +46,11 @@ def main():
                         default='./amazonia/amazonia_ga_defaults.yaml',
                         help="Path to the user's amazonia default yaml file")
     args = parser.parse_args()
-    print(args)
 
     user_stack_data = read_yaml(args.yaml)
     default_data = read_yaml(args.default)
-    print('user_stack_data=\n{0}\n'.format(user_stack_data))
-    print('default_data=\n{0}\n'.format(default_data))
     yaml_return = Yaml(user_stack_data, default_data)
     stack_input = yaml_return.united_data
-    print('stack_input=\n{0}\n'.format(stack_input))
 
     create_stack(stack_input)
 
