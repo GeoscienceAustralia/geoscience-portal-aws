@@ -6,7 +6,7 @@ userdata: 'NO_USERDATA'
 image_id: 'ami-893f53b3'
 instance_type: 't2.nano'
 stack_title: 'GAtestStack'
-code_deploy_service_role: 'instance-iam-role-InstanceProfile-OGL42SZSIQRK'
+code_deploy_service_role: 'arn:aws:iam::658691668407:role/CodeDeployServiceRole'
 keypair: 'pipeline'
 availability_zones:
   - 'ap-southeast-2a'

@@ -2,7 +2,7 @@
 # Test Stack User Yaml for Amazonia
 #
 stack_title: 'testStack'
-code_deploy_service_role: 'instance-iam-role-InstanceProfile-OGL42SZSIQRK'
+code_deploy_service_role: 'arn:aws:iam::658691668407:role/CodeDeployServiceRole'
 keypair: 'pipeline'
 availability_zones:
   - 'ap-southeast-2a'
