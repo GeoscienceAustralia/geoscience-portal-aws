@@ -5,8 +5,6 @@ Overwrite GA defaults YAML with User YAML
 
 """
 import re
-import string
-import yaml
 from iptools.ipv4 import validate_cidr
 
 
