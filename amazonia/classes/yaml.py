@@ -25,7 +25,6 @@ class Yaml(object):
     def set_values(self):
         """
         Assigning values to the united_data dictionary
-        :return: Returns nothing, makes changes to self.united_data directly
         """
         self.stack_key_list = ['stack_title',
                                'code_deploy_service_role',
@@ -137,7 +136,6 @@ class Yaml(object):
         """
         Validates home_cidrs are looped through and each home_cidr's name and cidr is validated using prevoius functions
         :param home_cidrs: list of cidr tuples from unit_data yaml, tuple is in the form (name, cidr)
-        :return: Returns nothing, makes changes in the dictionary in the function
         """
         for num, cidr in enumerate(home_cidrs):
             if validate_cidr(cidr[1]) is False:
