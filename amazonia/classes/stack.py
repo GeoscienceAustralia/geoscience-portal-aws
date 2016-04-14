@@ -153,7 +153,7 @@ class Stack(object):
         """
         Function to help create Class C subnet CIDRs from Class A VPC CIDRs
         :param is_public: boolean for public or private subnet determined by route table
-        :return: Subnet CIDR based on Public or Private and previous subnets created e.g. 10.1.2.0/24 or 10.0.1.0/24
+        :return: Subnet CIDR based on Public or Private and previous subnets created e.g. 10.0.2.0/24 or 10.0.101.0/24
         """
         # 3rd Octect: Obtain length of pub or pri subnet list
         octect_3 = len(self.public_subnets) if is_public else len(self.private_subnets) + 100
