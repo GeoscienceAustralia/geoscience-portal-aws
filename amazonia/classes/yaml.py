@@ -2,7 +2,6 @@
 """
 Ingest User YAML and GA defaults YAML
 Overwrite GA defaults YAML with User YAML
-
 """
 import re
 from iptools.ipv4 import validate_cidr
@@ -13,7 +12,6 @@ class Yaml(object):
         """
         :param user_stack_data: User yaml document used to read stack values
         :param default_data: Company yaml to read in company default values
-        :return: Cloud Formation template
         """
         self.user_stack_data = user_stack_data
         self.default_data = default_data
