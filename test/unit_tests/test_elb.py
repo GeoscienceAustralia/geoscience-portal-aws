@@ -5,6 +5,7 @@ from troposphere import Template, Ref
 from amazonia.classes.elb import Elb
 import re
 
+
 def create_elb(**kwargs):
     """
     Helper function to create Elb Troposhpere object to interate through.
@@ -20,6 +21,7 @@ def create_elb(**kwargs):
               subnets=pub_sub_list,
               protocol=kwargs.get('protocol', 'HTTP'),
               vpc=vpc,
+              hosted_zone_name=kwargs.get('hosted_zone_name', None),
               path2ping=kwargs.get('path2ping', 'index.html'),
               template=Template())
     return elb
@@ -95,11 +97,6 @@ def test_security_group():
         assert_is(type(sg), Ref)
 
 
-def test_record_set():
-    helper_elb = create_elb()
-    assert_is(type(helper_elb.elb_r53), Ref) # TODO
-    assert(helper_elb.elb_r53.Type, 'CNAME') # TODO
-    assert(ResourceRecords, getattr(elb, dns name)) # TODO
-
-
-
+def test_hosted_zone_name():
+    helper_elb = create_elb(hosted_zone_name='myhostedzone.gadevs.ga.')
+    assert helper_elb.elb_r53

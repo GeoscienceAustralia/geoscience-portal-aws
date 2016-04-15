@@ -11,7 +11,7 @@ def main():
 
     hosted_zone = template.add_resource(route53.HostedZone('MyHostedZone',
                                                            HostedZoneConfig=route53.HostedZoneConfiguration(Comment='MyHostedZone'),
-                                                           Name='myhostedzone.test.ga',
+                                                           Name='myhostedzone.test.ga.',
                                                            VPCs=[route53.HostedZoneVPCs(VPCId=Ref(vpc),
                                                                                         VPCRegion='ap-southeast-2')]))
 
@@ -40,7 +40,7 @@ def main():
         subnets=public_subnets,
         protocol='http',
         vpc=vpc,
-        hosted_zone_id=hosted_zone,
+        hosted_zone_name=hosted_zone.Name,
         path2ping='/index.html',
         template=template)
 

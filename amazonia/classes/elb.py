@@ -3,6 +3,7 @@
 from amazonia.classes.securityenabledobject import SecurityEnabledObject
 from troposphere import Tags, Ref, Output, Join, GetAtt, route53
 import troposphere.elasticloadbalancing as elb
+import boto3
 
 
 class Elb(SecurityEnabledObject):
@@ -18,7 +19,7 @@ class Elb(SecurityEnabledObject):
         :param path2ping: Path for the Healthcheck to ping e.g 'index.html' or 'test/test_page.htm'
         :param subnets: List of subnets either [pub_sub_list] if public unit or [pri_sub_list] if private unit
         :param title: Name of the Cloud formation elb object
-        :param hosted_zone_id: Route53 hosted zone ID
+        :param hosted_zone_name: Route53 hosted zone ID
         """
         self.title = kwargs['title'] + 'Elb'
         super(Elb, self).__init__(vpc=kwargs['vpc'], title=self.title, template=kwargs['template'])
@@ -41,21 +42,21 @@ class Elb(SecurityEnabledObject):
                                      Subnets=[Ref(x) for x in kwargs['subnets']],
                                      Tags=Tags(Name=self.title)))
 
-        self.elb_r53 = self.template.add_resource(route53.RecordSetType(
+        if kwargs['hosted_zone_name']:
+            self.elb_r53 = self.template.add_resource(route53.RecordSetType(
                                                              self.title + 'R53',
-                                                             HostedZoneId=kwargs['hosted_zone_id'],
-                                                             Name=Join('', [self.title, 'R53', '.']),
+                                                             HostedZoneName=kwargs['hosted_zone_name'],
+                                                             Name=Join('', [self.title,
+                                                                            'R53',
+                                                                            '.',
+                                                                            kwargs['hosted_zone_name']]),
                                                              ResourceRecords=[GetAtt(self.elb, 'DNSName')],
                                                              TTL=300,
                                                              Type='CNAME'))
 
-        self.template.add_output(Output(
-            self.elb.title,
-            Description='URL of the {0} website'.format(self.elb.title),
-            Value=Join('', ['http://', self.elb_r53.Name])
-        ))
-
-        # TODO If kwarg['subnets']==pri_sub_list e.g Private unit, Scheme must be set to 'internal'
-        # TODO Sys Tests: Connect from jumphost to subpub1 instance, subpub2 instance, can't connect on port 80,8080,443
-        # TODO Sys Tests: Try connecting to host in another vpc
+            self.template.add_output(Output(
+                self.elb.title,
+                Description='URL of the {0} ELB'.format(self.title),
+                Value=Join('', ['http://', self.elb_r53.Name])
+            ))
 
