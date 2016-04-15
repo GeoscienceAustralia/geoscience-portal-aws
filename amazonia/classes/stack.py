@@ -24,7 +24,7 @@ class Stack(object):
         :param jump_instance_type: instance type for jumphost
         :param nat_image_id: AMI for nat
         :param nat_instance_type: instance type for nat
-        :param units: list of unit dicts (unit_title, protocol, port, path2ping, minsize, maxsize, image_id, instance_type, userdata)
+        :param units: list of unit dicts (unit_title, protocol, port, path2ping, minsize, maxsize, image_id, instance_type, userdata, hosted_zone_name)
         :param home_cidr: a list of tuple objects of 'title'(0) and 'ip'(1) to be used
          to create ingress rules for ssh to jumpboxes from home/office/company premises
         """
@@ -144,6 +144,7 @@ class Stack(object):
                                    image_id=unit['image_id'],
                                    instance_type=unit['instance_type'],
                                    userdata=unit['userdata'],
+                                   hosted_zone_name=unit['hosted_zone_name'],
                                    service_role_arn=self.code_deploy_service_role,
                                    nat=self.nat,
                                    jump=self.jump,

@@ -41,6 +41,7 @@ class Yaml(object):
             self.united_data[stack_value] = self.get_values(stack_value)
 
         self.unit_key_list = ['unit_title',
+                              'hosted_zone_name',
                               'userdata',
                               'image_id',
                               'instance_type',

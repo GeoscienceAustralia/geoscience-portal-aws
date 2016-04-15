@@ -105,7 +105,8 @@ def create_stack(stack_title):
                 'maxsize': maxsize,
                 'image_id': app_image_id,
                 'instance_type': instance_type,
-                'userdata': userdata},
+                'userdata': userdata,
+                'hosted_zone_name': None},
                {'unit_title': 'app2',
                 'protocol': protocol,
                 'port': port,
@@ -114,6 +115,7 @@ def create_stack(stack_title):
                 'maxsize': maxsize,
                 'image_id': app_image_id,
                 'instance_type': instance_type,
-                'userdata': userdata}],
+                'userdata': userdata,
+                'hosted_zone_name': None}],
     )
     return stack
