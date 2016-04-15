@@ -5,6 +5,25 @@ from troposphere import Template, Ref
 from amazonia.classes.elb import Elb
 import re
 
+def create_elb(**kwargs):
+    """
+    Helper function to create Elb Troposhpere object to interate through.
+    :param port - port for traffic
+    :param protocol: protocol for traffic
+    :param path2ping: path to test page
+    :return: Troposphere object for Elb,
+    """
+    vpc = 'vpc-12345'
+    pub_sub_list = ['subnet-123456', 'subnet-123496', 'subnet-123454']
+    elb = Elb(title='elb',
+              port=kwargs.get('port', '80'),
+              subnets=pub_sub_list,
+              protocol=kwargs.get('protocol', 'HTTP'),
+              vpc=vpc,
+              path2ping=kwargs.get('path2ping', 'index.html'),
+              template=Template())
+    return elb
+
 
 def test_protocol_to_upper():
     """
@@ -76,21 +95,11 @@ def test_security_group():
         assert_is(type(sg), Ref)
 
 
-def create_elb(**kwargs):
-    """
-    Helper function to create Elb Troposhpere object to interate through.
-    :param port - port for traffic
-    :param protocol: protocol for traffic
-    :param path2ping: path to test page
-    :return: Troposphere object for Elb,
-    """
-    vpc = 'vpc-12345'
-    pub_sub_list = ['subnet-123456', 'subnet-123496', 'subnet-123454']
-    elb = Elb(title='elb',
-              port=kwargs.get('port', '80'),
-              subnets=pub_sub_list,
-              protocol=kwargs.get('protocol', 'HTTP'),
-              vpc=vpc,
-              path2ping=kwargs.get('path2ping', 'index.html'),
-              template=Template())
-    return elb
+def test_record_set():
+    helper_elb = create_elb()
+    assert_is(type(helper_elb.elb_r53), Ref) # TODO
+    assert(helper_elb.elb_r53.Type, 'CNAME') # TODO
+    assert(ResourceRecords, getattr(elb, dns name)) # TODO
+
+
+
