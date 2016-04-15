@@ -83,8 +83,6 @@ def test_stack():
 
 
 def create_stack(stack_title):
-    global userdata, availability_zones, keypair, instance_type, code_deploy_service_role, vpc_cidr, port, \
-        protocol, minsize, maxsize, path2ping, home_cidr, nat_image_id, jump_image_id, app_image_id
     stack = Stack(
         stack_title=stack_title,
         code_deploy_service_role=code_deploy_service_role,
