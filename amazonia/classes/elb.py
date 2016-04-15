@@ -3,7 +3,6 @@
 from amazonia.classes.securityenabledobject import SecurityEnabledObject
 from troposphere import Tags, Ref, Output, Join, GetAtt, route53
 import troposphere.elasticloadbalancing as elb
-import boto3
 
 
 class Elb(SecurityEnabledObject):
