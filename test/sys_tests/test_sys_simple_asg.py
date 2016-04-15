@@ -42,7 +42,7 @@ runcmd:
     template = Template()
     Asg(title='simple',
         keypair='pipeline',
-        image_id='ami-893f53b3',
+        image_id='ami-162c0c75',
         instance_type='t2.nano',
         vpc=vpc,
         subnets=[subnet],

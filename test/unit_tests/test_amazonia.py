@@ -1,6 +1,6 @@
 import troposphere.elasticloadbalancing as elb
 from nose.tools import *
-from troposphere import ec2, Ref, Template, Join
+from troposphere import ec2, Ref, Template
 
 from amazonia.classes.asg import Asg
 
@@ -68,10 +68,8 @@ def test_asg():
         assert_equals(asg.lc.KeyName, 'pipeline')
         [assert_is(type(sg), Ref) for sg in asg.lc.SecurityGroups]
         assert_equals(asg.cd_app.title, title + 'Asg' + 'Cda')
-        assert_is(type(asg.cd_app.ApplicationName), Join)
         assert_is(type(asg.cd_deploygroup.ApplicationName), Ref)
         assert_equals(asg.cd_deploygroup.title, title + 'Asg' + 'Cdg')
-        assert_is(type(asg.cd_deploygroup.DeploymentGroupName), Join)
         [assert_is(type(cdasg), Ref) for cdasg in asg.cd_deploygroup.AutoScalingGroups]
         assert_equals(asg.cd_deploygroup.ServiceRoleArn, 'instance-iam-role-InstanceProfile-OGL42SZSIQRK')
 

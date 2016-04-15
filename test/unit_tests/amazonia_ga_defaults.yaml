@@ -1,0 +1,35 @@
+#
+# GA's default values to be used for YAML ingestion and overwritten by user values
+#
+
+userdata: 'NO_USERDATA'
+image_id: 'ami-893f53b3'
+instance_type: 't2.nano'
+stack_title: 'GAtestStack'
+code_deploy_service_role: 'arn:aws:iam::658691668407:role/CodeDeployServiceRole'
+keypair: 'pipeline'
+availability_zones:
+  - 'ap-southeast-2a'
+  - 'ap-southeast-2b'
+  - 'ap-southeast-2c'
+vpc_cidr: '10.0.0.0/16'
+jump_image_id: 'ami-893f53b3'
+jump_instance_type: 't2.nano'
+nat_image_id: 'ami-893f53b3'
+nat_instance_type: 't2.nano'
+home_cidr:
+  - ('GA1', '124.47.132.132/32')
+  - ('GA2', '192.104.44.0/22')
+unit_title: 'app1'
+protocol: 'HTTP'
+port: '80'
+path2ping: '/index.html'
+minsize: '1'
+maxsize: '1'
+units: 'blah'
+
+
+## YAML TIPS:
+#   Lists: are denoted by indented hypens
+#   Strings: do not need to be enclosed in quotes or double quotes
+#   Multi line strings: can be used by establishing a literal block '|'

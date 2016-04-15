@@ -26,13 +26,12 @@ class Elb(SecurityEnabledObject):
         self.elb = self.template.add_resource(
                     elb.LoadBalancer(self.title,
                                      CrossZone=True,
-                                     HealthCheck=elb.HealthCheck(Target='{0}:{1}/{2}'.format(kwargs['protocol'].upper(),
-                                                                                             kwargs['port'],
-                                                                                             kwargs['path2ping']),
-                                                                 HealthyThreshold='2',
-                                                                 UnhealthyThreshold='5',
-                                                                 Interval='10',
-                                                                 Timeout='5'),
+                                     HealthCheck=elb.HealthCheck(Target=kwargs['protocol'].upper() + ':' +
+                                                                 kwargs['port'] + kwargs['path2ping'],
+                                                                 HealthyThreshold='10',
+                                                                 UnhealthyThreshold='2',
+                                                                 Interval='300',
+                                                                 Timeout='60'),
                                      Listeners=[elb.Listener(LoadBalancerPort=kwargs['port'],
                                                              Protocol=kwargs['protocol'].upper(),
                                                              InstancePort=kwargs['port'],
@@ -55,7 +54,7 @@ class Elb(SecurityEnabledObject):
             Description='URL of the {0} website'.format(self.elb.title),
             Value=Join('', ['http://', self.elb_r53.Name])
         ))
-        
+
         # TODO If kwarg['subnets']==pri_sub_list e.g Private unit, Scheme must be set to 'internal'
         # TODO Sys Tests: Connect from jumphost to subpub1 instance, subpub2 instance, can't connect on port 80,8080,443
         # TODO Sys Tests: Try connecting to host in another vpc

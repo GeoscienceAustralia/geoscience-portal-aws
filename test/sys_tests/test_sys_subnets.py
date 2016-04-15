@@ -25,40 +25,43 @@ def main():
                                  az=az_a,
                                  cidr='10.0.1.0/24',
                                  vpc=vpc,
-                                 is_public=True))
+                                 is_public=True,
+                                 stack_title='MyStack'))
     public_subnets.append(Subnet(template=template,
                                  route_table=public_route_table,
                                  az=az_b,
                                  cidr='10.0.2.0/24',
                                  vpc=vpc,
-                                 is_public=True))
+                                 is_public=True,
+                                 stack_title='MyStack'))
     public_subnets.append(Subnet(template=template,
                                  route_table=public_route_table,
                                  az=az_c,
                                  cidr='10.0.3.0/24',
                                  vpc=vpc,
-                                 is_public=True))
+                                 is_public=True,
+                                 stack_title='MyStack'))
     private_subnets.append(Subnet(template=template,
                                   route_table=private_route_table,
                                   az=az_a,
                                   cidr='10.0.101.0/24',
                                   vpc=vpc,
-                                  is_public=False
-                                  ))
+                                  is_public=False,
+                                  stack_title='MyStack'))
     private_subnets.append(Subnet(template=template,
                                   route_table=private_route_table,
                                   az=az_b,
                                   cidr='10.0.102.0/24',
                                   vpc=vpc,
-                                  is_public=False
-                                  ))
+                                  is_public=False,
+                                  stack_title='MyStack'))
     private_subnets.append(Subnet(template=template,
                                   route_table=private_route_table,
                                   az=az_c,
                                   cidr='10.0.103.0/24',
                                   vpc=vpc,
-                                  is_public=False
-                                  ))
+                                  is_public=False,
+                                  stack_title='MyStack'))
 
     print(template.to_json(indent=2, separators=(',', ': ')))
 

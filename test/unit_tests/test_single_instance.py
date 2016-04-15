@@ -11,7 +11,7 @@ def test_nat_single_instance():
     to be enabled and the PrivateIp to be displayed in the output.
     :return: Pass
     """
-    nat_titles = ['nat', 'nat1', 'nat33', 'NAT', 'natjump', 'NAT2']
+    nat_titles = ['Nat', '1Nat', '33Nat', 'NAT', 'JumpNat', '2NAT', 'testStackNat']
 
     for title in nat_titles:
         si = create_si(title)
@@ -20,7 +20,7 @@ def test_nat_single_instance():
         print('SourceDestCheck='.format(si_sdc))
         assert_equals(si_sdc, 'false')
 
-        sio = si.stack.outputs[title].Description
+        sio = si.template.outputs[title].Description
         print(sio)
         assert_in('PrivateIp', sio)
 
@@ -31,7 +31,7 @@ def test_not_nat_single_instance():
     to be disabled and the PrivateIp to be displayed in the output.
     :return: Pass
     """
-    jump_titles = ['jump', 'jump2', 'other', 'jumpnat']
+    jump_titles = ['jump', 'Jump', '2Jump', 'other', 'natjump', 'testStackJump']
 
     for title in jump_titles:
         si = create_si(title)
@@ -40,7 +40,7 @@ def test_not_nat_single_instance():
         print('SourceDestCheck='.format(si_sdc))
         assert_equals(si_sdc, 'true')
 
-        sio = si.stack.outputs[title].Description
+        sio = si.template.outputs[title].Description
         print(sio)
         assert_in('PublicIp', sio)
 
@@ -56,9 +56,9 @@ def create_si(title):
     template = Template()
     si = SingleInstance(title=title,
                         keypair='pipeline',
-                        si_image_id='ami-893f53b3',
+                        si_image_id='ami-162c0c75',
                         si_instance_type='t2.nano',
                         vpc=vpc,
                         subnet=subnet,
-                        stack=template)
+                        template=template)
     return si

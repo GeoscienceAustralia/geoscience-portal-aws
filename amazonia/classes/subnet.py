@@ -8,11 +8,12 @@ class Subnet(object):
         Class to create subnets and associate a route table to it
         AWS CloudFormation - http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-subnet.html
         Troposphere - https://github.com/cloudtools/troposphere/blob/master/troposphere/ec2.py
-        :param stack: Stack template object with required:
-                      * VPC w/ CIDR block,
-                      * Public and private route tables,
-                      * Initialised public and private subnet lists
+        :param template: Troposhere template object
+        :param stack_title: Stack title from stack class
+        :param cidr: cidr for subnet
+        :param vpc: VPC to create subnet in
         :param route_table: Public or private route table object from stack
+        :param is_public: boolean inidicating if subnet is public or not
         :param az: Availability zone where the subnet will be deployed
         """
         super(Subnet, self).__init__()
@@ -20,11 +21,12 @@ class Subnet(object):
         self.template = kwargs['template']
         self.cidr = kwargs['cidr']
         self.vpc = kwargs['vpc']
+        self.stack_title = kwargs['stack_title']
         self.pub_or_pri = 'Public' if kwargs['is_public'] else 'Private'
 
         """ Create Subnet
         """
-        subnet_title = self.pub_or_pri + 'Subnet' + kwargs['az'][-1:].upper()
+        subnet_title = self.stack_title + self.pub_or_pri + 'Subnet' + kwargs['az'][-1:].upper()
         self.subnet = self.template.add_resource(ec2.Subnet(subnet_title,
                                                             AvailabilityZone=kwargs['az'],
                                                             VpcId=Ref(self.vpc),
@@ -44,6 +46,7 @@ class Subnet(object):
         AWS CloudFormation -
         http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-subnet-route-table-assoc.html
         Troposphere - https://github.com/cloudtools/troposphere/blob/master/troposphere/ec2.py
+        :param route_table: Public or private route table object from stack
         """
 
         route_table_ass = self.template.add_resource(ec2.SubnetRouteTableAssociation(route_table.title +

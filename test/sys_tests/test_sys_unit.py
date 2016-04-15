@@ -32,14 +32,14 @@ runcmd:
                                  CidrBlock='10.0.2.0/24')]
     nat = SingleInstance(title='nat',
                          keypair='pipeline',
-                         si_image_id='ami-893f53b3',
+                         si_image_id='ami-162c0c75',
                          si_instance_type='t2.nano',
                          vpc=vpc,
                          subnet=public_subnets[0],
                          template=template)
     jump = SingleInstance(title='jump',
                           keypair='pipeline',
-                          si_image_id='ami-893f53b3',
+                          si_image_id='ami-162c0c75',
                           si_instance_type='t2.nano',
                           vpc=vpc,
                           subnet=public_subnets[0],
@@ -50,13 +50,13 @@ runcmd:
         template=template,
         protocol='HTTP',
         port='80',
-        path2ping='HTTP:8080/error/noindex.html',
+        path2ping='index.html',
         public_subnets=public_subnets,
         private_subnets=private_subnets,
         minsize=1,
         maxsize=1,
         keypair='pipeline',
-        image_id='ami-893f53b3',
+        image_id='ami-162c0c75',
         instance_type='t2.nano',
         userdata=userdata,
         service_role_arn='instance-iam-role-InstanceProfile-OGL42SZSIQRK',
@@ -70,13 +70,13 @@ runcmd:
         template=template,
         protocol='HTTP',
         port='80',
-        path2ping='HTTP:8080/error/noindex.html',
+        path2ping='index.html',
         public_subnets=public_subnets,
         private_subnets=private_subnets,
         minsize=1,
         maxsize=1,
         keypair='pipeline',
-        image_id='ami-893f53b3',
+        image_id='ami-162c0c75',
         instance_type='t2.nano',
         userdata=userdata,
         service_role_arn='instance-iam-role-InstanceProfile-OGL42SZSIQRK',
@@ -84,7 +84,7 @@ runcmd:
         jump=jump,
     )
 
-    unit1.add_unit_flow(other=unit2, protocol='HTTP', port='80')
+    unit1.add_unit_flow(other=unit2, port='80')
     print(template.to_json(indent=2, separators=(',', ': ')))
 
 
