@@ -36,7 +36,7 @@ class Stack(object):
         self.availability_zones = kwargs['availability_zones']
         self.vpc_cidr = kwargs['vpc_cidr']
         self.home_cidr = kwargs['home_cidr']
-        self.public_cidr = ('PublicIp', '0.0.0.0/0')
+        self.public_cidr = kwargs['public_cidr']
 
         self.units = []
         self.private_subnets = []

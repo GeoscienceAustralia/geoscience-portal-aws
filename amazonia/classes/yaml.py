@@ -29,6 +29,7 @@ class Yaml(object):
                                'keypair',
                                'availability_zones',
                                'vpc_cidr',
+                               'public_cidr',
                                'jump_image_id',
                                'jump_instance_type',
                                'nat_image_id',
