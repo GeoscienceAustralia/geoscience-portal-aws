@@ -79,8 +79,6 @@ class Yaml(object):
                 self.united_data['units'][unit]['userdata'] = 'AWS_ACCESS_ID_FOUND'
             elif self.unencrypted_access_keys(self.united_data['units'][unit]['userdata']) == 'AWS_SECRET_KEY_FOUND':
                 self.united_data['units'][unit]['userdata'] = 'AWS_SECRET_KEY_FOUND'
-            else:
-                pass
 
     def get_values(self, value):
         """
@@ -110,7 +108,7 @@ class Yaml(object):
         :param stack_or_unit_title: Title from the united_data yaml containing hte stack or unit title
         :return: String stripped of non alphanumeric characters
         """
-        pattern = re.compile('[\W_]+')                           # pattern is one or more non work characters
+        pattern = re.compile('[\\W_]+')                           # pattern is one or more non work characters
         new_title = pattern.sub('', stack_or_unit_title)         # Regex sub nothing '' for pattern match
         return new_title
 
@@ -128,8 +126,6 @@ class Yaml(object):
             return 'AWS_ACCESS_ID_FOUND'
         elif aws_secret_key.search(userdata):
             return 'AWS_SECRET_KEY_FOUND'
-        else:
-            return userdata
 
     def validate_home_cidrs(self, home_cidrs):
         """
