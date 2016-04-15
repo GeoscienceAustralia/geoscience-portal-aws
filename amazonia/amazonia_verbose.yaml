@@ -9,6 +9,7 @@ availability_zones:
   - 'ap-southeast-2b'
   - 'ap-southeast-2c'
 vpc_cidr: '10.0.0.0/16'
+public_cidr: !!python/tuple ['PublicIp', '0.0.0.0/0']
 jump_image_id: 'ami-893f53b3'
 jump_instance_type: 't2.nano'
 nat_image_id: 'ami-893f53b3'
