@@ -97,5 +97,6 @@ def create_unit(**kwargs):
         service_role_arn='instance-iam-role-InstanceProfile-OGL42SZSIQRK',
         nat=nat,
         jump=jump,
+        hosted_zone_name=None
     )
     return unit

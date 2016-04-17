@@ -21,6 +21,7 @@ home_cidr:
 units:
   -
     unit_title: 'app1'
+    hosted_zone_name: null
     image_id: 'ami-162c0c75'
     instance_type: 't2.nano'
     protocol: 'HTTP'
@@ -41,6 +42,7 @@ units:
        - service httpd start
   -
     unit_title: 'app2'
+    hosted_zone_name: null
     image_id: 'ami-162c0c75'
     instance_type: 't2.nano'
     protocol: 'HTTP'

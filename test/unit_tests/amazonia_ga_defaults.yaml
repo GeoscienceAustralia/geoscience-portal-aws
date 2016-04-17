@@ -28,6 +28,7 @@ path2ping: '/index.html'
 minsize: '1'
 maxsize: '1'
 units: 'blah'
+hosted_zone_name: null
 
 
 ## YAML TIPS:

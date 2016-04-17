@@ -62,6 +62,7 @@ runcmd:
         service_role_arn='instance-iam-role-InstanceProfile-OGL42SZSIQRK',
         nat=nat,
         jump=jump,
+        hosted_zone_name=None
     )
 
     unit2 = Unit(
@@ -82,6 +83,7 @@ runcmd:
         service_role_arn='instance-iam-role-InstanceProfile-OGL42SZSIQRK',
         nat=nat,
         jump=jump,
+        hosted_zone_name=None
     )
 
     unit1.add_unit_flow(other=unit2, port='80')
