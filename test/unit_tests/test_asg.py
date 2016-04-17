@@ -73,7 +73,7 @@ def test_asg():
         assert_equals(asg.cd_deploygroup.title, title + 'Asg' + 'Cdg')
         assert_is(type(asg.cd_deploygroup.DeploymentGroupName), Join)
         [assert_is(type(cdasg), Ref) for cdasg in asg.cd_deploygroup.AutoScalingGroups]
-        assert_equals(asg.cd_deploygroup.ServiceRoleArn, 'instance-iam-role-InstanceProfile-OGL42SZSIQRK')
+        assert_equals(asg.cd_deploygroup.ServiceRoleArn, 'arn:aws:iam::658691668407:role/CodeDeployServiceRole')
 
 
 def create_asg(title):
@@ -82,10 +82,19 @@ def create_asg(title):
     :return: Troposphere object for single instance, security group and output
     """
     global userdata, vpc, subnet, template, load_balancer
-
-    asg = Asg(title, vpc, template, 1, 1, [subnet], load_balancer,
-              'pipeline', 'ami-162c0c75', 't2.nano', userdata, 'instance-iam-role-InstanceProfile-OGL42SZSIQRK')
-
-    # availability_zones=['ap-southeast-2a'],
+    asg = Asg(
+        title=title,
+        vpc=vpc,
+        template=template,
+        minsize=1,
+        maxsize=1,
+        subnets=[subnet],
+        load_balancer=load_balancer,
+        keypair='pipeline',
+        image_id='ami-162c0c75',
+        instance_type='t2.nano',
+        userdata=userdata,
+        service_role_arn='arn:aws:iam::658691668407:role/CodeDeployServiceRole'
+    )
 
     return asg

@@ -13,7 +13,7 @@ class Asg(SecurityEnabledObject):
         Creates an autoscaling group and codedeploy definition
         :param title: Title of the autoscaling application e.g 'webApp1', 'api2' or 'dataprocessing'
         :param vpc: Troposphere vpc object, required for SecurityEnabledObject class
-        :param stack: Troposphere stack to append resources to
+        :param template: Troposphere stack to append resources to
         :param minsize: minimum size of autoscaling group
         :param maxsize: maximum size of autoscaling group
         :param subnets: subnets to create autoscaled instances in
@@ -38,15 +38,15 @@ class Asg(SecurityEnabledObject):
         self.cd_app = None
         self.cd_deploygroup = None
         self.create_asg(
-            self.title,
-            minsize,
-            maxsize,
-            subnets,
-            load_balancer,
-            keypair,
-            image_id,
-            instance_type,
-            userdata
+            title=self.title,
+            minsize=minsize,
+            maxsize=maxsize,
+            subnets=subnets,
+            load_balancer=load_balancer,
+            keypair=keypair,
+            image_id=image_id,
+            instance_type=instance_type,
+            userdata=userdata
         )
         self.create_cd_deploygroup(
             self.title,
@@ -69,6 +69,7 @@ class Asg(SecurityEnabledObject):
         :param userdata: Instance boot script
         :return string representing Auto Scaling Group name
         """
+
         availability_zones = [subnet.AvailabilityZone for subnet in subnets]
         self.trop_asg = self.template.add_resource(AutoScalingGroup(
             title,
