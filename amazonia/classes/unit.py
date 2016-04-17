@@ -26,6 +26,7 @@ class Unit(object):
         :param service_role_arn: AWS IAM Role with Code Deploy permissions
         :param nat: nat instance for outbound traffic
         :param jump: jump instance for inbound ssh
+        :param hosted_zone_name: Route53 hosted zone name string for Route53 record sets
         """
         super(Unit, self).__init__()
         self.template = kwargs['template']
@@ -38,6 +39,7 @@ class Unit(object):
             port=kwargs['port'],
             path2ping=kwargs['path2ping'],
             subnets=kwargs['public_subnets'],
+            hosted_zone_name=kwargs['hosted_zone_name']
         )
         self.asg = Asg(
             vpc=kwargs['vpc'],

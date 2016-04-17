@@ -1,4 +1,4 @@
-# pylint: disable=missing-docstring, invalid-name, line-too-long, redefined-outer-name, too-many-arguments
+#!/usr/bin/python3
 
 from setuptools import setup
 

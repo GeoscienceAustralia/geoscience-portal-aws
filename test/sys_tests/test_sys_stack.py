@@ -51,6 +51,7 @@ runcmd:
         keypair='pipeline',
         availability_zones=['ap-southeast-2a', 'ap-southeast-2b', 'ap-southeast-2c'],
         vpc_cidr='10.0.0.0/16',
+        public_cidr='0.0.0.0/0',
         jump_image_id=jump_image_id,
         jump_instance_type=instance_type,
         nat_image_id=nat_image_id,
@@ -64,7 +65,8 @@ runcmd:
                 'maxsize': 1,
                 'image_id': app_image_id,
                 'instance_type': instance_type,
-                'userdata': userdata1},
+                'userdata': userdata1,
+                'hosted_zone_name': None},
                {'unit_title': 'app2',
                 'protocol': 'HTTP',
                 'port': '80',
@@ -73,7 +75,8 @@ runcmd:
                 'maxsize': 1,
                 'image_id': app_image_id,
                 'instance_type': instance_type,
-                'userdata': userdata2}
+                'userdata': userdata2,
+                'hosted_zone_name': None}
                ]
 
     )

@@ -3,7 +3,7 @@ from nose.tools import *
 from troposphere import Tags, Ref
 from amazonia.classes.stack import Stack
 
-userdata = keypair = instance_type = code_deploy_service_role = vpc_cidr = \
+userdata = keypair = instance_type = code_deploy_service_role = vpc_cidr = public_cidr = \
     port = protocol = minsize = maxsize = path2ping = home_cidr = nat_image_id = \
     jump_image_id = app_image_id = None
 availability_zones = []
@@ -11,7 +11,7 @@ availability_zones = []
 
 def setup_resources():
     global userdata, availability_zones, keypair, instance_type, code_deploy_service_role, vpc_cidr, \
-        port, protocol, minsize, maxsize, path2ping, home_cidr, nat_image_id, jump_image_id, app_image_id
+        public_cidr, port, protocol, minsize, maxsize, path2ping, home_cidr, nat_image_id, jump_image_id, app_image_id
     userdata = """#cloud-config
 repo_update: true
 repo_upgrade: all
@@ -36,12 +36,11 @@ runcmd:
     minsize = 1
     maxsize = 1
     path2ping = '/index.html'
+    public_cidr = ('PublicIp', '0.0.0.0/0')
 
 
 @with_setup(setup_resources())
 def test_stack():
-    global userdata, availability_zones, keypair, instance_type, code_deploy_service_role, vpc_cidr, \
-        port, protocol, minsize, maxsize, path2ping, home_cidr, nat_image_id, jump_image_id, app_image_id
     title = 'app'
     stack = create_stack(stack_title=title)
     assert_equals(stack.title, title)
@@ -84,14 +83,15 @@ def test_stack():
 
 
 def create_stack(stack_title):
-    global userdata, availability_zones, keypair, instance_type, code_deploy_service_role, vpc_cidr, port, \
-        protocol, minsize, maxsize, path2ping, home_cidr, nat_image_id, jump_image_id, app_image_id
+    global userdata, availability_zones, keypair, instance_type, code_deploy_service_role, vpc_cidr, \
+        public_cidr, port, protocol, minsize, maxsize, path2ping, home_cidr, nat_image_id, jump_image_id, app_image_id
     stack = Stack(
         stack_title=stack_title,
         code_deploy_service_role=code_deploy_service_role,
         keypair=keypair,
         availability_zones=availability_zones,
         vpc_cidr=vpc_cidr,
+        public_cidr=public_cidr,
         home_cidr=home_cidr,
         jump_image_id=jump_image_id,
         jump_instance_type=instance_type,
@@ -105,7 +105,8 @@ def create_stack(stack_title):
                 'maxsize': maxsize,
                 'image_id': app_image_id,
                 'instance_type': instance_type,
-                'userdata': userdata},
+                'userdata': userdata,
+                'hosted_zone_name': None},
                {'unit_title': 'app2',
                 'protocol': protocol,
                 'port': port,
@@ -114,6 +115,7 @@ def create_stack(stack_title):
                 'maxsize': maxsize,
                 'image_id': app_image_id,
                 'instance_type': instance_type,
-                'userdata': userdata}],
+                'userdata': userdata,
+                'hosted_zone_name': None}],
     )
     return stack

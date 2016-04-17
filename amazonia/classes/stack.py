@@ -24,7 +24,7 @@ class Stack(object):
         :param jump_instance_type: instance type for jumphost
         :param nat_image_id: AMI for nat
         :param nat_instance_type: instance type for nat
-        :param units: list of unit dicts (unit_title, protocol, port, path2ping, minsize, maxsize, image_id, instance_type, userdata)
+        :param units: list of unit dicts (unit_title, protocol, port, path2ping, minsize, maxsize, image_id, instance_type, userdata, hosted_zone_name)
         :param home_cidr: a list of tuple objects of 'title'(0) and 'ip'(1) to be used
          to create ingress rules for ssh to jumpboxes from home/office/company premises
         """
@@ -36,7 +36,7 @@ class Stack(object):
         self.availability_zones = kwargs['availability_zones']
         self.vpc_cidr = kwargs['vpc_cidr']
         self.home_cidr = kwargs['home_cidr']
-        self.public_cidr = ('PublicIp', '0.0.0.0/0')
+        self.public_cidr = kwargs['public_cidr']
 
         self.units = []
         self.private_subnets = []
@@ -144,6 +144,7 @@ class Stack(object):
                                    image_id=unit['image_id'],
                                    instance_type=unit['instance_type'],
                                    userdata=unit['userdata'],
+                                   hosted_zone_name=unit['hosted_zone_name'],
                                    service_role_arn=self.code_deploy_service_role,
                                    nat=self.nat,
                                    jump=self.jump,
@@ -153,7 +154,7 @@ class Stack(object):
         """
         Function to help create Class C subnet CIDRs from Class A VPC CIDRs
         :param is_public: boolean for public or private subnet determined by route table
-        :return: Subnet CIDR based on Public or Private and previous subnets created e.g. 10.1.2.0/24 or 10.0.1.0/24
+        :return: Subnet CIDR based on Public or Private and previous subnets created e.g. 10.0.2.0/24 or 10.0.101.0/24
         """
         # 3rd Octect: Obtain length of pub or pri subnet list
         octect_3 = len(self.public_subnets) if is_public else len(self.private_subnets) + 100
