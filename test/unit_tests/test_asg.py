@@ -52,16 +52,16 @@ def test_asg():
     asg_titles = ['simple', 'hard', 'harder', 'easy']
 
     for title in asg_titles:
-        asg = create_asg(title=title)
-        assert_equals(asg.asg.title, title + 'Asg')
-        assert_equals(asg.asg.MinSize, 1)
-        assert_equals(asg.asg.MaxSize, 1)
-        [assert_is(type(subnet_id), Ref) for subnet_id in asg.asg.VPCZoneIdentifier]
-        assert_is(type(asg.asg.LaunchConfigurationName), Ref)
-        assert_equals(asg.asg.AvailabilityZones, ['ap-southeast-2a'])
-        [assert_is(type(lbn), Ref) for lbn in asg.asg.LoadBalancerNames]
-        assert_equals(asg.asg.HealthCheckType, 'ELB')
-        assert_equals(asg.asg.HealthCheckGracePeriod, 300)
+        asg = create_asg(title)
+        assert_equals(asg.trop_asg.title, title + 'Asg')
+        assert_equals(asg.trop_asg.MinSize, 1)
+        assert_equals(asg.trop_asg.MaxSize, 1)
+        [assert_is(type(subnet_id), Ref) for subnet_id in asg.trop_asg.VPCZoneIdentifier]
+        assert_is(type(asg.trop_asg.LaunchConfigurationName), Ref)
+        assert_equals(asg.trop_asg.AvailabilityZones, ['ap-southeast-2a'])
+        [assert_is(type(lbn), Ref) for lbn in asg.trop_asg.LoadBalancerNames]
+        assert_equals(asg.trop_asg.HealthCheckType, 'ELB')
+        assert_equals(asg.trop_asg.HealthCheckGracePeriod, 300)
         assert_equals(asg.lc.title, title + 'Asg' + 'Lc')
         assert_equals(asg.lc.ImageId, 'ami-162c0c75')
         assert_equals(asg.lc.InstanceType, 't2.nano')
@@ -73,27 +73,28 @@ def test_asg():
         assert_equals(asg.cd_deploygroup.title, title + 'Asg' + 'Cdg')
         assert_is(type(asg.cd_deploygroup.DeploymentGroupName), Join)
         [assert_is(type(cdasg), Ref) for cdasg in asg.cd_deploygroup.AutoScalingGroups]
-        assert_equals(asg.cd_deploygroup.ServiceRoleArn, 'instance-iam-role-InstanceProfile-OGL42SZSIQRK')
+        assert_equals(asg.cd_deploygroup.ServiceRoleArn, 'arn:aws:iam::658691668407:role/CodeDeployServiceRole')
 
 
-def create_asg(**kwargs):
+def create_asg(title):
     """
     Helper function to create ASG Troposhpere object.
     :return: Troposphere object for single instance, security group and output
     """
     global userdata, vpc, subnet, template, load_balancer
+    asg = Asg(
+        title=title,
+        vpc=vpc,
+        template=template,
+        minsize=1,
+        maxsize=1,
+        subnets=[subnet],
+        load_balancer=load_balancer,
+        keypair='pipeline',
+        image_id='ami-162c0c75',
+        instance_type='t2.nano',
+        userdata=userdata,
+        service_role_arn='arn:aws:iam::658691668407:role/CodeDeployServiceRole'
+    )
 
-    asg = Asg(title=kwargs['title'],
-              keypair='pipeline',
-              image_id='ami-162c0c75',
-              instance_type='t2.nano',
-              vpc=vpc,
-              subnets=[subnet],
-              availability_zones=['ap-southeast-2a'],
-              minsize=1,
-              maxsize=1,
-              load_balancer=load_balancer,
-              userdata=userdata,
-              service_role_arn='instance-iam-role-InstanceProfile-OGL42SZSIQRK',
-              template=template)
     return asg
