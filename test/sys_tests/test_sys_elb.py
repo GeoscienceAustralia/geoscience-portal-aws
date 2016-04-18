@@ -38,7 +38,7 @@ def main():
     Elb(title='MyUnit',
         port='80',
         subnets=public_subnets,
-        protocol='http',
+        protocol='HTTP',
         vpc=vpc,
         hosted_zone_name=hosted_zone.Name,
         path2ping='/index.html',
