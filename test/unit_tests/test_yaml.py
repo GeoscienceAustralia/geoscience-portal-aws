@@ -33,7 +33,7 @@ def test_get_values():
     and where it is missing it using the default_data value (e.g. in keypair)
     """
     nat_instance_type = stack_input['nat_instance_type']
-    assert_equals(nat_instance_type, 't2.nano')
+    assert_equals(nat_instance_type, 't2.micro')
 
     keypair = stack_input['keypair']
     assert_equals(keypair, 'pipeline')
