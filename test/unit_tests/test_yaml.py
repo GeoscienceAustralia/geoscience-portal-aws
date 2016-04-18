@@ -132,7 +132,7 @@ def test_unencrypted_keys():
 
 @with_setup(setup_resources())
 def validate_home_cidrs():
-    cidr = stack_input['home_cidr'][0]
+    cidr = stack_input['home_cidrs'][0]
     assert_equals(cidr, 'INVALID_CIDR')
 
 

@@ -18,7 +18,7 @@ jump_image_id: 'ami-893f53b3'
 jump_instance_type: 't2.nano'
 nat_image_id: 'ami-893f53b3'
 nat_instance_type: 't2.nano'
-home_cidr:
+home_cidrs:
   - !!python/tuple ['GA_1', '124.47.132.12.132/32']
   - !!python/tuple ['GA_2', '192.104.44.55.10/22']
 unit_title: 'app1'
