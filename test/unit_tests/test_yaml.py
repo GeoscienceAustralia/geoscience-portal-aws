@@ -1,3 +1,5 @@
+#!/usr/bin/python3
+
 from nose.tools import *
 from amazonia.classes.yaml import Yaml
 import string

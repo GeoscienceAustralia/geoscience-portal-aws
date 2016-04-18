@@ -101,7 +101,7 @@ class Stack(object):
             template=self.template
         )
 
-        [self.jump.add_ingress(other=home_cidrs, port='22') for home_cidrs in self.home_cidrs]
+        [self.jump.add_ingress(sender=home_cidr, port='22') for home_cidr in self.home_cidrs]
 
         self.nat = SingleInstance(
             title=self.title + 'Nat',
