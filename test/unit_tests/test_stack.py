@@ -4,14 +4,14 @@ from troposphere import Tags, Ref
 from amazonia.classes.stack import Stack
 
 userdata = keypair = instance_type = code_deploy_service_role = vpc_cidr = public_cidr = \
-    port = protocol = minsize = maxsize = path2ping = home_cidr = nat_image_id = \
-    jump_image_id = app_image_id = None
+    port = protocol = minsize = maxsize = path2ping = home_cidrs = nat_image_id = \
+    jump_image_id = unit_image_id = None
 availability_zones = []
 
 
 def setup_resources():
     global userdata, availability_zones, keypair, instance_type, code_deploy_service_role, vpc_cidr, \
-        public_cidr, port, protocol, minsize, maxsize, path2ping, home_cidr, nat_image_id, jump_image_id, app_image_id
+        public_cidr, port, protocol, minsize, maxsize, path2ping, home_cidrs, nat_image_id, jump_image_id, unit_image_id
     userdata = """#cloud-config
 repo_update: true
 repo_upgrade: all
@@ -26,11 +26,11 @@ runcmd:
     keypair = 'pipeline'
     nat_image_id = 'ami-162c0c75'
     jump_image_id = 'ami-162c0c75'
-    app_image_id = 'ami-f2210191'
+    unit_image_id = 'ami-f2210191'
     instance_type = 't2.nano'
     code_deploy_service_role = 'arn:aws:iam::658691668407:role/CodeDeployServiceRole'
     vpc_cidr = '10.0.0.0/16'
-    home_cidr = [('GA', '192.104.44.129/32')]
+    home_cidrs = [('GA', '192.104.44.129/32'), ('home', '192.168.0.1/16')]
     port = '80'
     protocol = 'HTTP'
     minsize = 1
@@ -48,7 +48,7 @@ def test_stack():
     assert_equals(stack.keypair, keypair)
     assert_equals(stack.availability_zones, availability_zones)
     assert_equals(stack.vpc_cidr, vpc_cidr)
-    assert_equals(stack.home_cidr, home_cidr)
+    [assert_equals(stack.home_cidrs[num], home_cidrs[num]) for num in range(len(home_cidrs))]
     assert_equals(stack.public_cidr, ('PublicIp', '0.0.0.0/0'))
 
     assert_equals(stack.vpc.title, title + 'Vpc')
@@ -84,7 +84,7 @@ def test_stack():
 
 def create_stack(stack_title):
     global userdata, availability_zones, keypair, instance_type, code_deploy_service_role, vpc_cidr, \
-        public_cidr, port, protocol, minsize, maxsize, path2ping, home_cidr, nat_image_id, jump_image_id, app_image_id
+        public_cidr, port, protocol, minsize, maxsize, path2ping, home_cidrs, nat_image_id, jump_image_id, unit_image_id
     stack = Stack(
         stack_title=stack_title,
         code_deploy_service_role=code_deploy_service_role,
@@ -92,7 +92,7 @@ def create_stack(stack_title):
         availability_zones=availability_zones,
         vpc_cidr=vpc_cidr,
         public_cidr=public_cidr,
-        home_cidr=home_cidr,
+        home_cidrs=home_cidrs,
         jump_image_id=jump_image_id,
         jump_instance_type=instance_type,
         nat_image_id=nat_image_id,
@@ -103,7 +103,7 @@ def create_stack(stack_title):
                 'path2ping': path2ping,
                 'minsize': minsize,
                 'maxsize': maxsize,
-                'image_id': app_image_id,
+                'image_id': unit_image_id,
                 'instance_type': instance_type,
                 'userdata': userdata,
                 'hosted_zone_name': None},
@@ -113,7 +113,7 @@ def create_stack(stack_title):
                 'path2ping': path2ping,
                 'minsize': minsize,
                 'maxsize': maxsize,
-                'image_id': app_image_id,
+                'image_id': unit_image_id,
                 'instance_type': instance_type,
                 'userdata': userdata,
                 'hosted_zone_name': None}],

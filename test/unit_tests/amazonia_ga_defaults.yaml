@@ -18,7 +18,7 @@ jump_image_id: 'ami-893f53b3'
 jump_instance_type: 't2.micro'
 nat_image_id: 'ami-893f53b3'
 nat_instance_type: 't2.micro'
-home_cidr:
+home_cidrs:
   - ('GA1', '124.47.132.132/32')
   - ('GA2', '192.104.44.0/22')
 unit_title: 'app1'
