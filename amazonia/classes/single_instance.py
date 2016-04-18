@@ -17,7 +17,7 @@ class SingleInstance(SecurityEnabledObject):
         :param si_image_id: AWS ami id to create instance from, e.g. 'ami-12345'
         :param si_instance_type: Instance type for single instance e.g. 't2.micro' or 't2.nano'
         :param subnet: Troposhere object for subnet created e.g. 'sub_pub1'
-        :param is_ant: a boolean that is used to determine if the instance will be a NAT or not. Default: False
+        :param is_nat: a boolean that is used to determine if the instance will be a NAT or not. Default: False
         """
 
         super(SingleInstance, self).__init__(vpc=vpc, title=title, template=template)
