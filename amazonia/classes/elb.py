@@ -59,3 +59,9 @@ class Elb(SecurityEnabledObject):
                 Value=Join('', ['http://', self.elb_r53.Name])
             ))
 
+        else:
+            self.template.add_output(Output(
+                self.elb.title,
+                Description='URL of the {0} ELB'.format(self.title),
+                Value=Join('', ['http://', GetAtt(self.elb, 'DNSName')])
+            ))
