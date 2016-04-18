@@ -21,8 +21,7 @@ class SecurityEnabledObject(object):
 
     def add_flow(self, receiver, port):
         """
-        A function that will add security group rules opening access to the 'receiver' from this SecurityEnabledObject.
-        Including an incoming rule to accept traffic in to the 'receiver' SecurityEnabledObject
+        A function that will open one-way traffic on a specific port from this SecurityEnabledObject to another.
         :param receiver: The SecurityEnabledObject that needs an ingress rule to accept traffic in
         :param port: Port to send, and receive traffic on
         """
