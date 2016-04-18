@@ -53,15 +53,15 @@ def test_asg():
 
     for title in asg_titles:
         asg = create_asg(title=title)
-        assert_equals(asg.asg.title, title + 'Asg')
-        assert_equals(asg.asg.MinSize, 1)
-        assert_equals(asg.asg.MaxSize, 1)
-        [assert_is(type(subnet_id), Ref) for subnet_id in asg.asg.VPCZoneIdentifier]
-        assert_is(type(asg.asg.LaunchConfigurationName), Ref)
-        assert_equals(asg.asg.AvailabilityZones, ['ap-southeast-2a'])
-        [assert_is(type(lbn), Ref) for lbn in asg.asg.LoadBalancerNames]
-        assert_equals(asg.asg.HealthCheckType, 'ELB')
-        assert_equals(asg.asg.HealthCheckGracePeriod, 300)
+        assert_equals(asg.trop_asg.title, title + 'Asg')
+        assert_equals(asg.trop_asg.MinSize, 1)
+        assert_equals(asg.trop_asg.MaxSize, 1)
+        [assert_is(type(subnet_id), Ref) for subnet_id in asg.trop_asg.VPCZoneIdentifier]
+        assert_is(type(asg.trop_asg.LaunchConfigurationName), Ref)
+        assert_equals(asg.trop_asg.AvailabilityZones, ['ap-southeast-2a'])
+        [assert_is(type(lbn), Ref) for lbn in asg.trop_asg.LoadBalancerNames]
+        assert_equals(asg.trop_asg.HealthCheckType, 'ELB')
+        assert_equals(asg.trop_asg.HealthCheckGracePeriod, 300)
         assert_equals(asg.lc.title, title + 'Asg' + 'Lc')
         assert_equals(asg.lc.ImageId, 'ami-162c0c75')
         assert_equals(asg.lc.InstanceType, 't2.nano')
@@ -87,7 +87,6 @@ def create_asg(**kwargs):
               instance_type='t2.nano',
               vpc=vpc,
               subnets=[subnet],
-              availability_zones=['ap-southeast-2a'],
               minsize=1,
               maxsize=1,
               load_balancer=load_balancer,
