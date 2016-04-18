@@ -66,7 +66,7 @@ runcmd:
                 'image_id': app_image_id,
                 'instance_type': instance_type,
                 'userdata': userdata1,
-                'hosted_zone_name': None},
+                'hosted_zone_name': 'gadevs.ga.'},
                {'unit_title': 'app2',
                 'protocol': 'HTTP',
                 'port': '80',
@@ -76,7 +76,7 @@ runcmd:
                 'image_id': app_image_id,
                 'instance_type': instance_type,
                 'userdata': userdata2,
-                'hosted_zone_name': None}
+                'hosted_zone_name': 'gadevs.ga.'}
                ]
 
     )
