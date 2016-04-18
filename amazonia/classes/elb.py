@@ -14,7 +14,7 @@ class Elb(SecurityEnabledObject):
         Troposphere: https://github.com/cloudtools/troposphere/blob/master/troposphere/elasticloadbalancing.py
         :param title: Name of the Cloud formation stack object
         :param vpc: The vpc object to add the Elastic Loadbalancer to.
-        :param tempalte: The troposphere template to add the Elastic Loadbalancer to.
+        :param template: The troposphere template to add the Elastic Loadbalancer to.
         :param protocol: Single protocol to allow traffic. This must be in CAPITALS e.g.  HTTP, HTTPS, TCP or SSL
         :param port: Single string representing a port to allow traffic in and out of the load balancer.
          e.g. Listener Port and Health Check Target port - '80', '8080', '443'
