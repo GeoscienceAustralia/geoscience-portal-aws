@@ -43,7 +43,7 @@ runcmd:
 
     nat_image_id = 'ami-162c0c75'
     jump_image_id = 'ami-162c0c75'
-    app_image_id = 'ami-f2210191'
+    unit_image_id = 'ami-f2210191'
     instance_type = 't2.micro'
     stack = Stack(
         stack_title='test',
@@ -56,14 +56,14 @@ runcmd:
         jump_instance_type=instance_type,
         nat_image_id=nat_image_id,
         nat_instance_type=instance_type,
-        home_cidr=[('GA', '192.104.44.129/32')],
+        home_cidrs=[('GA', '192.104.44.129/32')],
         units=[{'unit_title': 'app1',
                 'protocol': 'HTTP',
                 'port': '80',
                 'path2ping': '/index.html',
                 'minsize': 1,
                 'maxsize': 1,
-                'image_id': app_image_id,
+                'image_id': unit_image_id,
                 'instance_type': instance_type,
                 'userdata': userdata1,
                 'hosted_zone_name': None},
@@ -73,7 +73,7 @@ runcmd:
                 'path2ping': '/index.html',
                 'minsize': 1,
                 'maxsize': 1,
-                'image_id': app_image_id,
+                'image_id': unit_image_id,
                 'instance_type': instance_type,
                 'userdata': userdata2,
                 'hosted_zone_name': None}

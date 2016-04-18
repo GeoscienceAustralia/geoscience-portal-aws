@@ -34,7 +34,7 @@ class Yaml(object):
                                'jump_instance_type',
                                'nat_image_id',
                                'nat_instance_type',
-                               'home_cidr',
+                               'home_cidrs',
                                'units']
 
         for stack_value in self.stack_key_list:
@@ -67,11 +67,11 @@ class Yaml(object):
 
         """ Validate Home CIDRs
         """
-        self.validate_home_cidrs(self.united_data['home_cidr'])
+        self.validate_home_cidrs(self.united_data['home_cidrs'])
 
-        """ Validate title of home_cidr tuple items
+        """ Validate title of home_cidrs tuple items
         """
-        self.united_data['home_cidr'] = [(self.validate_title(cidr[0]), cidr[1]) for cidr in self.united_data['home_cidr']]
+        self.united_data['home_cidrs'] = [(self.validate_title(cidr[0]), cidr[1]) for cidr in self.united_data['home_cidrs']]
 
         """ Validate for unecrypted aws access ids and aws secret keys
         """
@@ -136,4 +136,4 @@ class Yaml(object):
         for num, cidr in enumerate(home_cidrs):
             if validate_cidr(cidr[1]) is False:
                 cidr_title = self.validate_title(cidr[0])
-                self.united_data['home_cidr'][num] = cidr_title, 'INVALID_CIDR'
+                self.united_data['home_cidrs'][num] = cidr_title, 'INVALID_CIDR'
