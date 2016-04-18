@@ -3,7 +3,7 @@
 from troposphere import Base64, codedeploy, Ref, Join
 from troposphere.autoscaling import AutoScalingGroup, LaunchConfiguration, Tag
 
-from amazonia.classes.securityenabledobject import SecurityEnabledObject
+from amazonia.classes.security_enabled_object import SecurityEnabledObject
 
 
 class Asg(SecurityEnabledObject):
