@@ -11,9 +11,9 @@ availability_zones:
 vpc_cidr: '10.0.0.0/16'
 public_cidr: !!python/tuple ['PublicIp', '0.0.0.0/0']
 jump_image_id: 'ami-893f53b3'
-jump_instance_type: 't2.nano'
+jump_instance_type: 't2.micro'
 nat_image_id: 'ami-893f53b3'
-nat_instance_type: 't2.nano'
+nat_instance_type: 't2.micro'
 home_cidr:
   - !!python/tuple ['GA_1', '124.47.132.132/32']
   - !!python/tuple ['GA_2', '192.104.44.10/22']
@@ -22,7 +22,7 @@ units:
     unit_title: 'app1'
     hosted_zone_name: null
     image_id: 'ami-162c0c75'
-    instance_type: 't2.nano'
+    instance_type: 't2.micro'
     protocol: 'HTTP'
     port: '80'
     path2ping: '/index.html'
@@ -42,7 +42,7 @@ units:
     unit_title: 'app2'
     hosted_zone_name: null
     image_id: 'ami-162c0c75'
-    instance_type: 't2.nano'
+    instance_type: 't2.micro'
     protocol: 'HTTP'
     port: '443'
     path2ping: '/index.html'
