@@ -11,7 +11,6 @@ def test_nat_single_instance():
     to be enabled and the PrivateIp to be displayed in the output.
     :return: Pass
     """
-    #nat_titles = ['Nat', '1Nat', '33Nat', 'NAT', 'JumpNat', '2NAT', 'testStackNat']
 
     si = create_si('nat', is_nat=True)
     si_sdc = si.single.SourceDestCheck
