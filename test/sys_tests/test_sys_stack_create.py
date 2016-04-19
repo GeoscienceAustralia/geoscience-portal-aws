@@ -61,7 +61,7 @@ print('\nStack Creating...\n{0}\n'.format(stack_id))
 Script to return an AWS Cloudformation Stack_ID or Stack_Name stack status every 10 seconds using boto3.
 If the status returns CREATE_COMPLETE then exit with success message
 If the status returns ROLLBACK_IN_PROGRESS or ROLLBACK_COMPLETE then exit with failure message
-http://boto3.readthedocs.org/en/latest/reference/services/cloudformation.html#CloudFormation.Client.describe_stack_events
+http://boto3.readthedocs.org/en/latest/reference/services/cloudformation.html#CloudFormation.Client.describe_stacks
 """
 while stack_id:
     confirm_response = cf_client.describe_stacks(StackName=stack_id)
