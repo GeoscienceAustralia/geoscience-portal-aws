@@ -27,7 +27,7 @@ def create_stack(united_data):
 
     """ Print Cloud Formation Template
     """
-    print(stack.template.to_json(indent=2, separators=(',', ': ')))
+    return stack.template.to_json(indent=2, separators=(',', ': '))
 
 
 def main():
@@ -35,7 +35,8 @@ def main():
     Ingest User YAML as user_stack_data
     Ingest GA defaults YAML as default_data
     Create list of stack input dictoinary objects from yaml class
-    create stack from stack input dictionary
+    Create stack from stack input dictionary
+    Create Stack template from stack output
     """
 
     parser = argparse.ArgumentParser()
@@ -45,14 +46,25 @@ def main():
     parser.add_argument('-d', '--default',
                         default='./amazonia/amazonia_ga_defaults.yaml',
                         help="Path to the user's amazonia default yaml file")
+    parser.add_argument('-t', '--template',
+                        default='stack.template',
+                        help="Path for amazonia to place template file")
     args = parser.parse_args()
 
+    """ YAML ingestion
+    """
     user_stack_data = read_yaml(args.yaml)
     default_data = read_yaml(args.default)
     yaml_return = Yaml(user_stack_data, default_data)
     stack_input = yaml_return.united_data
 
-    create_stack(stack_input)
+    """ Create stack and create stack template file
+    """
+    template_file_path = args.template
+    template_data = create_stack(stack_input)
+    with open(template_file_path, 'w') as template_file:
+        template_file.write(template_data)
+        template_file.close()
 
 if __name__ == "__main__":
     main()
