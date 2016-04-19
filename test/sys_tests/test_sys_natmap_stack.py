@@ -137,6 +137,7 @@ runcmd:
                 'health_check_type': 'ELB',
                 'image_id': app_image_id,
                 'instance_type': instance_type,
+                'hosted_zone_name': None,
                 'userdata': userdata1}
                ]
 
