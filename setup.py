@@ -18,7 +18,6 @@ setup(
         'hiera-py',
         'iptools',
         'boto3',
-        'pyyaml',
-        'iptools'
+        'pyyaml'
     ]
 )
