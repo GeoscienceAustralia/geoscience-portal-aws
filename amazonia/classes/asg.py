@@ -88,7 +88,7 @@ class Asg(SecurityEnabledObject):
             userdata
         ))
         self.trop_asg.HealthCheckType = 'ELB'
-        self.trop_asg.HealthCheckGracePeriod = 300
+        self.trop_asg.HealthCheckGracePeriod = 1200
         return title
 
     def create_launch_config(self, title, keypair, image_id, instance_type, userdata):
