@@ -55,7 +55,7 @@ class Unit(object):
             health_check_grace_period=kwargs['health_check_grace_period'],
             health_check_type=kwargs['health_check_type'],
             userdata=kwargs['userdata'],
-            load_balancer=self.elb.elb,
+            load_balancer=self.elb.trop_elb,
             service_role_arn=kwargs['service_role_arn'],
         )
         [self.elb.add_ingress(sender=self.public_cidr, port=port) for port in ['80', '443']]
