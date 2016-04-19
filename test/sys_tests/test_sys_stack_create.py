@@ -10,7 +10,7 @@ http://boto3.readthedocs.org/en/latest/reference/services/cloudformation.html#Cl
 cf_client = boto3.client('cloudformation')
 s3_client = boto3.resource('s3').meta.client
 
-template = amz.main()
+template = amz
 
 s3_response = s3_client.upload_file('stack.template', 'smallest-bucket-in-history','smallest_app_in_history/stack.template')
 
