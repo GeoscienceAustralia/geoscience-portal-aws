@@ -3,7 +3,7 @@
 #
 
 userdata: 'NO_USERDATA'
-image_id: 'ami-893f53b3'
+image_id: 'ami-f2210191'
 instance_type: 't2.micro'
 stack_title: 'GAtestStack'
 code_deploy_service_role: 'arn:aws:iam::658691668407:role/CodeDeployServiceRole'
@@ -14,19 +14,20 @@ availability_zones:
   - 'ap-southeast-2c'
 vpc_cidr: '10.0.0.0/16'
 public_cidr: !!python/tuple ['PublicIp', '0.0.0.0/0']
-jump_image_id: 'ami-893f53b3'
+jump_image_id: 'ami-f2210191'
 jump_instance_type: 't2.micro'
-nat_image_id: 'ami-893f53b3'
+nat_image_id: 'ami-162c0c75'
 nat_instance_type: 't2.micro'
 home_cidrs:
-  - !!python/tuple ['GA_1', '124.47.132.132/32']
-  - !!python/tuple ['GA_2', '192.104.44.10/22']
+  - !!python/tuple ['GA', '192.104.44.129/32']
 unit_title: 'app1'
 protocol: 'HTTP'
 port: '80'
 path2ping: '/index.html'
 minsize: '1'
 maxsize: '1'
+health_check_grace_period: '300'
+health_check_type: 'ELB'
 units: 'blah'
 hosted_zone_name: null
 

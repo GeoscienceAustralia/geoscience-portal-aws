@@ -28,7 +28,8 @@ class Stack(object):
         :param jump_instance_type: instance type for jumphost
         :param nat_image_id: AMI for nat
         :param nat_instance_type: instance type for nat
-        :param units: list of unit dicts (unit_title, protocol, port, path2ping, minsize, maxsize, image_id, instance_type, userdata, hosted_zone_name)
+        :param units: list of unit dicts (unit_title, protocol, port, path2ping, minsize, maxsize, image_id,
+        instance_type, userdata, hosted_zone_name)
         """
         super(Stack, self).__init__()
         self.title = stack_title

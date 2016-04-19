@@ -4,14 +4,16 @@ from troposphere import Tags, Ref
 from amazonia.classes.stack import Stack
 
 userdata = keypair = instance_type = code_deploy_service_role = vpc_cidr = public_cidr = \
-    port = protocol = minsize = maxsize = path2ping = home_cidrs = nat_image_id = \
-    jump_image_id = unit_image_id = None
+    port = protocol = minsize = maxsize = path2ping = nat_image_id = \
+    jump_image_id = unit_image_id = health_check_grace_period = health_check_type = None
 availability_zones = []
+home_cidrs = []
 
 
 def setup_resources():
     global userdata, availability_zones, keypair, instance_type, code_deploy_service_role, vpc_cidr, \
-        public_cidr, port, protocol, minsize, maxsize, path2ping, home_cidrs, nat_image_id, jump_image_id, unit_image_id
+        public_cidr, port, protocol, minsize, maxsize, path2ping, home_cidrs, nat_image_id, jump_image_id, \
+        health_check_grace_period, health_check_type, unit_image_id
     userdata = """#cloud-config
 repo_update: true
 repo_upgrade: all
@@ -37,6 +39,8 @@ runcmd:
     maxsize = 1
     path2ping = '/index.html'
     public_cidr = ('PublicIp', '0.0.0.0/0')
+    health_check_grace_period = 300
+    health_check_type = 'ELB'
 
 
 @with_setup(setup_resources())
@@ -84,7 +88,8 @@ def test_stack():
 
 def create_stack(stack_title):
     global userdata, availability_zones, keypair, instance_type, code_deploy_service_role, vpc_cidr, \
-        public_cidr, port, protocol, minsize, maxsize, path2ping, home_cidrs, nat_image_id, jump_image_id, unit_image_id
+        public_cidr, port, protocol, minsize, maxsize, path2ping, home_cidrs, nat_image_id, jump_image_id, \
+        health_check_grace_period, health_check_type, unit_image_id
     stack = Stack(
         stack_title=stack_title,
         code_deploy_service_role=code_deploy_service_role,
@@ -105,6 +110,8 @@ def create_stack(stack_title):
                 'maxsize': maxsize,
                 'image_id': unit_image_id,
                 'instance_type': instance_type,
+                'health_check_grace_period': health_check_grace_period,
+                'health_check_type': health_check_type,
                 'userdata': userdata,
                 'hosted_zone_name': None},
                {'unit_title': 'app2',
@@ -115,6 +122,8 @@ def create_stack(stack_title):
                 'maxsize': maxsize,
                 'image_id': unit_image_id,
                 'instance_type': instance_type,
+                'health_check_grace_period': health_check_grace_period,
+                'health_check_type': health_check_type,
                 'userdata': userdata,
                 'hosted_zone_name': None}],
     )

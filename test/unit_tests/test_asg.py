@@ -4,11 +4,11 @@ from troposphere import ec2, Ref, Template, Join
 
 from amazonia.classes.asg import Asg
 
-userdata = vpc = subnet = template = load_balancer = None
+userdata = vpc = subnet = template = load_balancer = health_check_grace_period = health_check_type = None
 
 
 def setup_resources():
-    global userdata, vpc, subnet, template, load_balancer
+    global userdata, vpc, subnet, template, load_balancer, health_check_grace_period, health_check_type
     template = Template()
     userdata = """
 #cloud-config
@@ -42,6 +42,9 @@ runcmd:
                                      Scheme='internet-facing',
                                      Subnets=[subnet])
 
+    health_check_grace_period = 300
+    health_check_type = 'ELB'
+
 
 @with_setup(setup_resources())
 def test_asg():
@@ -63,8 +66,8 @@ def test_asg():
         assert_equals(asg.trop_asg.HealthCheckType, 'ELB')
         assert_equals(asg.trop_asg.HealthCheckGracePeriod, 300)
         assert_equals(asg.lc.title, title + 'Asg' + 'Lc')
-        assert_equals(asg.lc.ImageId, 'ami-162c0c75')
-        assert_equals(asg.lc.InstanceType, 't2.nano')
+        assert_equals(asg.lc.ImageId, 'ami-f2210191')
+        assert_equals(asg.lc.InstanceType, 't2.micro')
         assert_equals(asg.lc.KeyName, 'pipeline')
         [assert_is(type(sg), Ref) for sg in asg.lc.SecurityGroups]
         assert_equals(asg.cd_app.title, title + 'Asg' + 'Cda')
@@ -81,7 +84,7 @@ def create_asg(title):
     Helper function to create ASG Troposhpere object.
     :return: Troposphere object for single instance, security group and output
     """
-    global userdata, vpc, subnet, template, load_balancer
+    global userdata, vpc, subnet, template, load_balancer, health_check_grace_period, health_check_type
     asg = Asg(
         title=title,
         vpc=vpc,
@@ -91,8 +94,10 @@ def create_asg(title):
         subnets=[subnet],
         load_balancer=load_balancer,
         keypair='pipeline',
-        image_id='ami-162c0c75',
-        instance_type='t2.nano',
+        image_id='ami-f2210191',
+        instance_type='t2.micro',
+        health_check_grace_period=health_check_grace_period,
+        health_check_type=health_check_type,
         userdata=userdata,
         service_role_arn='arn:aws:iam::658691668407:role/CodeDeployServiceRole'
     )

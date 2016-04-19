@@ -8,7 +8,8 @@ from amazonia.classes.security_enabled_object import SecurityEnabledObject
 
 class Asg(SecurityEnabledObject):
     def __init__(self, title, vpc, template, minsize, maxsize, subnets, load_balancer,
-                 keypair, image_id, instance_type, userdata, service_role_arn):
+                 keypair, image_id, instance_type, health_check_grace_period, health_check_type, userdata,
+                 service_role_arn):
         """
         Creates an autoscaling group and codedeploy definition
         :param title: Title of the autoscaling application e.g 'webApp1', 'api2' or 'dataprocessing'
@@ -21,6 +22,8 @@ class Asg(SecurityEnabledObject):
         :param keypair: Instance Keypair for ssh e.g. 'pipeline' or 'mykey'
         :param image_id: AWS ami id to create instances from, e.g. 'ami-12345'
         :param instance_type: Instance type to create instances of e.g. 't2.micro' or 't2.nano'
+        :param health_check_grace_period: Time given to an instance before asg attempts to test it
+        :param health_check_type: either test health according to ELB or EC2 instance status check
         :param userdata: Instance boot script
         :param service_role_arn: AWS IAM Role with Code Deploy permissions
         """
@@ -46,6 +49,8 @@ class Asg(SecurityEnabledObject):
             keypair=keypair,
             image_id=image_id,
             instance_type=instance_type,
+            health_check_grace_period=health_check_grace_period,
+            health_check_type=health_check_type,
             userdata=userdata
         )
         self.create_cd_deploygroup(
@@ -53,10 +58,12 @@ class Asg(SecurityEnabledObject):
             service_role_arn
         )
 
-    def create_asg(self, title, minsize, maxsize, subnets, load_balancer, keypair, image_id, instance_type, userdata):
+    def create_asg(self, title, minsize, maxsize, subnets, load_balancer, keypair, image_id, instance_type,
+                   health_check_grace_period, health_check_type, userdata):
         """
         Creates an autoscaling group object
-        AWS Cloud Formation: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-security-group.html
+        AWS Cloud Formation:
+        http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-security-group.html
         Troposphere link: https://github.com/cloudtools/troposphere/blob/master/troposphere/autoscaling.py
         :param title: Title of the autoscaling application
         :param minsize: minimum size of autoscaling group
@@ -66,6 +73,8 @@ class Asg(SecurityEnabledObject):
         :param keypair: Instance Keypair for ssh e.g. 'pipeline' or 'mykey'
         :param image_id: AWS ami id to create instances from, e.g. 'ami-12345'
         :param instance_type: Instance type to create instances of e.g. 't2.micro' or 't2.nano'
+        :param health_check_grace_period: Time given to an instance before asg attempts to test it
+        :param health_check_type: either test health according to ELB or EC2 instance status check
         :param userdata: Instance boot script
         :return string representing Auto Scaling Group name
         """
@@ -78,6 +87,8 @@ class Asg(SecurityEnabledObject):
             VPCZoneIdentifier=[Ref(subnet.title) for subnet in subnets],
             AvailabilityZones=availability_zones,
             LoadBalancerNames=[Ref(load_balancer)],
+            HealthCheckGracePeriod=health_check_grace_period,
+            HealthCheckType=health_check_type,
             Tags=[Tag('Name', Join('', [Ref('AWS::StackName'), '-', title]), True)]
         )
         )
@@ -88,14 +99,13 @@ class Asg(SecurityEnabledObject):
             instance_type,
             userdata
         ))
-        self.trop_asg.HealthCheckType = 'ELB'
-        self.trop_asg.HealthCheckGracePeriod = 300
         return title
 
     def create_launch_config(self, title, keypair, image_id, instance_type, userdata):
         """
         Method to add a launch configuration resource to a cloud formation document
-        AWS Cloud Formation: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-security-group.html
+        AWS Cloud Formation:
+        http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-security-group.html
         Troposphere link: https://github.com/cloudtools/troposphere/blob/master/troposphere/autoscaling.py
         :param title: Title of the autoscaling application
         :param keypair: Instance Keypair for ssh e.g. 'pipeline' or 'mykey'
@@ -121,7 +131,8 @@ class Asg(SecurityEnabledObject):
     def create_cd_deploygroup(self, title, service_role_arn):
         """
         Creates a CodeDeploy application and deploy group and associates with autoscaling group
-        AWS Cloud Formation: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-security-group.html
+        AWS Cloud Formation:
+        http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-security-group.html
         Troposphere link: https://github.com/cloudtools/troposphere/blob/master/troposphere/codedeploy.py
         :param title: Title of the code deploy application
         :param service_role_arn: AWS IAM Role with Code Deploy permissions
