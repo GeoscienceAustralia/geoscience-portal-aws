@@ -21,13 +21,14 @@ class Stack(object):
         :param keypair: ssh keypair to be used throughout stack
         :param availability_zones: availability zones to use
         :param vpc_cidr: cidr pattern for vpc
+        :param home_cidrs: a list of tuple objects of 'title'(0) and 'ip'(1) to be used
+         to create ingress rules for ssh to jumpboxes from home/office/company premises
+        :param public_cidr: a cidr to be treated as a public location. (eg 0.0.0.0/0)
         :param jump_image_id: AMI for jumphost
         :param jump_instance_type: instance type for jumphost
         :param nat_image_id: AMI for nat
         :param nat_instance_type: instance type for nat
         :param units: list of unit dicts (unit_title, protocol, port, path2ping, minsize, maxsize, image_id, instance_type, userdata, hosted_zone_name)
-        :param home_cidrs: a list of tuple objects of 'title'(0) and 'ip'(1) to be used
-         to create ingress rules for ssh to jumpboxes from home/office/company premises
         """
         super(Stack, self).__init__()
         self.title = stack_title
