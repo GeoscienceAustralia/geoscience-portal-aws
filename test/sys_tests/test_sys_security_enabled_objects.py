@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-from amazonia.classes.securityenabledobject import SecurityEnabledObject
+from amazonia.classes.security_enabled_object import SecurityEnabledObject
 from troposphere import ec2, Template
 
 

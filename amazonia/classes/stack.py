@@ -24,8 +24,8 @@ class Stack(object):
         :param jump_instance_type: instance type for jumphost
         :param nat_image_id: AMI for nat
         :param nat_instance_type: instance type for nat
-        :param units: list of unit dicts (unit_title, protocol, port, path2ping, minsize, maxsize, image_id, instance_type, userdata)
-        :param home_cidr: a list of tuple objects of 'title'(0) and 'ip'(1) to be used
+        :param units: list of unit dicts (unit_title, protocol, port, path2ping, minsize, maxsize, image_id, instance_type, userdata, hosted_zone_name)
+        :param home_cidrs: a list of tuple objects of 'title'(0) and 'ip'(1) to be used
          to create ingress rules for ssh to jumpboxes from home/office/company premises
         """
         super(Stack, self).__init__()
@@ -35,8 +35,8 @@ class Stack(object):
         self.keypair = kwargs['keypair']
         self.availability_zones = kwargs['availability_zones']
         self.vpc_cidr = kwargs['vpc_cidr']
-        self.home_cidr = kwargs['home_cidr']
-        self.public_cidr = ('PublicIp', '0.0.0.0/0')
+        self.home_cidrs = kwargs['home_cidrs']
+        self.public_cidr = kwargs['public_cidr']
 
         self.units = []
         self.private_subnets = []
@@ -101,7 +101,7 @@ class Stack(object):
             template=self.template
         )
 
-        [self.jump.add_ingress(other=home_cidr, port='22') for home_cidr in self.home_cidr]
+        [self.jump.add_ingress(sender=home_cidr, port='22') for home_cidr in self.home_cidrs]
 
         self.nat = SingleInstance(
             title=self.title + 'Nat',
@@ -124,7 +124,7 @@ class Stack(object):
         self.private_route = self.template.add_resource(ec2.Route(self.title + 'PriRtOutboundRoute',
                                                                   InstanceId=Ref(self.nat.single),
                                                                   RouteTableId=Ref(self.private_route_table),
-                                                                  DestinationCidrBlock='0.0.0.0/0'))  # TODO should this be more specific to the VPC CIDR?
+                                                                  DestinationCidrBlock='0.0.0.0/0'))
         self.private_route.DependsOn = self.gateway_attachment.title
 
         """ Add Units
@@ -133,32 +133,25 @@ class Stack(object):
             self.units.append(Unit(title=self.title + unit['unit_title'],
                                    vpc=self.vpc,
                                    template=self.template,
-                                   protocol=unit['protocol'],
-                                   port=unit['port'],
-                                   path2ping=unit['path2ping'],
                                    public_subnets=self.public_subnets,
                                    private_subnets=self.private_subnets,
-                                   minsize=unit['minsize'],
-                                   maxsize=unit['maxsize'],
                                    keypair=self.keypair,
-                                   image_id=unit['image_id'],
-                                   instance_type=unit['instance_type'],
-                                   userdata=unit['userdata'],
                                    service_role_arn=self.code_deploy_service_role,
                                    nat=self.nat,
                                    jump=self.jump,
+                                   **unit
                                    ))
 
     def generate_subnet_cidr(self, is_public):
         """
         Function to help create Class C subnet CIDRs from Class A VPC CIDRs
         :param is_public: boolean for public or private subnet determined by route table
-        :return: Subnet CIDR based on Public or Private and previous subnets created e.g. 10.1.2.0/24 or 10.0.1.0/24
+        :return: Subnet CIDR based on Public or Private and previous subnets created e.g. 10.0.2.0/24 or 10.0.101.0/24
         """
-        # 3rd Octect: Obtain length of pub or pri subnet list
-        octect_3 = len(self.public_subnets) if is_public else len(self.private_subnets) + 100
+        # 3rd Octet: Obtain length of pub or pri subnet list
+        octet_3 = len(self.public_subnets) if is_public else len(self.private_subnets) + 100
         cidr_split = self.vpc.CidrBlock.split('.')  # separate VPC CIDR for renaming
-        cidr_split[2] = str(octect_3)  # set 3rd octect based on public or private
+        cidr_split[2] = str(octet_3)  # set 3rd octet based on public or private
         cidr_last = cidr_split[3].split('/')  # split last group to change subnet mask
         cidr_last[1] = '24'  # set subnet mask
         cidr_split[3] = '/'.join(cidr_last)  # join last group for subnet mask

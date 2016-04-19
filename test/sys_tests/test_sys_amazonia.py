@@ -1,19 +1,13 @@
 #!/usr/bin/python3
 
 from amazonia.classes.elb import Elb
-from troposphere import ec2, Ref, Tags, Template, route53
+from troposphere import ec2, Ref, Tags, Template
 
 
 def main():
     template = Template()
     vpc = template.add_resource(ec2.VPC('MyVPC',
                                         CidrBlock='10.0.0.0/16'))
-
-    hosted_zone = template.add_resource(route53.HostedZone('MyHostedZone',
-                                                           HostedZoneConfig=route53.HostedZoneConfiguration(Comment='MyHostedZone'),
-                                                           Name='myhostedzone.test.ga.',
-                                                           VPCs=[route53.HostedZoneVPCs(VPCId=Ref(vpc),
-                                                                                        VPCRegion='ap-southeast-2')]))
 
     internet_gateway = template.add_resource(ec2.InternetGateway('MyInternetGateway',
                                                                  Tags=Tags(Name='MyInternetGateway')))
@@ -34,15 +28,6 @@ def main():
                                                        AvailabilityZone='ap-southeast-2c',
                                                        VpcId=Ref(vpc),
                                                        CidrBlock='10.0.3.0/24'))]
-
-    Elb(title='MyUnit',
-        port='80',
-        subnets=public_subnets,
-        protocol='http',
-        vpc=vpc,
-        hosted_zone_name=hosted_zone.Name,
-        path2ping='/index.html',
-        template=template)
 
     print(template.to_json(indent=2, separators=(',', ': ')))
 

@@ -52,9 +52,9 @@ runcmd:
 def test_unit():
     title = 'app'
     unit = create_unit(title=title)
-    assert_equals(unit.asg.asg.title, title + 'Asg')
+    assert_equals(unit.asg.trop_asg.title, title + 'Asg')
     assert_equals(unit.elb.elb.title, title + 'Elb')
-    [assert_is(type(lbn), Ref) for lbn in unit.asg.asg.LoadBalancerNames]
+    [assert_is(type(lbn), Ref) for lbn in unit.asg.trop_asg.LoadBalancerNames]
     assert_equals(len(unit.asg.egress), 2)
     assert_equals(len(unit.asg.ingress), 2)
     assert_equals(len(unit.elb.ingress), 2)
@@ -65,7 +65,7 @@ def test_unit():
 def test_unit_association():
     unit1 = create_unit(title='app1')
     unit2 = create_unit(title='app2')
-    unit1.add_unit_flow(other=unit2, port='80')
+    unit1.add_unit_flow(receiver=unit2, port='80')
     assert_equals(len(unit1.asg.egress), 3)
     assert_equals(len(unit1.asg.ingress), 2)
     assert_equals(len(unit1.elb.ingress), 2)
@@ -97,5 +97,6 @@ def create_unit(**kwargs):
         service_role_arn='instance-iam-role-InstanceProfile-OGL42SZSIQRK',
         nat=nat,
         jump=jump,
+        hosted_zone_name=None
     )
     return unit

@@ -1,4 +1,4 @@
-# pylint: disable=missing-docstring, invalid-name, line-too-long, redefined-outer-name, too-many-arguments
+#!/usr/bin/python3
 
 from setuptools import setup
 
@@ -13,9 +13,12 @@ setup(
     packages=['amazonia'],
     install_requires=[
         'troposphere',
+        'inflection',
         'nose',
         'hiera-py',
         'iptools',
-        'boto3'
+        'boto3',
+        'pyyaml',
+        'iptools'
     ]
 )

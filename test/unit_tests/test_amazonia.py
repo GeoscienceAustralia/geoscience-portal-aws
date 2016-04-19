@@ -1,6 +1,6 @@
 import troposphere.elasticloadbalancing as elb
 from nose.tools import *
-from troposphere import ec2, Ref, Template, Join
+from troposphere import ec2, Ref, Template
 
 from amazonia.classes.asg import Asg
 
@@ -52,7 +52,7 @@ def test_asg():
     asg_titles = ['simple', 'hard', 'harder', 'easy']
 
     for title in asg_titles:
-        asg = create_asg(title)
+        asg = create_asg(title=title)
         assert_equals(asg.trop_asg.title, title + 'Asg')
         assert_equals(asg.trop_asg.MinSize, 1)
         assert_equals(asg.trop_asg.MaxSize, 1)
@@ -68,33 +68,29 @@ def test_asg():
         assert_equals(asg.lc.KeyName, 'pipeline')
         [assert_is(type(sg), Ref) for sg in asg.lc.SecurityGroups]
         assert_equals(asg.cd_app.title, title + 'Asg' + 'Cda')
-        assert_is(type(asg.cd_app.ApplicationName), Join)
         assert_is(type(asg.cd_deploygroup.ApplicationName), Ref)
         assert_equals(asg.cd_deploygroup.title, title + 'Asg' + 'Cdg')
-        assert_is(type(asg.cd_deploygroup.DeploymentGroupName), Join)
         [assert_is(type(cdasg), Ref) for cdasg in asg.cd_deploygroup.AutoScalingGroups]
-        assert_equals(asg.cd_deploygroup.ServiceRoleArn, 'arn:aws:iam::658691668407:role/CodeDeployServiceRole')
+        assert_equals(asg.cd_deploygroup.ServiceRoleArn, 'instance-iam-role-InstanceProfile-OGL42SZSIQRK')
 
 
-def create_asg(title):
+def create_asg(**kwargs):
     """
     Helper function to create ASG Troposhpere object.
     :return: Troposphere object for single instance, security group and output
     """
     global userdata, vpc, subnet, template, load_balancer
-    asg = Asg(
-        title=title,
-        vpc=vpc,
-        template=template,
-        minsize=1,
-        maxsize=1,
-        subnets=[subnet],
-        load_balancer=load_balancer,
-        keypair='pipeline',
-        image_id='ami-162c0c75',
-        instance_type='t2.nano',
-        userdata=userdata,
-        service_role_arn='arn:aws:iam::658691668407:role/CodeDeployServiceRole'
-    )
 
+    asg = Asg(title=kwargs['title'],
+              keypair='pipeline',
+              image_id='ami-162c0c75',
+              instance_type='t2.nano',
+              vpc=vpc,
+              subnets=[subnet],
+              minsize=1,
+              maxsize=1,
+              load_balancer=load_balancer,
+              userdata=userdata,
+              service_role_arn='instance-iam-role-InstanceProfile-OGL42SZSIQRK',
+              template=template)
     return asg
