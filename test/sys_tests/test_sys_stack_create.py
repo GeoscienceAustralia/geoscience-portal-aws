@@ -1,39 +1,33 @@
 #!/usr/bin/python3
 import boto3
 import time
-from amazonia.amazonia import amz
+import amazonia.amz as amz
 
 """
 This Script will take a cloud formation template file and upload it to create a cloud formation stack in aws using boto3
 http://boto3.readthedocs.org/en/latest/reference/services/cloudformation.html#CloudFormation.Client.create_stack
 """
 cf_client = boto3.client('cloudformation')
-s3_client = boto3.client('s3')
+s3_client = boto3.resource('s3').meta.client
 
-# TODO get amz to output to file
 template = amz.main()
-#
-aws_template = open('stack.template', 'rb')
 
+s3_response = s3_client.upload_file('stack.template', 'smallest-bucket-in-history','smallest_app_in_history/stack.template')
 
-s3_response = s3_client.put_object(
-    Body=aws_template,
-    Bucket='smallest-bucket-in-history',
-    Key='smallest_app_in_history/astack.template')
+print('File Successfully Uploaded to S3')
 
-print('response={0}'.format(s3_response))
+stack_name = 'teststack'
+template_url = 'https://s3-ap-southeast-2.amazonaws.com/smallest-bucket-in-history/smallest_app_in_history/stack.template'
+environment = 'test'
+app = 'app1'
+infra_code_version = '0.3'
+tags = {'Key': 'TestTag', 'Value': 'Testvalue'}
+time_delay = 11
 
-
-
-
-# TODO match yaml to args
-stack_name = args.stack
-template_url = args.url
-environment = args.env
-app = args.app
-infra_code_version = args.infra_code_version
-tags = args.tags
-time_delay = args.time
+"""
+This Script will take a cloud formation template file and upload it to create a cloud formation stack in aws using boto3
+http://boto3.readthedocs.org/en/latest/reference/services/cloudformation.html#CloudFormation.Client.create_stack
+"""
 
 create_response = cf_client.create_stack(
     StackName=stack_name,
