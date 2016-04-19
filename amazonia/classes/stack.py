@@ -52,11 +52,13 @@ class Stack(object):
         ig_name = self.title + 'Ig'
         self.internet_gateway = self.template.add_resource(
             ec2.InternetGateway(ig_name, Tags=Tags(Name=Join('', [Ref('AWS::StackName'), '-', ig_name]))))
+        self.internet_gateway.DependsOn = self.vpc.title
 
         self.gateway_attachment = self.template.add_resource(
             ec2.VPCGatewayAttachment(self.internet_gateway.title + 'Atch',
                                      VpcId=Ref(self.vpc),
                                      InternetGatewayId=Ref(self.internet_gateway)))
+        self.gateway_attachment.DependsOn = self.internet_gateway.title
 
         """ Add Public and Private Route Tables
         """
@@ -100,6 +102,7 @@ class Stack(object):
             vpc=self.vpc,
             template=self.template
         )
+        self.jump.DependsOn = self.gateway_attachment.title
 
         [self.jump.add_ingress(sender=home_cidr, port='22') for home_cidr in self.home_cidrs]
 
@@ -112,6 +115,7 @@ class Stack(object):
             vpc=self.vpc,
             template=self.template
         )
+        self.nat.DependsOn = self.gateway_attachment.title
 
         """ Add Routes
         """

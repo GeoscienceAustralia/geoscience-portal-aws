@@ -53,7 +53,8 @@ create_response = cf_client.create_stack(
     ]
 )
 
-print('StackId:\n {0}\n'.format(create_response))
+stack_id = create_response['StackId']
+print('\nStack Creating...\n{0}\n'.format(stack_id))
 
 
 """
@@ -62,12 +63,12 @@ If the status returns CREATE_COMPLETE then exit with success message
 If the status returns ROLLBACK_IN_PROGRESS or ROLLBACK_COMPLETE then exit with failure message
 http://boto3.readthedocs.org/en/latest/reference/services/cloudformation.html#CloudFormation.Client.describe_stack_events
 """
-while stack_name:
-    confirm_response = cf_client.describe_stacks(StackName=stack_name)
+while stack_id:
+    confirm_response = cf_client.describe_stacks(StackName=stack_id)
     stack_status = confirm_response['Stacks'][0]['StackStatus']
 
     if stack_status == 'CREATE_COMPLETE':
-        print('Stack Successfully Created, Stack Status: {0}'.format(stack_status))
+        print('\nStack Successfully Created...\nStack Status: {0}\n'.format(stack_status))
         break
     elif stack_status in ('ROLLBACK_IN_PROGRESS', 'ROLLBACK_COMPLETE'):
         print('Error occurred creating AWS CloudFormation stack and returned status code {0}.'.format(stack_status))
@@ -82,4 +83,24 @@ http://boto3.readthedocs.org/en/latest/reference/services/cloudformation.html#Cl
 """
 delete_response = cf_client.delete_stack(StackName=stack_name)
 
-print('Stack {0} Deletion Commencing'.format(stack_name))
+print('\nStack {0} Deletion Commencing...\n'.format(stack_name))
+
+"""
+Script to return an AWS Cloudformation Stack_ID or Stack_Name stack status every 10 seconds using boto3.
+If the status returns CREATE_COMPLETE then exit with success message
+If the status returns ROLLBACK_IN_PROGRESS or ROLLBACK_COMPLETE then exit with failure message
+http://boto3.readthedocs.org/en/latest/reference/services/cloudformation.html#CloudFormation.Client.describe_stack_events
+"""
+while stack_id:
+    confirm_response = cf_client.describe_stacks(StackName=stack_id)
+    stack_status = confirm_response['Stacks'][0]['StackStatus']
+
+    if stack_status == 'DELETE_COMPLETE':
+        print('\nStack Successfully Deleted...\nStack Status: {0}\n'.format(stack_status))
+        break
+    elif stack_status in ('ROLLBACK_IN_PROGRESS', 'ROLLBACK_COMPLETE'):
+        print('Error occurred creating AWS CloudFormation stack and returned status code {0}.'.format(stack_status))
+        break
+    else:
+        print('Stack Status: {0}'.format(stack_status))
+    time.sleep(time_delay)
