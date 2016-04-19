@@ -52,7 +52,7 @@ class Unit(object):
             image_id=kwargs['image_id'],
             instance_type=kwargs['instance_type'],
             userdata=kwargs['userdata'],
-            load_balancer=self.elb.elb,
+            load_balancer=self.elb.trop_elb,
             service_role_arn=kwargs['service_role_arn'],
         )
         [self.elb.add_ingress(sender=self.public_cidr, port=port) for port in ['80', '443']]
