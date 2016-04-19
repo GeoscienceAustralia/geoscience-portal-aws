@@ -25,10 +25,6 @@ class Elb(SecurityEnabledObject):
         self.title = title + 'Elb'
         super(Elb, self).__init__(vpc=vpc, title=self.title, template=template)
 
-        if not str(protocol).isupper():
-            print('Error: Elastic Loadbalancer: Protocol must be UPPERCASE')
-            exit(1)
-
         self.trop_elb = self.template.add_resource(
                     elb.LoadBalancer(self.title,
                                      CrossZone=True,
