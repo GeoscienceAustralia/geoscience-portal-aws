@@ -13,9 +13,9 @@ setup(
     packages=['amazonia'],
     install_requires=[
         'troposphere',
-        'inflection',
         'nose',
         'hiera-py',
-        'pyyaml'
+        'iptools',
+        'boto3'
     ]
 )
