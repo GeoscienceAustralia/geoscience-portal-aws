@@ -8,7 +8,8 @@ from amazonia.classes.unit import Unit
 
 
 class Stack(object):
-    def __init__(self, **kwargs):
+    def __init__(self, stack_title, code_deploy_service_role, keypair, availability_zones, vpc_cidr, home_cidrs, public_cidr,
+                 jump_image_id, jump_instance_type, nat_image_id, nat_instance_type, units):
         """
         Create a vpc, nat, jumphost, internet gateway, public/private route tables, public/private subnets
          and collection of Amazonia units
@@ -20,23 +21,24 @@ class Stack(object):
         :param keypair: ssh keypair to be used throughout stack
         :param availability_zones: availability zones to use
         :param vpc_cidr: cidr pattern for vpc
+        :param home_cidrs: a list of tuple objects of 'title'(0) and 'ip'(1) to be used
+         to create ingress rules for ssh to jumpboxes from home/office/company premises
+        :param public_cidr: a cidr to be treated as a public location. (eg 0.0.0.0/0)
         :param jump_image_id: AMI for jumphost
         :param jump_instance_type: instance type for jumphost
         :param nat_image_id: AMI for nat
         :param nat_instance_type: instance type for nat
         :param units: list of unit dicts (unit_title, protocol, port, path2ping, minsize, maxsize, image_id, instance_type, userdata, hosted_zone_name)
-        :param home_cidrs: a list of tuple objects of 'title'(0) and 'ip'(1) to be used
-         to create ingress rules for ssh to jumpboxes from home/office/company premises
         """
         super(Stack, self).__init__()
-        self.title = kwargs['stack_title']
+        self.title = stack_title
         self.template = Template()
-        self.code_deploy_service_role = kwargs['code_deploy_service_role']
-        self.keypair = kwargs['keypair']
-        self.availability_zones = kwargs['availability_zones']
-        self.vpc_cidr = kwargs['vpc_cidr']
-        self.home_cidrs = kwargs['home_cidrs']
-        self.public_cidr = kwargs['public_cidr']
+        self.code_deploy_service_role = code_deploy_service_role
+        self.keypair = keypair
+        self.availability_zones = availability_zones
+        self.vpc_cidr = vpc_cidr
+        self.home_cidrs = home_cidrs
+        self.public_cidr = public_cidr
 
         self.units = []
         self.private_subnets = []
@@ -94,8 +96,8 @@ class Stack(object):
         self.jump = SingleInstance(
             title=self.title + 'Jump',
             keypair=self.keypair,
-            si_image_id=kwargs['jump_image_id'],
-            si_instance_type=kwargs['jump_instance_type'],
+            si_image_id=jump_image_id,
+            si_instance_type=jump_instance_type,
             subnet=self.public_subnets[0],
             vpc=self.vpc,
             template=self.template
@@ -106,8 +108,8 @@ class Stack(object):
         self.nat = SingleInstance(
             title=self.title + 'Nat',
             keypair=self.keypair,
-            si_image_id=kwargs['nat_image_id'],
-            si_instance_type=kwargs['nat_instance_type'],
+            si_image_id=nat_image_id,
+            si_instance_type=nat_instance_type,
             subnet=self.public_subnets[0],
             vpc=self.vpc,
             template=self.template
@@ -129,7 +131,7 @@ class Stack(object):
 
         """ Add Units
         """
-        for unit in kwargs['units']:
+        for unit in units:
             self.units.append(Unit(title=self.title + unit['unit_title'],
                                    vpc=self.vpc,
                                    template=self.template,
