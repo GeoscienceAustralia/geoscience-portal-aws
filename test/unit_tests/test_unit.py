@@ -4,11 +4,13 @@ from troposphere import ec2, Ref, Template
 from amazonia.classes.single_instance import SingleInstance
 from amazonia.classes.unit import Unit
 
-userdata = template = vpc = private_subnets = public_subnets = nat = jump = None
+userdata = template = vpc = private_subnets = public_subnets = nat = jump = health_check_grace_period = \
+    health_check_type = None
 
 
 def setup_resources():
-    global userdata, template, vpc, private_subnets, public_subnets, nat, jump
+    global userdata, template, vpc, private_subnets, public_subnets, nat, jump, health_check_grace_period, \
+        health_check_type
     userdata = """
 #cloud-config
 repo_update: true
@@ -47,6 +49,9 @@ runcmd:
                           subnet=public_subnets[0],
                           template=template)
 
+    health_check_grace_period = 300
+    health_check_type = 'ELB'
+
 
 @with_setup(setup_resources())
 def test_unit():
@@ -78,7 +83,8 @@ def test_unit_association():
 
 
 def create_unit(**kwargs):
-    global userdata, template, vpc, private_subnets, public_subnets, nat, jump
+    global userdata, template, vpc, private_subnets, public_subnets, nat, jump, health_check_grace_period, \
+        health_check_type
     unit = Unit(
         title=kwargs['title'],
         vpc=vpc,
@@ -93,6 +99,8 @@ def create_unit(**kwargs):
         keypair='pipeline',
         image_id='ami-162c0c75',
         instance_type='t2.nano',
+        health_check_grace_period=health_check_grace_period,
+        health_check_type=health_check_type,
         userdata=userdata,
         service_role_arn='instance-iam-role-InstanceProfile-OGL42SZSIQRK',
         nat=nat,

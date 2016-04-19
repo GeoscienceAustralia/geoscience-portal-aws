@@ -133,6 +133,8 @@ runcmd:
                 'path2ping': '/index.html',
                 'minsize': 1,
                 'maxsize': 1,
+                'health_check_grace_period': 1200,
+                'health_check_type': 'ELB',
                 'image_id': app_image_id,
                 'instance_type': instance_type,
                 'userdata': userdata1}

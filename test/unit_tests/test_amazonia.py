@@ -4,11 +4,11 @@ from troposphere import ec2, Ref, Template
 
 from amazonia.classes.asg import Asg
 
-userdata = vpc = subnet = template = load_balancer = None
+userdata = vpc = subnet = template = load_balancer = health_check_grace_period = health_check_type = None
 
 
 def setup_resources():
-    global userdata, vpc, subnet, template, load_balancer
+    global userdata, vpc, subnet, template, load_balancer, health_check_grace_period, health_check_type
     template = Template()
     userdata = """
 #cloud-config
@@ -41,6 +41,8 @@ runcmd:
                                                              InstanceProtocol='HTTP')],
                                      Scheme='internet-facing',
                                      Subnets=[subnet])
+    health_check_grace_period = 300
+    health_check_type = 'ELB'
 
 
 @with_setup(setup_resources())
@@ -79,7 +81,7 @@ def create_asg(**kwargs):
     Helper function to create ASG Troposhpere object.
     :return: Troposphere object for single instance, security group and output
     """
-    global userdata, vpc, subnet, template, load_balancer
+    global userdata, vpc, subnet, template, load_balancer, health_check_grace_period, health_check_type
 
     asg = Asg(title=kwargs['title'],
               keypair='pipeline',
@@ -90,6 +92,8 @@ def create_asg(**kwargs):
               minsize=1,
               maxsize=1,
               load_balancer=load_balancer,
+              health_check_grace_period=health_check_grace_period,
+              health_check_type=health_check_type,
               userdata=userdata,
               service_role_arn='instance-iam-role-InstanceProfile-OGL42SZSIQRK',
               template=template)

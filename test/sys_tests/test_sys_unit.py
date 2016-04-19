@@ -55,6 +55,8 @@ runcmd:
         private_subnets=private_subnets,
         minsize=1,
         maxsize=1,
+        health_check_grace_period=300,
+        health_check_type='ELB',
         keypair='pipeline',
         image_id='ami-162c0c75',
         instance_type='t2.nano',
@@ -76,6 +78,8 @@ runcmd:
         private_subnets=private_subnets,
         minsize=1,
         maxsize=1,
+        health_check_grace_period=300,
+        health_check_type='ELB',
         keypair='pipeline',
         image_id='ami-162c0c75',
         instance_type='t2.nano',
@@ -86,7 +90,7 @@ runcmd:
         hosted_zone_name=None
     )
 
-    unit1.add_unit_flow(other=unit2, port='80')
+    unit1.add_unit_flow(receiver=unit2, port='80')
     print(template.to_json(indent=2, separators=(',', ': ')))
 
 

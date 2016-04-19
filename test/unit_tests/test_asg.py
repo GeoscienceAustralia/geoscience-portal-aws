@@ -66,8 +66,8 @@ def test_asg():
         assert_equals(asg.trop_asg.HealthCheckType, 'ELB')
         assert_equals(asg.trop_asg.HealthCheckGracePeriod, 300)
         assert_equals(asg.lc.title, title + 'Asg' + 'Lc')
-        assert_equals(asg.lc.ImageId, 'ami-162c0c75')
-        assert_equals(asg.lc.InstanceType, 't2.nano')
+        assert_equals(asg.lc.ImageId, 'ami-f2210191')
+        assert_equals(asg.lc.InstanceType, 't2.micro')
         assert_equals(asg.lc.KeyName, 'pipeline')
         [assert_is(type(sg), Ref) for sg in asg.lc.SecurityGroups]
         assert_equals(asg.cd_app.title, title + 'Asg' + 'Cda')
