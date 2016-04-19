@@ -5,44 +5,50 @@ from amazonia.classes.security_enabled_object import SecurityEnabledObject
 
 
 class SingleInstance(SecurityEnabledObject):
-    def __init__(self, **kwargs):
+    def __init__(self, title, vpc, template, keypair, si_image_id, si_instance_type, subnet, is_nat=False):
         """
         AWS CloudFormation - http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-instance.html
         Troposphere - https://github.com/cloudtools/troposphere/blob/master/troposphere/ec2.py
         Create a singleton instance such as a nat or a jumphost
         :param title: Title of instance e.g 'nat1', 'nat2' or 'jump1'
+        :param vpc: Troposphere vpc object, required for SecurityEnabledObject class
+        :param template: The template to add the SingleInstance object to.
         :param keypair: Instance Keypair for ssh e.g. 'pipeline' or 'mykey'
         :param si_image_id: AWS ami id to create instance from, e.g. 'ami-12345'
         :param si_instance_type: Instance type for single instance e.g. 't2.micro' or 't2.nano'
-        :param vpc: Troposphere vpc object, required for SecurityEnabledObject class
         :param subnet: Troposhere object for subnet created e.g. 'sub_pub1'
+        :param is_nat: a boolean that is used to determine if the instance will be a NAT or not. Default: False
         """
 
-        super(SingleInstance, self).__init__(vpc=kwargs['vpc'], title=kwargs['title'], template=kwargs['template'])
+        super(SingleInstance, self).__init__(vpc=vpc, title=title, template=template)
 
         self.single = self.template.add_resource(
                            ec2.Instance(
-                               kwargs['title'],
-                               KeyName=kwargs['keypair'],
-                               ImageId=kwargs['si_image_id'],
-                               InstanceType=kwargs['si_instance_type'],
+                               title,
+                               KeyName=keypair,
+                               ImageId=si_image_id,
+                               InstanceType=si_instance_type,
                                NetworkInterfaces=[ec2.NetworkInterfaceProperty(
                                    GroupSet=[Ref(self.security_group)],
                                    AssociatePublicIpAddress=True,
                                    DeviceIndex="0",
                                    DeleteOnTermination=True,
-                                   SubnetId=Ref(kwargs['subnet']),
+                                   SubnetId=Ref(subnet),
                                )],
-                               SourceDestCheck=False if kwargs['title'][-3:].lower() == 'nat' else True,
-                               Tags=Tags(Name=Join("", [Ref('AWS::StackName'), '-', kwargs['title']]))
+                               # The below boolean determines whether source/destination checking is enabled on the
+                               # instance. This needs to be false to enable NAT functionality from the instance, or
+                               # true otherwise. For more info check the below:
+                               # http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-instance.html#cfn-ec2-instance-sourcedestcheck
+                               SourceDestCheck=False if is_nat else True,
+                               Tags=Tags(Name=Join("", [Ref('AWS::StackName'), '-', title]))
                            ))
 
         if self.single.SourceDestCheck == 'true':
-            self.si_output(nat=False, subnet=kwargs['subnet'])
+            self.si_output(nat=False, subnet=subnet)
         else:
-            self.si_output(nat=True, subnet=kwargs['subnet'])
+            self.si_output(nat=True, subnet=subnet)
 
-    def si_output(self, **kwargs):
+    def si_output(self, nat, subnet):
         """
         Function that add the IP output required for single instances depending if it is a NAT or JumpHost
         :param nat: A NAT boolean is defined by the SourceDestCheck=False flag for extracting the ip
@@ -50,7 +56,7 @@ class SingleInstance(SecurityEnabledObject):
         :return: Troposphere Output object containing IP details
         """
 
-        if kwargs['nat'] is True:
+        if nat is True:
             net_interface = "PrivateIp"
         else:
             net_interface = "PublicIp"
@@ -62,7 +68,7 @@ class SingleInstance(SecurityEnabledObject):
                  Value=Join(" ", ["{0} {1} address".format(self.single.title, net_interface),
                                   GetAtt(self.single, net_interface),
                                   "on subnet",
-                                  Ref(kwargs['subnet'])
+                                  Ref(subnet)
                                   ]
                             )
                  ))
