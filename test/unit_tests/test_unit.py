@@ -65,7 +65,7 @@ def test_unit():
 def test_unit_association():
     unit1 = create_unit(title='app1')
     unit2 = create_unit(title='app2')
-    unit1.add_unit_flow(other=unit2, port='80')
+    unit1.add_unit_flow(receiver=unit2, port='80')
     assert_equals(len(unit1.asg.egress), 3)
     assert_equals(len(unit1.asg.ingress), 2)
     assert_equals(len(unit1.elb.ingress), 2)
@@ -97,5 +97,6 @@ def create_unit(**kwargs):
         service_role_arn='instance-iam-role-InstanceProfile-OGL42SZSIQRK',
         nat=nat,
         jump=jump,
+        hosted_zone_name=None
     )
     return unit

@@ -9,7 +9,8 @@ class Unit(object):
     def __init__(self, **kwargs):
         """
         Create an Amazonia unit, with associated Amazonia ELB and ASG
-        :param title: Title of the autoscaling application  prefixedx with Stack name e.g 'MyStackWebApp1', 'MyStackApi2' or 'MyStackDataprocessing'
+        :param title: Title of the autoscaling application  prefixedx with Stack name e.g 'MyStackWebApp1',
+         'MyStackApi2' or 'MyStackDataprocessing'
         :param vpc: Troposphere vpc object, required for SecurityEnabledObject class
         :param stack: Troposphere stack to append resources to
         :param protocol: protocol for ELB and webserver to communicate via
@@ -26,6 +27,7 @@ class Unit(object):
         :param service_role_arn: AWS IAM Role with Code Deploy permissions
         :param nat: nat instance for outbound traffic
         :param jump: jump instance for inbound ssh
+        :param hosted_zone_name: Route53 hosted zone name string for Route53 record sets
         """
         super(Unit, self).__init__()
         self.template = kwargs['template']
@@ -38,6 +40,7 @@ class Unit(object):
             port=kwargs['port'],
             path2ping=kwargs['path2ping'],
             subnets=kwargs['public_subnets'],
+            hosted_zone_name=kwargs['hosted_zone_name']
         )
         self.asg = Asg(
             vpc=kwargs['vpc'],
@@ -49,21 +52,22 @@ class Unit(object):
             keypair=kwargs['keypair'],
             image_id=kwargs['image_id'],
             instance_type=kwargs['instance_type'],
+            health_check_grace_period=kwargs['health_check_grace_period'],
+            health_check_type=kwargs['health_check_type'],
             userdata=kwargs['userdata'],
             load_balancer=self.elb.elb,
             service_role_arn=kwargs['service_role_arn'],
         )
-        [self.elb.add_ingress(other=self.public_cidr, port=port) for port in ['80', '443']]
-        self.elb.add_flow(other=self.asg, port=kwargs['port'])
-        self.asg.add_flow(other=kwargs['nat'], port='80')  # TODO Do we need for this for asg to nat to internet??
-        self.asg.add_flow(other=kwargs['nat'], port='443')  # TODO ditto
-        kwargs['jump'].add_flow(other=self.asg, port='22')
+        [self.elb.add_ingress(sender=self.public_cidr, port=port) for port in ['80', '443']]
+        self.elb.add_flow(receiver=self.asg, port=kwargs['port'])
+        self.asg.add_flow(receiver=kwargs['nat'], port='80')
+        self.asg.add_flow(receiver=kwargs['nat'], port='443')
+        kwargs['jump'].add_flow(receiver=self.asg, port='22')
 
-    def add_unit_flow(self, other, port):
+    def add_unit_flow(self, receiver, port):
         """
         Create security group flow from this Amazonia unit's ASG to another unit's ELB
-        :param other: Other Amazonia Unit
-        :param protocol: protocol for webserver and ELBto communicate via
+        :param receiver: Other Amazonia Unit
         :param port: port for webserver and ELB to communicate via
         """
-        self.asg.add_flow(other=other.elb, port=port)
+        self.asg.add_flow(receiver=receiver.elb, port=port)

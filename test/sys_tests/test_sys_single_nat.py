@@ -18,7 +18,8 @@ def main():
                    si_instance_type='t2.nano',
                    vpc=vpc,
                    subnet=subnet,
-                   template=template)
+                   template=template,
+                   is_nat=True)
 
     template.add_resource(vpc)
     template.add_resource(subnet)

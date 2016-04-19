@@ -4,11 +4,11 @@ from troposphere import ec2, Ref, Template, Join
 
 from amazonia.classes.asg import Asg
 
-userdata = vpc = subnet = template = load_balancer = None
+userdata = vpc = subnet = template = load_balancer = health_check_grace_period = health_check_type = None
 
 
 def setup_resources():
-    global userdata, vpc, subnet, template, load_balancer
+    global userdata, vpc, subnet, template, load_balancer, health_check_grace_period, health_check_type
     template = Template()
     userdata = """
 #cloud-config
@@ -42,6 +42,9 @@ runcmd:
                                      Scheme='internet-facing',
                                      Subnets=[subnet])
 
+    health_check_grace_period = 300
+    health_check_type = 'ELB'
+
 
 @with_setup(setup_resources())
 def test_asg():
@@ -73,7 +76,7 @@ def test_asg():
         assert_equals(asg.cd_deploygroup.title, title + 'Asg' + 'Cdg')
         assert_is(type(asg.cd_deploygroup.DeploymentGroupName), Join)
         [assert_is(type(cdasg), Ref) for cdasg in asg.cd_deploygroup.AutoScalingGroups]
-        assert_equals(asg.cd_deploygroup.ServiceRoleArn, 'instance-iam-role-InstanceProfile-OGL42SZSIQRK')
+        assert_equals(asg.cd_deploygroup.ServiceRoleArn, 'arn:aws:iam::658691668407:role/CodeDeployServiceRole')
 
 
 def create_asg(title):
@@ -81,11 +84,22 @@ def create_asg(title):
     Helper function to create ASG Troposhpere object.
     :return: Troposphere object for single instance, security group and output
     """
-    global userdata, vpc, subnet, template, load_balancer
-
-    asg = Asg(title, vpc, template, 1, 1, [subnet], load_balancer,
-              'pipeline', 'ami-162c0c75', 't2.nano', userdata, 'instance-iam-role-InstanceProfile-OGL42SZSIQRK')
-
-    # availability_zones=['ap-southeast-2a'],
+    global userdata, vpc, subnet, template, load_balancer, health_check_grace_period, health_check_type
+    asg = Asg(
+        title=title,
+        vpc=vpc,
+        template=template,
+        minsize=1,
+        maxsize=1,
+        subnets=[subnet],
+        load_balancer=load_balancer,
+        keypair='pipeline',
+        image_id='ami-f2210191',
+        instance_type='t2.micro',
+        health_check_grace_period=health_check_grace_period,
+        health_check_type=health_check_type,
+        userdata=userdata,
+        service_role_arn='arn:aws:iam::658691668407:role/CodeDeployServiceRole'
+    )
 
     return asg

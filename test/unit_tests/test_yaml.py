@@ -1,3 +1,5 @@
+#!/usr/bin/python3
+
 from nose.tools import *
 from amazonia.classes.yaml import Yaml
 import string
@@ -33,7 +35,7 @@ def test_get_values():
     and where it is missing it using the default_data value (e.g. in keypair)
     """
     nat_instance_type = stack_input['nat_instance_type']
-    assert_equals(nat_instance_type, 't2.nano')
+    assert_equals(nat_instance_type, 't2.micro')
 
     keypair = stack_input['keypair']
     assert_equals(keypair, 'pipeline')
@@ -132,7 +134,7 @@ def test_unencrypted_keys():
 
 @with_setup(setup_resources())
 def validate_home_cidrs():
-    cidr = stack_input['home_cidr'][0]
+    cidr = stack_input['home_cidrs'][0]
     assert_equals(cidr, 'INVALID_CIDR')
 
 

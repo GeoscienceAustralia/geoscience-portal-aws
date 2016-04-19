@@ -2,7 +2,6 @@
 """
 Ingest User YAML and GA defaults YAML
 Overwrite GA defaults YAML with User YAML
-
 """
 import re
 from iptools.ipv4 import validate_cidr
@@ -13,7 +12,6 @@ class Yaml(object):
         """
         :param user_stack_data: User yaml document used to read stack values
         :param default_data: Company yaml to read in company default values
-        :return: Cloud Formation template
         """
         self.user_stack_data = user_stack_data
         self.default_data = default_data
@@ -25,24 +23,25 @@ class Yaml(object):
     def set_values(self):
         """
         Assigning values to the united_data dictionary
-        :return: Returns nothing, makes changes to self.united_data directly
         """
         self.stack_key_list = ['stack_title',
                                'code_deploy_service_role',
                                'keypair',
                                'availability_zones',
                                'vpc_cidr',
+                               'public_cidr',
                                'jump_image_id',
                                'jump_instance_type',
                                'nat_image_id',
                                'nat_instance_type',
-                               'home_cidr',
+                               'home_cidrs',
                                'units']
 
         for stack_value in self.stack_key_list:
             self.united_data[stack_value] = self.get_values(stack_value)
 
         self.unit_key_list = ['unit_title',
+                              'hosted_zone_name',
                               'userdata',
                               'image_id',
                               'instance_type',
@@ -68,11 +67,11 @@ class Yaml(object):
 
         """ Validate Home CIDRs
         """
-        self.validate_home_cidrs(self.united_data['home_cidr'])
+        self.validate_home_cidrs(self.united_data['home_cidrs'])
 
-        """ Validate title of home_cidr tuple items
+        """ Validate title of home_cidrs tuple items
         """
-        self.united_data['home_cidr'] = [(self.validate_title(cidr[0]), cidr[1]) for cidr in self.united_data['home_cidr']]
+        self.united_data['home_cidrs'] = [(self.validate_title(cidr[0]), cidr[1]) for cidr in self.united_data['home_cidrs']]
 
         """ Validate for unecrypted aws access ids and aws secret keys
         """
@@ -81,8 +80,6 @@ class Yaml(object):
                 self.united_data['units'][unit]['userdata'] = 'AWS_ACCESS_ID_FOUND'
             elif self.unencrypted_access_keys(self.united_data['units'][unit]['userdata']) == 'AWS_SECRET_KEY_FOUND':
                 self.united_data['units'][unit]['userdata'] = 'AWS_SECRET_KEY_FOUND'
-            else:
-                pass
 
     def get_values(self, value):
         """
@@ -112,7 +109,7 @@ class Yaml(object):
         :param stack_or_unit_title: Title from the united_data yaml containing hte stack or unit title
         :return: String stripped of non alphanumeric characters
         """
-        pattern = re.compile('[\W_]+')                           # pattern is one or more non work characters
+        pattern = re.compile('[\\W_]+')                           # pattern is one or more non work characters
         new_title = pattern.sub('', stack_or_unit_title)         # Regex sub nothing '' for pattern match
         return new_title
 
@@ -130,16 +127,13 @@ class Yaml(object):
             return 'AWS_ACCESS_ID_FOUND'
         elif aws_secret_key.search(userdata):
             return 'AWS_SECRET_KEY_FOUND'
-        else:
-            return userdata
 
     def validate_home_cidrs(self, home_cidrs):
         """
         Validates home_cidrs are looped through and each home_cidr's name and cidr is validated using prevoius functions
         :param home_cidrs: list of cidr tuples from unit_data yaml, tuple is in the form (name, cidr)
-        :return: Returns nothing, makes changes in the dictionary in the function
         """
         for num, cidr in enumerate(home_cidrs):
             if validate_cidr(cidr[1]) is False:
                 cidr_title = self.validate_title(cidr[0])
-                self.united_data['home_cidr'][num] = cidr_title, 'INVALID_CIDR'
+                self.united_data['home_cidrs'][num] = cidr_title, 'INVALID_CIDR'

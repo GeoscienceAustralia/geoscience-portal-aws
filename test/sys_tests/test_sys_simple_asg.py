@@ -52,7 +52,7 @@ runcmd:
         image_id='ami-162c0c75',
         instance_type='t2.nano',
         vpc=vpc,
-        subnets=[subnet],
+        subnets=subnet,
         minsize=1,
         maxsize=1,
         load_balancer=load_balancer,
