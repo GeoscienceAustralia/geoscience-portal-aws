@@ -27,7 +27,7 @@ def create_stack(united_data):
 
     """ Print Cloud Formation Template
     """
-    return stack.template.to_json(indent=2, separators=(',', ': '))
+    return stack
 
 
 def main():
@@ -61,7 +61,8 @@ def main():
     """ Create stack and create stack template file
     """
     template_file_path = args.template
-    template_data = create_stack(stack_input)
+    template_trop = create_stack(stack_input)
+    template_data = template_trop.template.to_json(indent=2, separators=(',', ': '))
     with open(template_file_path, 'w') as template_file:
         template_file.write(template_data)
         template_file.close()
