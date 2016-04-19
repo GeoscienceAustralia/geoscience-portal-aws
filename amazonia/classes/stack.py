@@ -102,7 +102,7 @@ class Stack(object):
             vpc=self.vpc,
             template=self.template
         )
-        self.jump.DependsOn = self.gateway_attachment.title
+        self.jump.single.DependsOn = self.gateway_attachment.title
 
         [self.jump.add_ingress(sender=home_cidr, port='22') for home_cidr in self.home_cidrs]
 
@@ -115,7 +115,7 @@ class Stack(object):
             vpc=self.vpc,
             template=self.template
         )
-        self.nat.DependsOn = self.gateway_attachment.title
+        self.nat.single.DependsOn = self.gateway_attachment.title
 
         """ Add Routes
         """
