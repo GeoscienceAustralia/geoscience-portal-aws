@@ -7,7 +7,7 @@ from amazonia.classes.single_instance import SingleInstance
 
 def test_nat_single_instance():
     """
-    Tests for creation of a nat isntance and expects natting (SourceDestCheck)
+    Tests for creation of a nat instance and expects natting (SourceDestCheck)
     to be enabled and the PrivateIp to be displayed in the output.
     :return: Pass
     """
