@@ -68,7 +68,7 @@ while stack_id:
     stack_status = confirm_response['Stacks'][0]['StackStatus']
 
     if stack_status == 'CREATE_COMPLETE':
-        print('\nStack Successfully Created...\nStack Status: {0}\n'.format(stack_status))
+        print('\nStack Successfully Created...\nStack Status: {0}'.format(stack_status))
         break
     elif stack_status in ('ROLLBACK_IN_PROGRESS', 'ROLLBACK_COMPLETE'):
         print('Error occurred creating AWS CloudFormation stack and returned status code {0}.'.format(stack_status))
