@@ -1,7 +1,6 @@
 #!/usr/bin/python3
 import boto3
 import time
-import json
 from amazonia.amazonia import amz
 
 """
@@ -12,7 +11,7 @@ cf_client = boto3.client('cloudformation')
 s3_client = boto3.client('s3')
 
 # TODO get amz to output to file
-# template = amz.main()
+template = amz.main()
 #
 aws_template = open('stack.template', 'rb')
 
