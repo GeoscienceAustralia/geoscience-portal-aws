@@ -1,0 +1,87 @@
+#
+# Test Stack User Yaml for Amazonia
+#
+stack_title: 'aremi'
+jump_image_id: 'ami-f2210191' #latest aws linux
+nat_image_id: 'ami-162c0c75' #latest aws NAT
+units:
+  -
+    unit_title: 'app'
+    image_id: 'ami-6c14310f' #latest ubuntu image
+    userdata: |
+      #cloud-config
+      # Capture all cloud-config output into a more readable logfile
+      output: {all: '| tee -a /var/log/cloud-init-output.log'}
+      # update and install packages, reboot if necessary
+      package_upgrade: true
+      package_reboot_if_required: true
+      packages:
+       - ntp
+       - python-pip
+       - nodejs-legacy
+       - npm
+       - varnish
+       - gdal-bin
+      # any files to create
+      write_files:
+       - path: /etc/varnish/default.vcl
+         content: |
+          backend default {
+              .host = "127.0.0.1";
+              .port = "3001";
+          }
+          sub vcl_recv {
+            if (req.url ~ "^/proxy"){
+              return (lookup);
+            }
+          }
+          sub vcl_fetch
+          {
+            if ( beresp.status >= 400 ) {
+              set beresp.ttl = 0s;
+            } else if (req.url ~ "^/proxy/_0d"){
+              set beresp.ttl = 0d;
+            } else if (req.url ~ "^/proxy/_1d") {
+              set beresp.ttl = 1d;
+            } else {
+              set beresp.ttl = 14d;
+            }
+          }
+       - path: /etc/default/varnish
+         content: |
+          START=yes
+          NFILES=131072
+          MEMLOCK=82000
+          DAEMON_OPTS="-a :80 -T localhost:6082 -f /etc/varnish/default.vcl -S /etc/varnish/secret -s memcache=malloc,2G -s filecache=file,/mnt/varnish_storage.bin,3G"
+       - path: /etc/rsyslog.d/30-aremi-natmap.conf
+         content: |
+          :syslogtag, isequal, "aremi-natmap:" /var/log/aremi-natmap.log
+          & ~
+       - path: /etc/init/aremi-natmap.conf
+         content: |
+          start on (net-device-up and local-filesystems and runlevel [2345])
+          stop on runlevel [016]
+          console log
+          exec bash -c "cd /opt/aremi-natmap-master-2015-08-26 && /opt/aremi-natmap-master-2015-08-26/run_server.sh 2>&1 | logger -t aremi-natmap"
+      # run all the commands to set this instance up
+      runcmd:
+       - echo 'APT::Periodic::Unattended-Upgrade "1";' >> /etc/apt/apt.conf.d/10periodic
+       - pip install awscli
+       - npm install -g forever
+      # add in the authorised ssh keys
+       - aws s3 cp --recursive --region ap-southeast-2 s3://aremi-credentials/ssh_public_keys /opt/keys
+       - mkdir /home/ubuntu/.ssh
+       - cat /opt/keys/* >> /home/ubuntu/.ssh/authorized_keys
+       - chown -R ubuntu /home/ubuntu/.ssh
+      # copy and extract the webapps from S3
+       - mkdir /tmp/ramfs
+      # aremi-natmap:master-2015-08-26
+       - mount -t ramfs ramfs /tmp/ramfs
+       - wget https://s3-ap-southeast-2.amazonaws.com/smallest-bucket-in-history/aremi/aremi-natmap-master-2015-08-26.tar.gz -O /tmp/ramfs/aremi-natmap-master-2015-08-26.tar.gz
+       - mkdir /opt/aremi-natmap-master-2015-08-26
+       - tar xzf /tmp/ramfs/aremi-natmap-master-2015-08-26.tar.gz -C /opt/aremi-natmap-master-2015-08-26
+       - umount /tmp/ramfs
+      # start/restart services
+       - service rsyslog restart
+       - service varnish restart
+       - service aremi-natmap start
