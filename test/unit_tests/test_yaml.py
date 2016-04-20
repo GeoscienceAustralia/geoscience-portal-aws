@@ -4,6 +4,7 @@ from nose.tools import *
 from amazonia.classes.yaml import Yaml
 import string
 import yaml
+import os
 
 stack_input = yaml_return = None
 
@@ -11,14 +12,15 @@ stack_input = yaml_return = None
 def setup_resources():
     """
     Create User data and default data yaml and send them to yaml class to be combined as united_data
-    :return: Nothing, but creates united_data a combined list of user and default data
     """
     global stack_input, yaml_return
-    with open('./test/unit_tests/amazonia.yaml', 'r') as stack_yaml:
+    __location__ = os.path.realpath(
+        os.path.join(os.getcwd(), os.path.dirname(__file__)))
+    with open(os.path.join(__location__, 'amazonia.yaml'), 'r') as stack_yaml:
         user_stack_data = yaml.load(stack_yaml)
         print('\nuser_stack_data=\n{0}\n'.format(user_stack_data))
 
-    with open('./test/unit_tests/amazonia_ga_defaults.yaml', 'r') as default_yaml:
+    with open(os.path.join(__location__, 'amazonia_ga_defaults.yaml'), 'r') as default_yaml:
         default_data = yaml.load(default_yaml)
         print('\ndefault_data=\n{0}\n'.format(default_data))
 
@@ -44,7 +46,7 @@ def test_get_values():
 @with_setup(setup_resources())
 def test_get_unit_values():
     """
-
+    Testing unit values return expected results
     """
     minsize = stack_input['units'][0]['minsize']
     assert_equals(minsize, '1')
@@ -122,23 +124,35 @@ def test_stack_value():
 
 @with_setup(setup_resources())
 def test_unencrypted_ids():
+    """
+    Testing userdata with an AWS Access ID updates united data with 'AWS_ACCESS_ID_FOUND'
+    """
     userdata1 = stack_input['units'][0]['userdata']
     assert_equals(userdata1, 'AWS_ACCESS_ID_FOUND')
 
 
 @with_setup(setup_resources())
 def test_unencrypted_keys():
+    """
+    Testing userdata with an AWS Secret Key updates united data with 'AWS_SECRET_KEY_FOUND'
+    """
     userdata2 = stack_input['units'][1]['userdata']
     assert_equals(userdata2, 'AWS_SECRET_KEY_FOUND')
 
 
 @with_setup(setup_resources())
 def validate_home_cidrs():
+    """
+    Testing home_cidr with invalid CIDR notation updates united data with 'INVALID_CIDR'
+    """
     cidr = stack_input['home_cidrs'][0]
     assert_equals(cidr, 'INVALID_CIDR')
 
 
 @with_setup(setup_resources())
 def test_validate_cidr():
+    """
+    Testing vpc_cidr with invalid CIDR notation updates united data with 'INVALID_CIDR'
+    """
     cidr = stack_input['vpc_cidr']
     assert_equals(cidr, 'INVALID_CIDR')
