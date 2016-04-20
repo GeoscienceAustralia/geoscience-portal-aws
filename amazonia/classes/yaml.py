@@ -49,7 +49,9 @@ class Yaml(object):
                               'protocol',
                               'port',
                               'minsize',
-                              'maxsize']
+                              'maxsize',
+                              'health_check_grace_period',
+                              'health_check_type']
 
         for unit, unit_values in enumerate(self.user_stack_data['units']):
             for unit_value in self.unit_key_list:
