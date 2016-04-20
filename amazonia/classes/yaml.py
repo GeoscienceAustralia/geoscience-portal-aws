@@ -79,10 +79,9 @@ class Yaml(object):
         Assigning values to the united_data dictionary
         Validating values such as vpc cidr, home cidrs, aws access ids and secret keys and reassigning if required
         """
-        for stack_key in self.user_stack_data:
+        for stack_key in self.stack_key_list:
             """ Add stack key value pair to united data"""
-            if stack_key in self.stack_key_list:
-                self.united_data[stack_key] = self.get_values(stack_key)
+            self.united_data[stack_key] = self.get_values(stack_key)
         """Iterate through N number of units"""
         for unit, unit_values in enumerate(self.user_stack_data['units']):
             """ Add stack key value pair to united data"""

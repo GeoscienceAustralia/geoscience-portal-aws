@@ -4,7 +4,7 @@
 
 stack_title: 'test_Stack'
 code_deploy_service_role: 'arn:aws:iam::658691668407:role/CodeDeployServiceRole'
-keypair: pipeline
+#keypair: 'pipeline'
 availability_zones:
   - 'ap-southeast-2a'
   - 'ap-southeast-2b'
