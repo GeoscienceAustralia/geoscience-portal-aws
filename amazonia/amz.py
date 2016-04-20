@@ -67,5 +67,6 @@ def main():
         template_file.write(template_data)
         template_file.close()
 
+    print('Amazonia has successfully created stack template at location: {0}'.format(template_file_path))
 if __name__ == "__main__":
     main()
