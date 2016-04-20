@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-from troposphere import Base64, codedeploy, Ref, Join
+from troposphere import Base64, codedeploy, Ref, Join, Output
 from troposphere.autoscaling import AutoScalingGroup, LaunchConfiguration, Tag
 
 from amazonia.classes.security_enabled_object import SecurityEnabledObject
@@ -153,4 +153,26 @@ class Asg(SecurityEnabledObject):
                                                                      '-', cd_deploygroup_title]),
                                        ServiceRoleArn=service_role_arn))
         self.cd_deploygroup.DependsOn = [self.cd_app.title, self.trop_asg.title]
+
+        """ Outputs
+        """
+        self.template.add_output(
+            Output(
+                self.cd_deploygroup.title,
+                Description='Code Deploy Deployment Group',
+                Value=self.cd_deploygroup.DeploymentGroupName
+            ))
+
+        self.template.add_output(
+            Output(
+                self.cd_app.title,
+                Description='Code Deploy Application',
+                Value=Join('', ['https://',
+                                Ref('AWS::Region'),
+                                '.console.aws.amazon.com/codedeploy/home?region=',
+                                Ref('AWS::Region'),
+                                '#/applications/',
+                                self.cd_app.ApplicationName])
+            ))
+
         return cd_app_title, cd_deploygroup_title
