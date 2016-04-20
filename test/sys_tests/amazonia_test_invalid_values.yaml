@@ -4,7 +4,7 @@
 
 stack_title: 'test_Stack'
 code_deploy_service_role: 'arn:aws:iam::658691668407:role/CodeDeployServiceRole'
-#keypair: 'pipeline'
+#keypair: pipeline
 availability_zones:
   - 'ap-southeast-2a'
   - 'ap-southeast-2b'
@@ -14,6 +14,8 @@ public_cidr: !!python/tuple ['PublicIp', '0.0.0.0/0']
 jump_image_id: 'ami-893f53b3'
 jump_instance_type: 't2.micro'
 nat_image_id: 'ami-893f53b3'
+invalid_value: 'what'
+mistake: 'this is a mistake'
 nat_instance_type: 't2.micro'
 home_cidrs:
   - !!python/tuple ['GA_1', '124.47.132.12.132/32']
@@ -29,6 +31,7 @@ units:
     path2ping: '/index.html'
     minsize: '1'
     maxsize: '1'
+    first_test_prop: 'tester'
     userdata: |
       #cloud-config
       repo_update: true
@@ -50,6 +53,8 @@ units:
     path2ping: '/index.html'
     minsize: '1'
     maxsize: '1'
+    test_prop: '34'
+    another_test_prop: 'wer'
     userdata: |
       #cloud-config
       repo_update: true
