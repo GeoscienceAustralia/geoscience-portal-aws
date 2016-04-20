@@ -23,7 +23,8 @@ def create_elb(**kwargs):
               vpc=vpc,
               hosted_zone_name=kwargs.get('hosted_zone_name', None),
               path2ping=kwargs.get('path2ping', 'index.html'),
-              template=Template())
+              template=Template(),
+              gateway_attachment='testIgAtch')
     return elb
 
 

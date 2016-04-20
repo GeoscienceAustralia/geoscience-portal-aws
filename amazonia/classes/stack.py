@@ -147,6 +147,7 @@ class Stack(object):
                                    service_role_arn=self.code_deploy_service_role,
                                    nat=self.nat,
                                    jump=self.jump,
+                                   gateway_attachment=self.gateway_attachment,
                                    **unit
                                    ))
 

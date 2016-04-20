@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-from troposphere import ec2, Ref, Template
+from troposphere import ec2, Ref, Template, Join, Tags
 
 from amazonia.classes.single_instance import SingleInstance
 from amazonia.classes.unit import Unit
@@ -22,6 +22,17 @@ runcmd:
 
     vpc = ec2.VPC('MyVPC',
                   CidrBlock='10.0.0.0/16')
+
+    internet_gateway = template.add_resource(
+        ec2.InternetGateway('igname', Tags=Tags(Name=Join('', [Ref('AWS::StackName'), '-', 'igname']))))
+    internet_gateway.DependsOn = vpc.title
+
+    gateway_attachment = template.add_resource(
+        ec2.VPCGatewayAttachment(internet_gateway.title + 'Atch',
+                                 VpcId=Ref(vpc),
+                                 InternetGatewayId=Ref(internet_gateway)))
+    gateway_attachment.DependsOn = internet_gateway.title
+
     private_subnets = [ec2.Subnet('MySubnet',
                                   AvailabilityZone='ap-southeast-2a',
                                   VpcId=Ref(vpc),
@@ -64,7 +75,8 @@ runcmd:
         service_role_arn='instance-iam-role-InstanceProfile-OGL42SZSIQRK',
         nat=nat,
         jump=jump,
-        hosted_zone_name=None
+        hosted_zone_name=None,
+        gateway_attachment=gateway_attachment
     )
 
     unit2 = Unit(
@@ -87,7 +99,8 @@ runcmd:
         service_role_arn='instance-iam-role-InstanceProfile-OGL42SZSIQRK',
         nat=nat,
         jump=jump,
-        hosted_zone_name=None
+        hosted_zone_name=None,
+        gateway_attachment=gateway_attachment
     )
 
     unit1.add_unit_flow(receiver=unit2, port='80')

@@ -16,14 +16,6 @@ class Yaml(object):
         self.user_stack_data = user_stack_data
         self.default_data = default_data
         self.united_data = dict()
-        self.stack_key_list = list()
-        self.unit_key_list = list()
-        self.set_values()
-
-    def set_values(self):
-        """
-        Assigning values to the united_data dictionary
-        """
         self.stack_key_list = ['stack_title',
                                'code_deploy_service_role',
                                'keypair',
@@ -36,9 +28,6 @@ class Yaml(object):
                                'nat_instance_type',
                                'home_cidrs',
                                'units']
-
-        for stack_value in self.stack_key_list:
-            self.united_data[stack_value] = self.get_values(stack_value)
 
         self.unit_key_list = ['unit_title',
                               'hosted_zone_name',
@@ -53,7 +42,51 @@ class Yaml(object):
                               'health_check_grace_period',
                               'health_check_type']
 
+        self.get_invalid_data()
+        self.set_values()
+
+    def get_invalid_data(self):
+        """
+        Validation Invalid Values in stack and unit yaml and exit if any exist
+        """
+        invalid_values = list()
+        """ Delete valid values from stack_counter, a clone of stack keys value pairs"""
+        stack_counter = {stack_key: stack_value for stack_key, stack_value in self.user_stack_data.items()}
+        for stack_key in self.user_stack_data:
+            if stack_key in self.stack_key_list:
+                del stack_counter[stack_key]
+        """ stack_counter should be zero if there are no invalid values otherwise add to invalid_values"""
+        if len(stack_counter) > 0:
+            invalid_values.append(stack_counter)
+
+        """Iterate through N number of units"""
         for unit, unit_values in enumerate(self.user_stack_data['units']):
+            unit_counter = {unit_key: unit_value for unit_key, unit_value in unit_values.items()}
+            """ Delete valid values from unit_counter, a clone of unit keys value pairs"""
+            for unit_key, unit_value in unit_values.items():
+                if unit_key in self.unit_key_list:
+                    del unit_counter[unit_key]
+            """ unit_counter should be zero if there are no invalid values otherwise add to invalid_values"""
+            if len(unit_counter) > 0:
+                unit_counter['unit'] = unit
+                invalid_values.append(unit_counter)
+
+        """ Print All Invalid Values"""
+        if len(invalid_values) > 0:
+            print('Invalid Values Exist:\n{0}'.format(invalid_values))
+            exit(1)
+
+    def set_values(self):
+        """
+        Assigning values to the united_data dictionary
+        Validating values such as vpc cidr, home cidrs, aws access ids and secret keys and reassigning if required
+        """
+        for stack_key in self.stack_key_list:
+            """ Add stack key value pair to united data"""
+            self.united_data[stack_key] = self.get_values(stack_key)
+        """Iterate through N number of units"""
+        for unit, unit_values in enumerate(self.user_stack_data['units']):
+            """ Add stack key value pair to united data"""
             for unit_value in self.unit_key_list:
                 self.united_data['units'][unit][unit_value] = self.get_unit_values(unit, unit_value)
 

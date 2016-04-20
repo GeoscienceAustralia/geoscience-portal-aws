@@ -28,6 +28,7 @@ class Unit(object):
         :param nat: nat instance for outbound traffic
         :param jump: jump instance for inbound ssh
         :param hosted_zone_name: Route53 hosted zone name string for Route53 record sets
+        :param gateway_attachment: Stack's gateway attachment troposphere object
         """
         super(Unit, self).__init__()
         self.template = kwargs['template']
@@ -40,7 +41,8 @@ class Unit(object):
             port=kwargs['port'],
             path2ping=kwargs['path2ping'],
             subnets=kwargs['public_subnets'],
-            hosted_zone_name=kwargs['hosted_zone_name']
+            hosted_zone_name=kwargs['hosted_zone_name'],
+            gateway_attachment=kwargs['gateway_attachment']
         )
         self.asg = Asg(
             vpc=kwargs['vpc'],
