@@ -18,9 +18,10 @@ def main():
     internet_gateway = template.add_resource(ec2.InternetGateway('MyInternetGateway',
                                                                  Tags=Tags(Name='MyInternetGateway')))
 
-    template.add_resource(ec2.VPCGatewayAttachment('MyVPCGatewayAttachment',
-                                                   InternetGatewayId=Ref(internet_gateway),
-                                                   VpcId=Ref(vpc)))
+    gateway_attachment = template.add_resource(ec2.VPCGatewayAttachment('MyVPCGatewayAttachment',
+                                                                        InternetGatewayId=Ref(internet_gateway),
+                                                                        VpcId=Ref(vpc)))
+    gateway_attachment.DependsOn = internet_gateway.title
 
     public_subnets = [template.add_resource(ec2.Subnet('MyPubSub1',
                                                        AvailabilityZone='ap-southeast-2a',
@@ -42,7 +43,8 @@ def main():
         vpc=vpc,
         hosted_zone_name=hosted_zone.Name,
         path2ping='/index.html',
-        template=template)
+        template=template,
+        gateway_attachment=gateway_attachment)
 
     print(template.to_json(indent=2, separators=(',', ': ')))
 

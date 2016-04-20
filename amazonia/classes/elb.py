@@ -7,7 +7,7 @@ import troposphere.elasticloadbalancing as elb
 
 class Elb(SecurityEnabledObject):
 
-    def __init__(self, title, vpc, template, protocol, port, path2ping, subnets, **kwargs):
+    def __init__(self, title, vpc, template, protocol, port, path2ping, subnets, gateway_attachment, **kwargs):
         """
         Public Class to create an Elastic Loadbalancer in the unit stack environment
         AWS Cloud Formation: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-elb.html
@@ -21,6 +21,7 @@ class Elb(SecurityEnabledObject):
         :param path2ping: Path for the Healthcheck to ping e.g 'index.html' or 'test/test_page.htm'
         :param subnets: List of subnets either [pub_sub_list] if public unit or [pri_sub_list] if private unit
         :param hosted_zone_name: Route53 hosted zone ID
+        :param gateway_attachment: Stack's gateway attachment troposphere object
         """
         self.title = title + 'Elb'
         super(Elb, self).__init__(vpc=vpc, title=self.title, template=template)
@@ -41,6 +42,7 @@ class Elb(SecurityEnabledObject):
                                      SecurityGroups=[Ref(self.security_group)],
                                      Subnets=[Ref(x) for x in subnets],
                                      Tags=Tags(Name=self.title)))
+        self.trop_elb.DependsOn = gateway_attachment.title
 
         if kwargs['hosted_zone_name']:
             self.elb_r53 = self.template.add_resource(route53.RecordSetType(
