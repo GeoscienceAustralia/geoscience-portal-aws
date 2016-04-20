@@ -33,6 +33,34 @@ def setup_resources():
 @with_setup(setup_resources())
 def test_get_values():
     """
+    Testing for multiple conditions:
+        Valid values in stack_key_list
+        Valid values in unit_key_list
+        Invalid values in stack_key_list
+        Invalid values in unit_key_list
+    """
+    invalid_stack_values = {'invalid_value': 'what',
+                            'mistake': 'this is a mistake',
+                            'not_even_a_value': 'not_in_yaml'}
+    invalid_unit_values = {'first_test_prop': 'tester',
+                           'test_prop': '34',
+                           'another_test_prop': 'wer'}
+    valid_stack_values = {'jump_image_id': 'ami-893f53b3',
+                          'nat_image_id': 'ami-893f53b3',
+                          'vpc_cidr': '10.0.0.0.0/16'}
+    valid_unit_values = {'unit_title': 'app1',
+                         'protocol': 'HTTP',
+                         'minsize': '1'}
+
+    [assert_in(k, yaml_return.stack_key_list) for k, _ in valid_stack_values.items()]
+    [assert_in(k, yaml_return.unit_key_list) for k, _ in valid_unit_values.items()]
+    [assert_not_in(k, yaml_return.stack_key_list) for k, _ in invalid_stack_values.items()]
+    [assert_not_in(k, yaml_return.unit_key_list) for k, _ in invalid_unit_values.items()]
+
+
+@with_setup(setup_resources())
+def test_get_values():
+    """
     Validated that Yaml.get_values (done during setup) is correctly returning expected values in users stack_yaml
     and where it is missing it using the default_data value (e.g. in keypair)
     """
