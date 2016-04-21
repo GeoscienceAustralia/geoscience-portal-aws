@@ -10,7 +10,7 @@ http://boto3.readthedocs.org/en/latest/reference/services/cloudformation.html#Cl
 cf_client = boto3.client('cloudformation')
 s3_client = boto3.resource('s3').meta.client
 
-template = amz
+template = amz.main()
 
 s3_response = s3_client.upload_file('stack.template', 'smallest-bucket-in-history','smallest_app_in_history/stack.template')
 
@@ -72,7 +72,7 @@ while stack_id:
         break
     elif stack_status in ('ROLLBACK_IN_PROGRESS', 'ROLLBACK_COMPLETE'):
         print('Error occurred creating AWS CloudFormation stack and returned status code {0}.'.format(stack_status))
-        break
+        exit(1)
     else:
         print('Stack Status: {0}'.format(stack_status))
     time.sleep(time_delay)
@@ -100,7 +100,7 @@ while stack_id:
         break
     elif stack_status in ('ROLLBACK_IN_PROGRESS', 'ROLLBACK_COMPLETE'):
         print('Error occurred creating AWS CloudFormation stack and returned status code {0}.'.format(stack_status))
-        break
+        exit(1)
     else:
         print('Stack Status: {0}'.format(stack_status))
     time.sleep(time_delay)
