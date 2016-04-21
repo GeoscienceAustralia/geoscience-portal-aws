@@ -3,7 +3,7 @@ from troposphere import ec2, Tags, Ref, Join
 
 
 class Subnet(object):
-    def __init__(self, **kwargs):
+    def __init__(self, template, stack_title, cidr, vpc, route_table, is_public, az):
         """
         Class to create subnets and associate a route table to it
         AWS CloudFormation - http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-subnet.html
@@ -18,17 +18,17 @@ class Subnet(object):
         """
         super(Subnet, self).__init__()
 
-        self.template = kwargs['template']
-        self.cidr = kwargs['cidr']
-        self.vpc = kwargs['vpc']
-        self.stack_title = kwargs['stack_title']
-        self.pub_or_pri = 'Public' if kwargs['is_public'] else 'Private'
+        self.template = template
+        self.cidr = cidr
+        self.vpc = vpc
+        self.stack_title = stack_title
+        self.pub_or_pri = 'Public' if is_public else 'Private'
 
         """ Create Subnet
         """
-        subnet_title = self.stack_title + self.pub_or_pri + 'Subnet' + kwargs['az'][-1:].upper()
+        subnet_title = self.stack_title + self.pub_or_pri + 'Subnet' + az[-1:].upper()
         self.subnet = self.template.add_resource(ec2.Subnet(subnet_title,
-                                                            AvailabilityZone=kwargs['az'],
+                                                            AvailabilityZone=az,
                                                             VpcId=Ref(self.vpc),
                                                             CidrBlock=self.cidr,
                                                             Tags=Tags(Name=Join("",
@@ -38,9 +38,9 @@ class Subnet(object):
 
         """ Create Route Table Associations
         """
-        self.rt_association = self.add_associate_route_table(kwargs['route_table'])
+        self.rt_association = self.create_associate_route_table(route_table)
 
-    def add_associate_route_table(self, route_table):
+    def create_associate_route_table(self, route_table):
         """
         Function to create a route table association
         AWS CloudFormation -
@@ -49,9 +49,9 @@ class Subnet(object):
         :param route_table: Public or private route table object from stack
         """
 
-        route_table_ass = self.template.add_resource(ec2.SubnetRouteTableAssociation(route_table.title +
-                                                                                     self.subnet.title +
-                                                                                     'Association',
-                                                                                     RouteTableId=Ref(route_table),
-                                                                                     SubnetId=Ref(self.subnet)))
-        return route_table_ass
+        route_table_assoc = self.template.add_resource(ec2.SubnetRouteTableAssociation(route_table.title +
+                                                                                       self.subnet.title +
+                                                                                       'Association',
+                                                                                       RouteTableId=Ref(route_table),
+                                                                                       SubnetId=Ref(self.subnet)))
+        return route_table_assoc

@@ -4,88 +4,83 @@ from troposphere import ec2, Ref, Tags, GetAtt, Join
 
 
 class SecurityEnabledObject(object):
-    def __init__(self, **kwargs):
+    def __init__(self, template, title, vpc):
         """
         A Class to enable uni-directional flow when given two security groups
-        :param stack: The VPC for this object
+        :param template: The troposphere template object that will be updated with this object
         :param vpc: The VPC for this object
         :param title: the Title of the object eg: unit01ELB, unit01ASG
         :return: a security group, and the ability to create ingress and egress rules
         """
 
-        super(SecurityEnabledObject, self).__init__()
-
-        self.template = kwargs['template']
-        self.title = kwargs['title']
-        self.security_group = self.create_security_group(kwargs['vpc'])
+        self.template = template
+        self.title = title
+        self.security_group = self.create_security_group(vpc)
         self.ingress = []
         self.egress = []
 
-    def add_flow(self, other, port):
+    def add_flow(self, receiver, port):
         """
-        A function that will add security group rules to 'other' from this SecurityEnabledObject.
-        Including an incoming rule on the 'other' SecurityEnabledObject
-        :param other: Traffic 'receiving' SecurityEnabledObject
+        A function that will open one-way traffic on a specific port from this SecurityEnabledObject to another.
+        :param receiver: The SecurityEnabledObject that needs an ingress rule to accept traffic in
         :param port: Port to send, and receive traffic on
         """
-        other.add_ingress(self, port)
-        self.add_egress(other, port)
+        receiver.add_ingress(self, port)
+        self.add_egress(receiver, port)
 
-    def add_ingress(self, other, port):
+    def add_ingress(self, sender, port):
         """
         Add an ingress rule to this SecurityEnabledObject after evaluating if it is a Security group or CIDR tuple ([0] = title, [1] = ip)
         Creates a Troposphere SecurityGroupIngress object
         AWS Cloud Formation: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-security-group-ingress.html
         Troposphere link: https://github.com/cloudtools/troposphere/blob/master/troposphere/ec2.py
-        :param other: The SecurityEnabledObject that we are expecting traffic from, other[0] = title, other[1] = ip
+        :param sender: The SecurityEnabledObject that will be sending traffic to this SecurityEnabledObject, sender[0] = title, sender[1] = ip
         :param port: Port to send, and receive traffic on
         """
-        if isinstance(other, SecurityEnabledObject):
-            name = self.title + port + 'From' + other.title + port
-            self.ingress.append(self.template.add_resource(ec2.SecurityGroupIngress(
-                name,
-                IpProtocol='tcp',
-                FromPort=port,
-                ToPort=port,
-                GroupId=Ref(self.security_group),
-                SourceSecurityGroupId=GetAtt(other.security_group.title, 'GroupId'))))
-        else:
-            name = self.title + port + 'From' + other[0] + port
-            self.ingress.append(self.template.add_resource(ec2.SecurityGroupIngress(
-                name,
-                IpProtocol='tcp',
-                FromPort=port,
-                ToPort=port,
-                GroupId=Ref(self.security_group),
-                CidrIp=other[1])))
 
-    def add_egress(self, other, port):
+        common = {'IpProtocol': 'tcp', 'FromPort': port, 'ToPort': port, 'GroupId': Ref(self.security_group)}
+
+        if isinstance(sender, SecurityEnabledObject):
+            name = self.title + port + 'From' + sender.title + port
+            self.ingress.append(self.template.add_resource(ec2.SecurityGroupIngress(
+                name,
+                SourceSecurityGroupId=GetAtt(sender.security_group.title, 'GroupId'),
+                **common
+                )))
+        else:
+            name = self.title + port + 'From' + sender[0] + port
+            self.ingress.append(self.template.add_resource(ec2.SecurityGroupIngress(
+                name,
+                CidrIp=sender[1],
+                **common
+                )))
+
+    def add_egress(self, receiver, port):
         """
         Add an egress rule to this SecurityEnabledObject evaluating if it is a Security group or CIDR tuple ([0] = title, [1] = ip)
         Creates a Troposphere SecurityGroupEgress object
         AWS Cloud Formation: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-security-group-egress.html
         Troposphere link: https://github.com/cloudtools/troposphere/blob/master/troposphere/ec2.py
-        :param other: The SecurityEnabledObject that will be sending traffic to this SecurityEnabledObject other[0] = title, other[1] = ip
+        :param receiver: The SecurityEnabledObject that will be receiving traffic to this SecurityEnabledObject receiver[0] = title, receiver[1] = ip
         :param port: Port to send, and receive traffic on
         """
-        if isinstance(other, SecurityEnabledObject):
-            name = self.title + port + 'To' + other.title + port
+
+        common = {'IpProtocol': 'tcp', 'FromPort': port, 'ToPort': port, 'GroupId': Ref(self.security_group)}
+
+        if isinstance(receiver, SecurityEnabledObject):
+            name = self.title + port + 'To' + receiver.title + port
             self.egress.append(self.template.add_resource(ec2.SecurityGroupEgress(
                 name,
-                IpProtocol='tcp',
-                FromPort=port,
-                ToPort=port,
-                GroupId=Ref(self.security_group),
-                DestinationSecurityGroupId=GetAtt(other.security_group.title, 'GroupId'))))
+                DestinationSecurityGroupId=GetAtt(receiver.security_group.title, 'GroupId'),
+                **common
+                )))
         else:
-            name = self.title + port + 'To' + other[0] + port
+            name = self.title + port + 'To' + receiver[0] + port
             self.egress.append(self.template.add_resource(ec2.SecurityGroupEgress(
                 name,
-                IpProtocol='tcp',
-                FromPort=port,
-                ToPort=port,
-                GroupId=Ref(self.security_group),
-                CidrIp=other[1])))
+                CidrIp=receiver[1],
+                **common
+                )))
 
     def create_security_group(self, vpc):
         """

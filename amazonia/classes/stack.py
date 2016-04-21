@@ -8,7 +8,8 @@ from amazonia.classes.unit import Unit
 
 
 class Stack(object):
-    def __init__(self, **kwargs):
+    def __init__(self, stack_title, code_deploy_service_role, keypair, availability_zones, vpc_cidr, home_cidrs, public_cidr,
+                 jump_image_id, jump_instance_type, nat_image_id, nat_instance_type, units):
         """
         Create a vpc, nat, jumphost, internet gateway, public/private route tables, public/private subnets
          and collection of Amazonia units
@@ -20,23 +21,25 @@ class Stack(object):
         :param keypair: ssh keypair to be used throughout stack
         :param availability_zones: availability zones to use
         :param vpc_cidr: cidr pattern for vpc
+        :param home_cidrs: a list of tuple objects of 'title'(0) and 'ip'(1) to be used
+         to create ingress rules for ssh to jumpboxes from home/office/company premises
+        :param public_cidr: a cidr to be treated as a public location. (eg 0.0.0.0/0)
         :param jump_image_id: AMI for jumphost
         :param jump_instance_type: instance type for jumphost
         :param nat_image_id: AMI for nat
         :param nat_instance_type: instance type for nat
-        :param units: list of unit dicts (unit_title, protocol, port, path2ping, minsize, maxsize, image_id, instance_type, userdata)
-        :param home_cidr: a list of tuple objects of 'title'(0) and 'ip'(1) to be used
-         to create ingress rules for ssh to jumpboxes from home/office/company premises
+        :param units: list of unit dicts (unit_title, protocol, port, path2ping, minsize, maxsize, image_id,
+        instance_type, userdata, hosted_zone_name)
         """
         super(Stack, self).__init__()
-        self.title = kwargs['stack_title']
+        self.title = stack_title
         self.template = Template()
-        self.code_deploy_service_role = kwargs['code_deploy_service_role']
-        self.keypair = kwargs['keypair']
-        self.availability_zones = kwargs['availability_zones']
-        self.vpc_cidr = kwargs['vpc_cidr']
-        self.home_cidr = kwargs['home_cidr']
-        self.public_cidr = ('PublicIp', '0.0.0.0/0')
+        self.code_deploy_service_role = code_deploy_service_role
+        self.keypair = keypair
+        self.availability_zones = availability_zones
+        self.vpc_cidr = vpc_cidr
+        self.home_cidrs = home_cidrs
+        self.public_cidr = public_cidr
 
         self.units = []
         self.private_subnets = []
@@ -52,11 +55,13 @@ class Stack(object):
         ig_name = self.title + 'Ig'
         self.internet_gateway = self.template.add_resource(
             ec2.InternetGateway(ig_name, Tags=Tags(Name=Join('', [Ref('AWS::StackName'), '-', ig_name]))))
+        self.internet_gateway.DependsOn = self.vpc.title
 
         self.gateway_attachment = self.template.add_resource(
             ec2.VPCGatewayAttachment(self.internet_gateway.title + 'Atch',
                                      VpcId=Ref(self.vpc),
                                      InternetGatewayId=Ref(self.internet_gateway)))
+        self.gateway_attachment.DependsOn = self.internet_gateway.title
 
         """ Add Public and Private Route Tables
         """
@@ -94,24 +99,27 @@ class Stack(object):
         self.jump = SingleInstance(
             title=self.title + 'Jump',
             keypair=self.keypair,
-            si_image_id=kwargs['jump_image_id'],
-            si_instance_type=kwargs['jump_instance_type'],
+            si_image_id=jump_image_id,
+            si_instance_type=jump_instance_type,
             subnet=self.public_subnets[0],
             vpc=self.vpc,
             template=self.template
         )
+        self.jump.single.DependsOn = self.gateway_attachment.title
 
-        [self.jump.add_ingress(other=home_cidr, port='22') for home_cidr in self.home_cidr]
+        [self.jump.add_ingress(sender=home_cidr, port='22') for home_cidr in self.home_cidrs]
 
         self.nat = SingleInstance(
             title=self.title + 'Nat',
             keypair=self.keypair,
-            si_image_id=kwargs['nat_image_id'],
-            si_instance_type=kwargs['nat_instance_type'],
+            si_image_id=nat_image_id,
+            si_instance_type=nat_instance_type,
             subnet=self.public_subnets[0],
             vpc=self.vpc,
-            template=self.template
+            template=self.template,
+            is_nat=True
         )
+        self.nat.single.DependsOn = self.gateway_attachment.title
 
         """ Add Routes
         """
@@ -124,41 +132,36 @@ class Stack(object):
         self.private_route = self.template.add_resource(ec2.Route(self.title + 'PriRtOutboundRoute',
                                                                   InstanceId=Ref(self.nat.single),
                                                                   RouteTableId=Ref(self.private_route_table),
-                                                                  DestinationCidrBlock='0.0.0.0/0'))  # TODO should this be more specific to the VPC CIDR?
+                                                                  DestinationCidrBlock='0.0.0.0/0'))
         self.private_route.DependsOn = self.gateway_attachment.title
 
         """ Add Units
         """
-        for unit in kwargs['units']:
-            self.units.append(Unit(title=self.title + unit['unit_title'],
+        for unit in units:
+            unit['title'] = self.title + unit['title']
+            self.units.append(Unit(
                                    vpc=self.vpc,
                                    template=self.template,
-                                   protocol=unit['protocol'],
-                                   port=unit['port'],
-                                   path2ping=unit['path2ping'],
                                    public_subnets=self.public_subnets,
                                    private_subnets=self.private_subnets,
-                                   minsize=unit['minsize'],
-                                   maxsize=unit['maxsize'],
                                    keypair=self.keypair,
-                                   image_id=unit['image_id'],
-                                   instance_type=unit['instance_type'],
-                                   userdata=unit['userdata'],
                                    service_role_arn=self.code_deploy_service_role,
                                    nat=self.nat,
                                    jump=self.jump,
+                                   gateway_attachment=self.gateway_attachment,
+                                   **unit
                                    ))
 
     def generate_subnet_cidr(self, is_public):
         """
         Function to help create Class C subnet CIDRs from Class A VPC CIDRs
         :param is_public: boolean for public or private subnet determined by route table
-        :return: Subnet CIDR based on Public or Private and previous subnets created e.g. 10.1.2.0/24 or 10.0.1.0/24
+        :return: Subnet CIDR based on Public or Private and previous subnets created e.g. 10.0.2.0/24 or 10.0.101.0/24
         """
-        # 3rd Octect: Obtain length of pub or pri subnet list
-        octect_3 = len(self.public_subnets) if is_public else len(self.private_subnets) + 100
+        # 3rd Octet: Obtain length of pub or pri subnet list
+        octet_3 = len(self.public_subnets) if is_public else len(self.private_subnets) + 100
         cidr_split = self.vpc.CidrBlock.split('.')  # separate VPC CIDR for renaming
-        cidr_split[2] = str(octect_3)  # set 3rd octect based on public or private
+        cidr_split[2] = str(octet_3)  # set 3rd octet based on public or private
         cidr_last = cidr_split[3].split('/')  # split last group to change subnet mask
         cidr_last[1] = '24'  # set subnet mask
         cidr_split[3] = '/'.join(cidr_last)  # join last group for subnet mask

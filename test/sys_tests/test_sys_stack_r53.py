@@ -44,19 +44,19 @@ runcmd:
     nat_image_id = 'ami-162c0c75'
     jump_image_id = 'ami-05446966'
     app_image_id = 'ami-05446966'
-    instance_type = 't2.nano'
+    instance_type = 't2.micro'
     stack = Stack(
         stack_title='test',
         code_deploy_service_role='arn:aws:iam::658691668407:role/CodeDeployServiceRole',
         keypair='pipeline',
         availability_zones=['ap-southeast-2a', 'ap-southeast-2b', 'ap-southeast-2c'],
         vpc_cidr='10.0.0.0/16',
+        public_cidr='0.0.0.0/0',
         jump_image_id=jump_image_id,
         jump_instance_type=instance_type,
         nat_image_id=nat_image_id,
         nat_instance_type=instance_type,
         home_cidrs=[('GA', '192.104.44.129/32')],
-        public_cidr=('PublicIp', '0.0.0.0/0'),
         units=[{'unit_title': 'app1',
                 'protocol': 'HTTP',
                 'port': '80',
@@ -65,10 +65,10 @@ runcmd:
                 'maxsize': 1,
                 'health_check_grace_period': 300,
                 'health_check_type': 'ELB',
-                'hosted_zone_name': None,
                 'image_id': app_image_id,
                 'instance_type': instance_type,
-                'userdata': userdata1},
+                'userdata': userdata1,
+                'hosted_zone_name': 'gadevs.ga.'},
                {'unit_title': 'app2',
                 'protocol': 'HTTP',
                 'port': '80',
@@ -77,10 +77,10 @@ runcmd:
                 'maxsize': 1,
                 'health_check_grace_period': 300,
                 'health_check_type': 'ELB',
-                'hosted_zone_name': None,
                 'image_id': app_image_id,
                 'instance_type': instance_type,
-                'userdata': userdata2}
+                'userdata': userdata2,
+                'hosted_zone_name': 'gadevs.ga.'}
                ]
 
     )

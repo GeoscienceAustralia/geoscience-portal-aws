@@ -1,0 +1,63 @@
+#
+# Test Stack User Yaml for Amazonia
+#
+stack_title: 'testStack'
+code_deploy_service_role: 'arn:aws:iam::658691668407:role/CodeDeployServiceRole'
+keypair: 'pipeline'
+availability_zones:
+  - 'ap-southeast-2a'
+  - 'ap-southeast-2b'
+  - 'ap-southeast-2c'
+vpc_cidr: '10.0.0.0/16'
+public_cidr: !!python/tuple ['PublicIp', '0.0.0.0/0']
+jump_image_id: 'ami-05446966'
+jump_instance_type: 't2.micro'
+nat_image_id: 'ami-162c0c75'
+nat_instance_type: 't2.micro'
+home_cidrs:
+  - !!python/tuple [('GA', '192.104.44.129/32')]
+units:
+  -
+    unit_title: 'app1'
+    hosted_zone_name: null
+    image_id: 'ami-05446966'
+    instance_type: 't2.micro'
+    protocol: 'HTTP'
+    port: '80'
+    path2ping: '/index.html'
+    minsize: '1'
+    maxsize: '1'
+    health_check_grace_period: '300'
+    health_check_type: 'ELB'
+    userdata: |
+      #cloud-config
+      repo_update: true
+      repo_upgrade: all
+
+      packages:
+       - httpd
+
+      runcmd:
+       - service httpd start
+  -
+    unit_title: 'app2'
+    hosted_zone_name: null
+    image_id: 'ami-05446966'
+    instance_type: 't2.micro'
+    protocol: 'HTTP'
+    port: '80'
+    path2ping: '/index.html'
+    minsize: '1'
+    maxsize: '1'
+    health_check_grace_period: '300'
+    health_check_type: 'ELB'
+    userdata: |
+      #cloud-config
+      repo_update: true
+      repo_upgrade: all
+
+      packages:
+       - httpd
+
+      runcmd:
+       - service httpd start

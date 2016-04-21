@@ -15,10 +15,11 @@ def main():
     SingleInstance(title='nat1',
                    keypair='pipeline',
                    si_image_id='ami-162c0c75',
-                   si_instance_type='t2.nano',
+                   si_instance_type='t2.micro',
                    vpc=vpc,
                    subnet=subnet,
-                   template=template)
+                   template=template,
+                   is_nat=True)
 
     template.add_resource(vpc)
     template.add_resource(subnet)
