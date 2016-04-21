@@ -138,7 +138,8 @@ class Stack(object):
         """ Add Units
         """
         for unit in units:
-            self.units.append(Unit(title=self.title + unit['unit_title'],
+            unit['title'] = self.title + unit['title']
+            self.units.append(Unit(
                                    vpc=self.vpc,
                                    template=self.template,
                                    public_subnets=self.public_subnets,

@@ -6,7 +6,10 @@ from amazonia.classes.elb import Elb
 
 
 class Unit(object):
-    def __init__(self, **kwargs):
+    def __init__(self,
+                 title, vpc, template, protocol, port, path2ping, public_subnets, private_subnets, minsize, maxsize,
+                 keypair, image_id, instance_type, userdata, service_role_arn, nat, jump,
+                 hosted_zone_name, gateway_attachment, health_check_grace_period, health_check_type):
         """
         Create an Amazonia unit, with associated Amazonia ELB and ASG
         :param title: Title of the autoscaling application  prefixedx with Stack name e.g 'MyStackWebApp1',
@@ -29,42 +32,43 @@ class Unit(object):
         :param jump: jump instance for inbound ssh
         :param hosted_zone_name: Route53 hosted zone name string for Route53 record sets
         :param gateway_attachment: Stack's gateway attachment troposphere object
+        :param health_check_grace_period: The amount of time to wait for an instance to start before checking health
+        :param health_check_type: The type of health check. currently 'ELB' or 'EC2' are the only valid types.
         """
-        super(Unit, self).__init__()
-        self.template = kwargs['template']
+        self.template = template
         self.public_cidr = ('PublicIp', '0.0.0.0/0')
         self.elb = Elb(
-            vpc=kwargs['vpc'],
-            title=kwargs['title'],
+            vpc=vpc,
+            title=title,
             template=self.template,
-            protocol=kwargs['protocol'],
-            port=kwargs['port'],
-            path2ping=kwargs['path2ping'],
-            subnets=kwargs['public_subnets'],
-            hosted_zone_name=kwargs['hosted_zone_name'],
-            gateway_attachment=kwargs['gateway_attachment']
+            protocol=protocol,
+            port=port,
+            path2ping=path2ping,
+            subnets=public_subnets,
+            hosted_zone_name=hosted_zone_name,
+            gateway_attachment=gateway_attachment
         )
         self.asg = Asg(
-            vpc=kwargs['vpc'],
-            title=kwargs['title'],
+            vpc=vpc,
+            title=title,
             template=self.template,
-            subnets=kwargs['private_subnets'],
-            minsize=kwargs['minsize'],
-            maxsize=kwargs['maxsize'],
-            keypair=kwargs['keypair'],
-            image_id=kwargs['image_id'],
-            instance_type=kwargs['instance_type'],
-            health_check_grace_period=kwargs['health_check_grace_period'],
-            health_check_type=kwargs['health_check_type'],
-            userdata=kwargs['userdata'],
+            subnets=private_subnets,
+            minsize=minsize,
+            maxsize=maxsize,
+            keypair=keypair,
+            image_id=image_id,
+            instance_type=instance_type,
+            health_check_grace_period=health_check_grace_period,
+            health_check_type=health_check_type,
+            userdata=userdata,
             load_balancer=self.elb.trop_elb,
-            service_role_arn=kwargs['service_role_arn'],
+            service_role_arn=service_role_arn,
         )
         [self.elb.add_ingress(sender=self.public_cidr, port=port) for port in ['80', '443']]
-        self.elb.add_flow(receiver=self.asg, port=kwargs['port'])
-        self.asg.add_flow(receiver=kwargs['nat'], port='80')
-        self.asg.add_flow(receiver=kwargs['nat'], port='443')
-        kwargs['jump'].add_flow(receiver=self.asg, port='22')
+        self.elb.add_flow(receiver=self.asg, port=port)
+        self.asg.add_flow(receiver=nat, port='80')
+        self.asg.add_flow(receiver=nat, port='443')
+        jump.add_flow(receiver=self.asg, port='22')
 
     def add_unit_flow(self, receiver, port):
         """
