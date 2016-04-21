@@ -74,6 +74,9 @@ def test_stack():
     assert_is(type(stack.private_route_table.VpcId), Ref)
     assert_is(type(stack.private_route_table.Tags), Tags)
 
+    assert_equals(stack.nat.single.SourceDestCheck, 'false')
+    assert_equals(stack.jump.single.SourceDestCheck, 'true')
+
     for num in range(len(availability_zones)):
         # For public subnets
         public_subnet = stack.public_subnets[num]

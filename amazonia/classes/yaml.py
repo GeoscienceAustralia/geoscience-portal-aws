@@ -38,7 +38,9 @@ class Yaml(object):
                               'protocol',
                               'port',
                               'minsize',
-                              'maxsize']
+                              'maxsize',
+                              'health_check_grace_period',
+                              'health_check_type']
 
         self.get_invalid_data()
         self.set_values()

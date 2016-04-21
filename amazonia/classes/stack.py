@@ -116,7 +116,8 @@ class Stack(object):
             si_instance_type=nat_instance_type,
             subnet=self.public_subnets[0],
             vpc=self.vpc,
-            template=self.template
+            template=self.template,
+            is_nat=True
         )
         self.nat.single.DependsOn = self.gateway_attachment.title
 
