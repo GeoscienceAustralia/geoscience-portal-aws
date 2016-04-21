@@ -66,7 +66,7 @@ def test_asg():
         assert_equals(asg.trop_asg.HealthCheckType, 'ELB')
         assert_equals(asg.trop_asg.HealthCheckGracePeriod, 300)
         assert_equals(asg.lc.title, title + 'Asg' + 'Lc')
-        assert_equals(asg.lc.ImageId, 'ami-f2210191')
+        assert_equals(asg.lc.ImageId, 'ami-05446966')
         assert_equals(asg.lc.InstanceType, 't2.micro')
         assert_equals(asg.lc.KeyName, 'pipeline')
         [assert_is(type(sg), Ref) for sg in asg.lc.SecurityGroups]
@@ -94,7 +94,7 @@ def create_asg(title):
         subnets=[subnet],
         load_balancer=load_balancer,
         keypair='pipeline',
-        image_id='ami-f2210191',
+        image_id='ami-05446966',
         instance_type='t2.micro',
         health_check_grace_period=health_check_grace_period,
         health_check_type=health_check_type,

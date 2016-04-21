@@ -42,8 +42,8 @@ runcmd:
 """
 
     nat_image_id = 'ami-162c0c75'
-    jump_image_id = 'ami-162c0c75'
-    app_image_id = 'ami-f2210191'
+    jump_image_id = 'ami-05446966'
+    app_image_id = 'ami-05446966'
     instance_type = 't2.micro'
     stack = Stack(
         stack_title='test',

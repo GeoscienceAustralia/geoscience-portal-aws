@@ -27,8 +27,8 @@ runcmd:
     availability_zones = ['ap-southeast-2a', 'ap-southeast-2b', 'ap-southeast-2c']
     keypair = 'pipeline'
     nat_image_id = 'ami-162c0c75'
-    jump_image_id = 'ami-162c0c75'
-    unit_image_id = 'ami-f2210191'
+    jump_image_id = 'ami-05446966'
+    unit_image_id = 'ami-05446966'
     instance_type = 't2.nano'
     code_deploy_service_role = 'arn:aws:iam::658691668407:role/CodeDeployServiceRole'
     vpc_cidr = '10.0.0.0/16'

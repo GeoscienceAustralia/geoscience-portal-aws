@@ -97,7 +97,7 @@ def create_unit(**kwargs):
         minsize=1,
         maxsize=1,
         keypair='pipeline',
-        image_id='ami-162c0c75',
+        image_id='ami-05446966',
         instance_type='t2.nano',
         health_check_grace_period=health_check_grace_period,
         health_check_type=health_check_type,

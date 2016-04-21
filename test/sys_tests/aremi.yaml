@@ -2,7 +2,7 @@
 # Test Stack User Yaml for Amazonia
 #
 stack_title: 'aremi'
-jump_image_id: 'ami-f2210191' #latest aws linux
+jump_image_id: 'ami-05446966' #latest aws linux
 nat_image_id: 'ami-162c0c75' #latest aws NAT
 units:
   -

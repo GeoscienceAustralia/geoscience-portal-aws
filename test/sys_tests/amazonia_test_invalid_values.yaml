@@ -11,9 +11,9 @@ availability_zones:
   - 'ap-southeast-2c'
 vpc_cidr: '10.0.0.0.0/16'
 public_cidr: !!python/tuple ['PublicIp', '0.0.0.0/0']
-jump_image_id: 'ami-893f53b3'
+jump_image_id: 'ami-05446966'
 jump_instance_type: 't2.micro'
-nat_image_id: 'ami-893f53b3'
+nat_image_id: 'ami-162c0c75'
 invalid_value: 'what'
 mistake: 'this is a mistake'
 nat_instance_type: 't2.micro'
@@ -24,7 +24,7 @@ units:
   -
     unit_title: 'app1'
     hosted_zone_name: null
-    image_id: 'ami-162c0c75'
+    image_id: 'ami-05446966'
     instance_type: 't2.micro'
     protocol: 'HTTP'
 #    port: '80'
@@ -46,7 +46,7 @@ units:
   -
     unit_title: 'app2'
     hosted_zone_name: null
-    image_id: 'ami-162c0c75'
+    image_id: 'ami-05446966'
     instance_type: 't2.micro'
     protocol: 'HTTP'
     port: '443'
