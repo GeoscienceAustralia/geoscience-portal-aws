@@ -48,6 +48,8 @@ runcmd:
                          vpc=vpc,
                          subnet=public_subnets[0],
                          template=template)
+    nat.DependsOn = internet_gateway.title
+
     jump = SingleInstance(title='jump',
                           keypair='pipeline',
                           si_image_id='ami-162c0c75',
@@ -55,6 +57,8 @@ runcmd:
                           vpc=vpc,
                           subnet=public_subnets[0],
                           template=template)
+
+    jump.DependsOn = internet_gateway.title
 
     service_role_arn = 'arn:aws:iam::658691668407:role/CodeDeployServiceRole'
 
