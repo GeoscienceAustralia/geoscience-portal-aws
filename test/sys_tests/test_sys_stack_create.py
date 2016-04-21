@@ -72,7 +72,7 @@ while stack_id:
         break
     elif stack_status in ('ROLLBACK_IN_PROGRESS', 'ROLLBACK_COMPLETE'):
         print('Error occurred creating AWS CloudFormation stack and returned status code {0}.'.format(stack_status))
-        break
+        exit(1)
     else:
         print('Stack Status: {0}'.format(stack_status))
     time.sleep(time_delay)
@@ -100,7 +100,7 @@ while stack_id:
         break
     elif stack_status in ('ROLLBACK_IN_PROGRESS', 'ROLLBACK_COMPLETE'):
         print('Error occurred creating AWS CloudFormation stack and returned status code {0}.'.format(stack_status))
-        break
+        exit(1)
     else:
         print('Stack Status: {0}'.format(stack_status))
     time.sleep(time_delay)
