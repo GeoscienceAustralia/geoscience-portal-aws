@@ -7,9 +7,9 @@ from amazonia.classes.elb import Elb
 
 class Unit(object):
     def __init__(self,
-                 title, vpc, template, protocol, port, path2ping, public_subnets, private_subnets, minsize, maxsize,
-                 keypair, image_id, instance_type, userdata, service_role_arn, nat, jump,
-                 hosted_zone_name, gateway_attachment, health_check_grace_period, health_check_type):
+                 title, vpc, template, protocol, instanceport, loadbalancerport, path2ping, public_subnets,
+                 private_subnets, minsize, maxsize, keypair, image_id, instance_type, userdata, service_role_arn,
+                 nat, jump, hosted_zone_name, gateway_attachment, health_check_grace_period, health_check_type):
         """
         Create an Amazonia unit, with associated Amazonia ELB and ASG
         :param title: Title of the autoscaling application  prefixedx with Stack name e.g 'MyStackWebApp1',
@@ -17,7 +17,8 @@ class Unit(object):
         :param vpc: Troposphere vpc object, required for SecurityEnabledObject class
         :param stack: Troposphere stack to append resources to
         :param protocol: protocol for ELB and webserver to communicate via
-        :param port: port for ELB and webserver to communicate via
+        :param instanceport: port for ELB and webserver to communicate via
+        :param loadbalancerport: port for public and ELB to communicate via
         :param path2ping: path for ELB healthcheck
         :param public_subnets: subnets to create ELB in
         :param private_subnets: subnets to autoscale instances in
@@ -42,7 +43,8 @@ class Unit(object):
             title=title,
             template=self.template,
             protocol=protocol,
-            port=port,
+            instanceport=instanceport,
+            loadbalancerport=loadbalancerport,
             path2ping=path2ping,
             subnets=public_subnets,
             hosted_zone_name=hosted_zone_name,
