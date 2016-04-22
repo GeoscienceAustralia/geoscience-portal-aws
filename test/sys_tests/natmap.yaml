@@ -13,8 +13,8 @@ units:
       output: {all: '| tee -a /var/log/cloud-init-output.log'}
 
       # update and install packages, reboot if necessary
-      #package_upgrade: true
-      #package_reboot_if_required: true
+      package_upgrade: true
+      package_reboot_if_required: true
       packages:
        - ntp
        - python-pip
