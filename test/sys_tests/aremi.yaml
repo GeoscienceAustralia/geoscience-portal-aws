@@ -2,8 +2,6 @@
 # Test Stack User Yaml for Amazonia
 #
 stack_title: 'aremi'
-jump_image_id: 'ami-f2210191' #latest aws linux
-nat_image_id: 'ami-162c0c75' #latest aws NAT
 units:
   -
     unit_title: 'app'
@@ -13,8 +11,8 @@ units:
       # Capture all cloud-config output into a more readable logfile
       output: {all: '| tee -a /var/log/cloud-init-output.log'}
       # update and install packages, reboot if necessary
-      package_upgrade: true
-      package_reboot_if_required: true
+      # package_upgrade: true
+      # package_reboot_if_required: true
       packages:
        - ntp
        - python-pip
