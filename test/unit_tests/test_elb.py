@@ -9,7 +9,8 @@ import re
 def create_elb(**kwargs):
     """
     Helper function to create Elb Troposhpere object to interate through.
-    :param port - port for traffic
+    :param instanceport - port for traffic to instances from the load balancer
+    :param loadbalancerport - port for traffic to the load balancer from public
     :param protocol: protocol for traffic
     :param path2ping: path to test page
     :return: Troposphere object for Elb,
@@ -17,7 +18,8 @@ def create_elb(**kwargs):
     vpc = 'vpc-12345'
     pub_sub_list = ['subnet-123456', 'subnet-123496', 'subnet-123454']
     elb = Elb(title='elb',
-              port=kwargs.get('port', '80'),
+              instanceport=kwargs.get('instanceport', '80'),
+              loadbalancerport=kwargs.get('loadbalancerport', '80'),
               subnets=pub_sub_list,
               protocol=kwargs.get('protocol', 'HTTP'),
               vpc=vpc,
@@ -49,27 +51,39 @@ def test_protocol():
 
 def test_target():
     """
-    Tests to make sure that inputs of 'protocol', 'port' and 'path2ping' correctly forms target healthcheck url
+    Tests to make sure that inputs of 'protocol', 'instanceport' and 'path2ping' correctly forms target healthcheck url
     """
     helper_elb = create_elb(protocol='HTTPS',
-                            port='443',
+                            instanceport='443',
                             path2ping='/test/index.html')
     assert_equals('HTTPS:443/test/index.html', helper_elb.trop_elb.HealthCheck.Target)
 
 
-def test_ports():
+def test_instance_ports():
     """
-    Tests to validate that passing in 'port' correctly sets the port in all the right places:
-    'HealthCheck.Target', 'Listner.LoadBalancerPort', 'Listners.InstancePort'
+    Tests to validate that passing 'instanceport' correctly sets the instanceport in the Listener object of the ELB
+    as well as the Health check target.
+    'HealthCheck.Target', 'Listeners.InstancePort'
     """
     ports = ['8080', '80', '443', '5678', '-1', '99', '65535']
 
     for port in ports:
-        helper_elb = create_elb(port=port)
+        helper_elb = create_elb(instanceport=port)
         assert_in(port, helper_elb.trop_elb.HealthCheck.Target)
         for listener in helper_elb.trop_elb.Listeners:
-            assert_equal(port, listener.LoadBalancerPort)
             assert_equal(port, listener.InstancePort)
+
+def test_loadbalancer_ports():
+    """
+    Tests to validate that passing 'loadbalancerport' correctly sets the loadbalancer port for the Listener on the ELB
+    'Listener.LoadBalancerPort'
+    """
+    ports = ['8080', '80', '443', '5678', '-1', '99', '65535']
+
+    for port in ports:
+        helper_elb = create_elb(loadbalancerport=port)
+        for listener in helper_elb.trop_elb.Listeners:
+            assert_equal(port, listener.LoadBalancerPort)
 
 
 def test_subnets():
