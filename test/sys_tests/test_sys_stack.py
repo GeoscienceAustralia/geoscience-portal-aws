@@ -6,10 +6,8 @@ from amazonia.classes.stack import Stack
 def main():
     userdata1 = """#cloud-config
 repo_update: true
-
 packages:
  - httpd
-
 write_files:
 -   content: |
         <html>
