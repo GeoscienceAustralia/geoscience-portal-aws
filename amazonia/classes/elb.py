@@ -7,7 +7,7 @@ import troposphere.elasticloadbalancing as elb
 
 class Elb(SecurityEnabledObject):
 
-    def __init__(self, title, vpc, template, protocol, port, path2ping, subnets, gateway_attachment, **kwargs):
+    def __init__(self, title, vpc, template, protocol, loadbalancerport, instanceport, path2ping, subnets, gateway_attachment, **kwargs):
         """
         Public Class to create an Elastic Loadbalancer in the unit stack environment
         AWS Cloud Formation: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-elb.html
@@ -16,8 +16,8 @@ class Elb(SecurityEnabledObject):
         :param vpc: The vpc object to add the Elastic Loadbalancer to.
         :param template: The troposphere template to add the Elastic Loadbalancer to.
         :param protocol: Single protocol to allow traffic. This must be in CAPITALS e.g.  HTTP, HTTPS, TCP or SSL
-        :param port: Single string representing a port to allow traffic in and out of the load balancer.
-         e.g. Listener Port and Health Check Target port - '80', '8080', '443'
+        :param loadbalancerport: Single string representing a port to Listen for traffic on the load balancer.
+        :param instanceport: Single string representing a port for the load balancer to use when talking to instances.
         :param path2ping: Path for the Healthcheck to ping e.g 'index.html' or 'test/test_page.htm'
         :param subnets: List of subnets either [pub_sub_list] if public unit or [pri_sub_list] if private unit
         :param hosted_zone_name: Route53 hosted zone ID
@@ -29,14 +29,14 @@ class Elb(SecurityEnabledObject):
         self.trop_elb = self.template.add_resource(
                     elb.LoadBalancer(self.title,
                                      CrossZone=True,
-                                     HealthCheck=elb.HealthCheck(Target=protocol + ':' + port + path2ping,
+                                     HealthCheck=elb.HealthCheck(Target=protocol + ':' + instanceport + path2ping,
                                                                  HealthyThreshold='10',
                                                                  UnhealthyThreshold='2',
                                                                  Interval='300',
                                                                  Timeout='60'),
-                                     Listeners=[elb.Listener(LoadBalancerPort=port,
+                                     Listeners=[elb.Listener(LoadBalancerPort=loadbalancerport,
                                                              Protocol=protocol,
-                                                             InstancePort=port,
+                                                             InstancePort=instanceport,
                                                              InstanceProtocol=protocol)],
                                      Scheme='internet-facing',
                                      SecurityGroups=[Ref(self.security_group)],

@@ -45,8 +45,8 @@ def test_get_values():
     invalid_unit_values = {'first_test_prop': 'tester',
                            'test_prop': '34',
                            'another_test_prop': 'wer'}
-    valid_stack_values = {'jump_image_id': 'ami-893f53b3',
-                          'nat_image_id': 'ami-893f53b3',
+    valid_stack_values = {'jump_image_id': 'ami-05446966',
+                          'nat_image_id': 'ami-162c0c75',
                           'vpc_cidr': '10.0.0.0.0/16'}
     valid_unit_values = {'unit_title': 'app1',
                          'protocol': 'HTTP',

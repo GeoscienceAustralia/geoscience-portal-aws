@@ -50,7 +50,7 @@ runcmd:
 
     Asg(title='simple',
         keypair='pipeline',
-        image_id='ami-162c0c75',
+        image_id='ami-05446966',
         instance_type='t2.nano',
         vpc=vpc,
         subnets=subnets,

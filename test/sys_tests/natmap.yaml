@@ -2,6 +2,7 @@
 # Test Stack User Yaml for Amazonia
 #
 stack_title: 'natmap'
+
 units:
   -
     unit_title: 'app'

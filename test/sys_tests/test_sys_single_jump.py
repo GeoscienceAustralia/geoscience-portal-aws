@@ -12,7 +12,7 @@ def main():
     template = Template()
     SingleInstance(title='jump',
                    keypair='pipeline',
-                   si_image_id='ami-f2210191',
+                   si_image_id='ami-05446966',
                    si_instance_type='t2.micro',
                    vpc=vpc,
                    subnet=subnet,

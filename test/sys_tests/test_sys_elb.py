@@ -37,7 +37,8 @@ def main():
                                                        CidrBlock='10.0.3.0/24'))]
 
     Elb(title='MyUnit',
-        port='80',
+        instanceport='80',
+        loadbalancerport='80',
         subnets=public_subnets,
         protocol='HTTP',
         vpc=vpc,

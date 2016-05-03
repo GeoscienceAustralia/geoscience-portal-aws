@@ -42,8 +42,8 @@ runcmd:
 """
 
     nat_image_id = 'ami-162c0c75'
-    jump_image_id = 'ami-162c0c75'
-    app_image_id = 'ami-f2210191'
+    jump_image_id = 'ami-05446966'
+    app_image_id = 'ami-05446966'
     instance_type = 't2.nano'
     stack = Stack(
         stack_title='test',
@@ -59,7 +59,8 @@ runcmd:
         public_cidr=('PublicIp', '0.0.0.0/0'),
         units=[{'unit_title': 'app1',
                 'protocol': 'HTTP',
-                'port': '80',
+                'instanceport': '80',
+                'loadbalancerport': '80',
                 'path2ping': '/index.html',
                 'minsize': 1,
                 'maxsize': 1,
@@ -71,7 +72,8 @@ runcmd:
                 'userdata': userdata1},
                {'unit_title': 'app2',
                 'protocol': 'HTTP',
-                'port': '80',
+                'instanceport': '80',
+                'loadbalancerport': '80',
                 'path2ping': '/index.html',
                 'minsize': 1,
                 'maxsize': 1,

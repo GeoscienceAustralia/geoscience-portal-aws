@@ -4,7 +4,7 @@ from troposphere import Tags, Ref
 from amazonia.classes.stack import Stack
 
 userdata = keypair = instance_type = code_deploy_service_role = vpc_cidr = public_cidr = \
-    port = protocol = minsize = maxsize = path2ping = nat_image_id = \
+    instanceport = loadbalancerport = protocol = minsize = maxsize = path2ping = nat_image_id = \
     jump_image_id = unit_image_id = health_check_grace_period = health_check_type = None
 availability_zones = []
 home_cidrs = []
@@ -12,7 +12,7 @@ home_cidrs = []
 
 def setup_resources():
     global userdata, availability_zones, keypair, instance_type, code_deploy_service_role, vpc_cidr, \
-        public_cidr, port, protocol, minsize, maxsize, path2ping, home_cidrs, nat_image_id, jump_image_id, \
+        public_cidr, instanceport, loadbalancerport, protocol, minsize, maxsize, path2ping, home_cidrs, nat_image_id, jump_image_id, \
         health_check_grace_period, health_check_type, unit_image_id
     userdata = """#cloud-config
 repo_update: true
@@ -27,13 +27,14 @@ runcmd:
     availability_zones = ['ap-southeast-2a', 'ap-southeast-2b', 'ap-southeast-2c']
     keypair = 'pipeline'
     nat_image_id = 'ami-162c0c75'
-    jump_image_id = 'ami-162c0c75'
-    unit_image_id = 'ami-f2210191'
+    jump_image_id = 'ami-05446966'
+    unit_image_id = 'ami-05446966'
     instance_type = 't2.nano'
     code_deploy_service_role = 'arn:aws:iam::658691668407:role/CodeDeployServiceRole'
     vpc_cidr = '10.0.0.0/16'
     home_cidrs = [('GA', '192.104.44.129/32'), ('home', '192.168.0.1/16')]
-    port = '80'
+    instanceport = '80'
+    loadbalancerport = '80'
     protocol = 'HTTP'
     minsize = 1
     maxsize = 1
@@ -91,7 +92,7 @@ def test_stack():
 
 def create_stack(stack_title):
     global userdata, availability_zones, keypair, instance_type, code_deploy_service_role, vpc_cidr, \
-        public_cidr, port, protocol, minsize, maxsize, path2ping, home_cidrs, nat_image_id, jump_image_id, \
+        public_cidr, instanceport, loadbalancerport, protocol, minsize, maxsize, path2ping, home_cidrs, nat_image_id, jump_image_id, \
         health_check_grace_period, health_check_type, unit_image_id
     stack = Stack(
         stack_title=stack_title,
@@ -105,9 +106,10 @@ def create_stack(stack_title):
         jump_instance_type=instance_type,
         nat_image_id=nat_image_id,
         nat_instance_type=instance_type,
-        units=[{'unit_title': 'app1',
+        units=[{'title': 'app1',
                 'protocol': protocol,
-                'port': port,
+                'instanceport': instanceport,
+                'loadbalancerport': loadbalancerport,
                 'path2ping': path2ping,
                 'minsize': minsize,
                 'maxsize': maxsize,
@@ -117,9 +119,10 @@ def create_stack(stack_title):
                 'health_check_type': health_check_type,
                 'userdata': userdata,
                 'hosted_zone_name': None},
-               {'unit_title': 'app2',
+               {'title': 'app2',
                 'protocol': protocol,
-                'port': port,
+                'instanceport': instanceport,
+                'loadbalancerport': loadbalancerport,
                 'path2ping': path2ping,
                 'minsize': minsize,
                 'maxsize': maxsize,
