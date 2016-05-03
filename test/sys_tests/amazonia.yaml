@@ -24,9 +24,12 @@ units:
     hosted_zone_name: null
     image_id: 'ami-05446966'
     instance_type: 't2.micro'
-    protocol: 'HTTP'
-    instanceport: '80'
-    loadbalancerport: '80'
+    protocols:
+     - 'HTTP'
+    instanceports:
+     - '80'
+    loadbalancerports:
+     - '80'
     path2ping: '/index.html'
     minsize: '1'
     maxsize: '1'
@@ -46,9 +49,12 @@ units:
     hosted_zone_name: null
     image_id: 'ami-05446966'
     instance_type: 't2.micro'
-    protocol: 'HTTP'
-    instanceport: '443'
-    loadbalancerport: '443'
+    protocols:
+     - 'HTTP'
+    instanceports:
+     - '443'
+    loadbalancerports:
+     - '443'
     path2ping: '/index.html'
     minsize: '1'
     maxsize: '1'

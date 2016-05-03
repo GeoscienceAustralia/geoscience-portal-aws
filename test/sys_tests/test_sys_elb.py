@@ -1,7 +1,8 @@
 #!/usr/bin/python3
 
-from amazonia.classes.elb import Elb
 from troposphere import ec2, Ref, Tags, Template, route53
+
+from amazonia.classes.elb import Elb
 
 
 def main():
@@ -10,7 +11,8 @@ def main():
                                         CidrBlock='10.0.0.0/16'))
 
     hosted_zone = template.add_resource(route53.HostedZone('MyHostedZone',
-                                                           HostedZoneConfig=route53.HostedZoneConfiguration(Comment='MyHostedZone'),
+                                                           HostedZoneConfig=route53.HostedZoneConfiguration(
+                                                               Comment='MyHostedZone'),
                                                            Name='myhostedzone.test.ga.',
                                                            VPCs=[route53.HostedZoneVPCs(VPCId=Ref(vpc),
                                                                                         VPCRegion='ap-southeast-2')]))
@@ -37,10 +39,10 @@ def main():
                                                        CidrBlock='10.0.3.0/24'))]
 
     Elb(title='MyUnit',
-        instanceport='80',
-        loadbalancerport='80',
+        instanceports=['80'],
+        loadbalancerports=['80'],
         subnets=public_subnets,
-        protocol='HTTP',
+        protocols=['HTTP'],
         vpc=vpc,
         hosted_zone_name=hosted_zone.Name,
         path2ping='/index.html',

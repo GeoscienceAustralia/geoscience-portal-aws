@@ -18,10 +18,10 @@ def create_elb(**kwargs):
     vpc = 'vpc-12345'
     pub_sub_list = ['subnet-123456', 'subnet-123496', 'subnet-123454']
     elb = Elb(title='elb',
-              instanceport=kwargs.get('instanceport', '80'),
-              loadbalancerport=kwargs.get('loadbalancerport', '80'),
+              instanceports=[kwargs.get('instanceport', '80')],
+              loadbalancerports=[kwargs.get('loadbalancerport', '80')],
               subnets=pub_sub_list,
-              protocol=kwargs.get('protocol', 'HTTP'),
+              protocols=[kwargs.get('protocol', 'HTTP')],
               vpc=vpc,
               hosted_zone_name=kwargs.get('hosted_zone_name', None),
               path2ping=kwargs.get('path2ping', 'index.html'),

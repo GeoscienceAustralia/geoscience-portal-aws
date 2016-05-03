@@ -12,12 +12,14 @@ s3_client = boto3.resource('s3').meta.client
 
 template = amz.main()
 
-s3_response = s3_client.upload_file('stack.template', 'smallest-bucket-in-history','smallest_app_in_history/stack.template')
+s3_response = s3_client.upload_file('stack.template', 'smallest-bucket-in-history',
+                                    'smallest_app_in_history/stack.template')
 
 print('File Successfully Uploaded to S3')
 
 stack_name = 'teststack'
-template_url = 'https://s3-ap-southeast-2.amazonaws.com/smallest-bucket-in-history/smallest_app_in_history/stack.template'
+template_url = \
+    'https://s3-ap-southeast-2.amazonaws.com/smallest-bucket-in-history/smallest_app_in_history/stack.template'
 environment = 'test'
 app = 'app1'
 infra_code_version = '0.3'
