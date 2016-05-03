@@ -56,45 +56,46 @@ runcmd:
 @with_setup(setup_resources())
 def test_unit():
     title = 'app'
-    unit = create_unit(title=title)
+    unit = create_unit(unit_title=title)
     assert_equals(unit.asg.trop_asg.title, title + 'Asg')
     assert_equals(unit.elb.trop_elb.title, title + 'Elb')
     [assert_is(type(lbn), Ref) for lbn in unit.asg.trop_asg.LoadBalancerNames]
     assert_equals(len(unit.asg.egress), 2)
     assert_equals(len(unit.asg.ingress), 2)
-    assert_equals(len(unit.elb.ingress), 2)
+    assert_equals(len(unit.elb.ingress), 1)
     assert_equals(len(unit.elb.egress), 1)
 
 
 @with_setup(setup_resources())
 def test_unit_association():
-    unit1 = create_unit(title='app1')
-    unit2 = create_unit(title='app2')
+    unit1 = create_unit(unit_title='app1')
+    unit2 = create_unit(unit_title='app2')
     unit1.add_unit_flow(receiver=unit2, port='80')
     assert_equals(len(unit1.asg.egress), 3)
     assert_equals(len(unit1.asg.ingress), 2)
-    assert_equals(len(unit1.elb.ingress), 2)
+    assert_equals(len(unit1.elb.ingress), 1)
     assert_equals(len(unit1.elb.egress), 1)
 
     assert_equals(len(unit2.asg.egress), 2)
     assert_equals(len(unit2.asg.ingress), 2)
-    assert_equals(len(unit2.elb.ingress), 3)
+    assert_equals(len(unit2.elb.ingress), 2)
     assert_equals(len(unit2.elb.egress), 1)
 
 
-def create_unit(**kwargs):
+def create_unit(unit_title):
     global userdata, template, vpc, private_subnets, public_subnets, nat, jump, health_check_grace_period, \
         health_check_type
     unit = Unit(
-        title=kwargs['title'],
+        unit_title=unit_title,
         vpc=vpc,
         template=template,
-        protocol='HTTP',
-        instanceport='80',
-        loadbalancerport='80',
+        protocols=['HTTP'],
+        instanceports=['80'],
+        loadbalancerports=['80'],
         path2ping='index.html',
         public_subnets=public_subnets,
         private_subnets=private_subnets,
+        public_cidr=('PublicIp', '0.0.0.0/0'),
         minsize=1,
         maxsize=1,
         keypair='pipeline',

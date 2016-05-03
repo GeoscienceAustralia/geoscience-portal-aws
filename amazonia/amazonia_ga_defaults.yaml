@@ -21,9 +21,12 @@ nat_instance_type: 't2.micro'
 home_cidrs:
   - !!python/tuple ['GA', '192.104.44.129/32']
 unit_title: 'app1'
-protocol: 'HTTP'
-instanceport: '80'
-loadbalancerport: '80'
+protocols:
+  - 'HTTP'
+instanceports:
+  - '80'
+loadbalancerports:
+  - '80'
 path2ping: '/index.html'
 minsize: '1'
 maxsize: '1'

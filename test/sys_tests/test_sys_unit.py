@@ -21,7 +21,7 @@ runcmd:
     template = Template()
 
     vpc = template.add_resource(ec2.VPC('MyVPC',
-                  CidrBlock='10.0.0.0/16'))
+                                        CidrBlock='10.0.0.0/16'))
 
     internet_gateway = template.add_resource(
         ec2.InternetGateway('igname', Tags=Tags(Name=Join('', [Ref('AWS::StackName'), '-', 'igname']))))
@@ -34,13 +34,13 @@ runcmd:
     gateway_attachment.DependsOn = internet_gateway.title
 
     private_subnets = [template.add_resource(ec2.Subnet('MySubnet',
-                                  AvailabilityZone='ap-southeast-2a',
-                                  VpcId=Ref(vpc),
-                                  CidrBlock='10.0.1.0/24'))]
+                                                        AvailabilityZone='ap-southeast-2a',
+                                                        VpcId=Ref(vpc),
+                                                        CidrBlock='10.0.1.0/24'))]
     public_subnets = [template.add_resource(ec2.Subnet('MySubnet2',
-                                 AvailabilityZone='ap-southeast-2a',
-                                 VpcId=Ref(vpc),
-                                 CidrBlock='10.0.2.0/24'))]
+                                                       AvailabilityZone='ap-southeast-2a',
+                                                       VpcId=Ref(vpc),
+                                                       CidrBlock='10.0.2.0/24'))]
     nat = SingleInstance(title='nat',
                          keypair='pipeline',
                          si_image_id='ami-162c0c75',
@@ -63,12 +63,12 @@ runcmd:
     service_role_arn = 'arn:aws:iam::658691668407:role/CodeDeployServiceRole'
 
     unit1 = Unit(
-        title='app1',
+        unit_title='app1',
         vpc=vpc,
         template=template,
-        protocol='HTTP',
-        instanceport='80',
-        loadbalancerport='80',
+        protocols=['HTTP'],
+        instanceports=['80'],
+        loadbalancerports=['80'],
         path2ping='/index.html',
         public_subnets=public_subnets,
         private_subnets=private_subnets,
@@ -84,16 +84,17 @@ runcmd:
         nat=nat,
         jump=jump,
         hosted_zone_name=None,
+        public_cidr=('PublicIp', '0.0.0.0/0'),
         gateway_attachment=gateway_attachment
     )
 
     unit2 = Unit(
-        title='app2',
+        unit_title='app2',
         vpc=vpc,
         template=template,
-        protocol='HTTP',
-        instanceport='80',
-        loadbalancerport='80',
+        protocols=['HTTP'],
+        instanceports=['80'],
+        loadbalancerports=['80'],
         path2ping='/index.html',
         public_subnets=public_subnets,
         private_subnets=private_subnets,
@@ -109,6 +110,7 @@ runcmd:
         nat=nat,
         jump=jump,
         hosted_zone_name=None,
+        public_cidr=('PublicIp', '0.0.0.0/0'),
         gateway_attachment=gateway_attachment
     )
 

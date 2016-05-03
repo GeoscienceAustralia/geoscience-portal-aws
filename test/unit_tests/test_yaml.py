@@ -79,8 +79,11 @@ def test_get_unit_values():
     minsize = stack_input['units'][0]['minsize']
     assert_equals(minsize, '1')
 
-    port = stack_input['units'][0]['port']
-    assert_equals(port, '80')
+    instanceport = stack_input['units'][0]['instanceports'][0]
+    assert_equals(instanceport, '80')
+
+    loadbalancerport = stack_input['units'][0]['loadbalancerports'][0]
+    assert_equals(loadbalancerport, '80')
 
 
 def test_validate_title():

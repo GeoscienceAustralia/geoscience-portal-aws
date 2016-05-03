@@ -8,8 +8,8 @@ from amazonia.classes.unit import Unit
 
 
 class Stack(object):
-    def __init__(self, stack_title, code_deploy_service_role, keypair, availability_zones, vpc_cidr, home_cidrs, public_cidr,
-                 jump_image_id, jump_instance_type, nat_image_id, nat_instance_type, units):
+    def __init__(self, stack_title, code_deploy_service_role, keypair, availability_zones, vpc_cidr, home_cidrs,
+                 public_cidr, jump_image_id, jump_instance_type, nat_image_id, nat_instance_type, units):
         """
         Create a vpc, nat, jumphost, internet gateway, public/private route tables, public/private subnets
          and collection of Amazonia units
@@ -138,7 +138,7 @@ class Stack(object):
         """ Add Units
         """
         for unit in units:
-            unit['title'] = self.title + unit['title']
+            unit['unit_title'] = self.title + unit['unit_title']
             self.units.append(Unit(
                                    vpc=self.vpc,
                                    template=self.template,
@@ -149,6 +149,7 @@ class Stack(object):
                                    nat=self.nat,
                                    jump=self.jump,
                                    gateway_attachment=self.gateway_attachment,
+                                   public_cidr=self.public_cidr,
                                    **unit
                                    ))
 
