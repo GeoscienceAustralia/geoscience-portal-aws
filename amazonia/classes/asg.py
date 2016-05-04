@@ -8,8 +8,8 @@ from amazonia.classes.security_enabled_object import SecurityEnabledObject
 
 class Asg(SecurityEnabledObject):
     def __init__(self, title, vpc, template, minsize, maxsize, subnets, load_balancer,
-                 keypair, image_id, instance_type, health_check_grace_period, health_check_type, userdata,
-                 service_role_arn):
+                 keypair, image_id, instance_type, health_check_grace_period, health_check_type,
+                 iam_instance_profile_arn, userdata, cd_service_role_arn):
         """
         Creates an autoscaling group and codedeploy definition
         :param title: Title of the autoscaling application e.g 'webApp1', 'api2' or 'dataprocessing'
@@ -24,15 +24,13 @@ class Asg(SecurityEnabledObject):
         :param instance_type: Instance type to create instances of e.g. 't2.micro' or 't2.nano'
         :param health_check_grace_period: Time given to an instance before asg attempts to test it
         :param health_check_type: either test health according to ELB or EC2 instance status check
+        :param iam_instance_profile_arn: Iam instance profile ARN to allow isntance access to services like S3
         :param userdata: Instance boot script
-        :param service_role_arn: AWS IAM Role with Code Deploy permissions
+        :param cd_service_role_arn: AWS IAM Role with Code Deploy permissions
         """
         super(Asg, self).__init__(vpc=vpc, title=title, template=template)
         if maxsize < minsize:
-            print("Error: minsize must be lower than maxsize.")
-            print("Error: minsize {0}".format(minsize))
-            print("Error: maxsize {0}".format(maxsize))
-            exit(1)
+            raise MinMaxError("Error: minsize must be lower than maxsize.")
 
         self.template = template
         self.title = title + 'Asg'
@@ -51,15 +49,17 @@ class Asg(SecurityEnabledObject):
             instance_type=instance_type,
             health_check_grace_period=health_check_grace_period,
             health_check_type=health_check_type,
+            iam_instance_profile_arn=iam_instance_profile_arn,
             userdata=userdata
         )
-        self.create_cd_deploygroup(
-            self.title,
-            service_role_arn
-        )
+        if cd_service_role_arn is not None:
+            self.create_cd_deploygroup(
+                title=self.title,
+                cd_service_role_arn=cd_service_role_arn
+            )
 
     def create_asg(self, title, minsize, maxsize, subnets, load_balancer, keypair, image_id, instance_type,
-                   health_check_grace_period, health_check_type, userdata):
+                   health_check_grace_period, health_check_type, iam_instance_profile_arn, userdata):
         """
         Creates an autoscaling group object
         AWS Cloud Formation:
@@ -75,6 +75,7 @@ class Asg(SecurityEnabledObject):
         :param instance_type: Instance type to create instances of e.g. 't2.micro' or 't2.nano'
         :param health_check_grace_period: Time given to an instance before asg attempts to test it
         :param health_check_type: either test health according to ELB or EC2 instance status check
+        :param iam_instance_profile_arn: Iam instance profile ARN to allow isntance access to services like S3
         :param userdata: Instance boot script
         :return string representing Auto Scaling Group name
         """
@@ -93,15 +94,16 @@ class Asg(SecurityEnabledObject):
         )
         )
         self.trop_asg.LaunchConfigurationName = Ref(self.create_launch_config(
-            title,
-            keypair,
-            image_id,
-            instance_type,
-            userdata
+            title=title,
+            keypair=keypair,
+            image_id=image_id,
+            instance_type=instance_type,
+            iam_instance_profile_arn=iam_instance_profile_arn,
+            userdata=userdata
         ))
         return title
 
-    def create_launch_config(self, title, keypair, image_id, instance_type, userdata):
+    def create_launch_config(self, title, keypair, image_id, instance_type, iam_instance_profile_arn, userdata):
         """
         Method to add a launch configuration resource to a cloud formation document
         AWS Cloud Formation:
@@ -111,6 +113,7 @@ class Asg(SecurityEnabledObject):
         :param keypair: Instance Keypair for ssh e.g. 'pipeline' or 'mykey'
         :param image_id: AWS ami id to create instances from, e.g. 'ami-12345'
         :param instance_type: Instance type to create instances of e.g. 't2.micro' or 't2.nano'
+        :param iam_instance_profile_arn: Iam instance profile ARN to allow isntance access to services like S3
         :param userdata: Instance boot script
         :return string representing Launch Configuration name
         """
@@ -125,17 +128,19 @@ class Asg(SecurityEnabledObject):
             KeyName=keypair,
             SecurityGroups=[Ref(self.security_group.name)],
         ))
+        if iam_instance_profile_arn is not None:
+            self.lc.IamInstanceProfile=iam_instance_profile_arn
         self.lc.UserData = Base64(userdata)
         return launch_config_title
 
-    def create_cd_deploygroup(self, title, service_role_arn):
+    def create_cd_deploygroup(self, title, cd_service_role_arn):
         """
         Creates a CodeDeploy application and deploy group and associates with autoscaling group
         AWS Cloud Formation:
         http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-security-group.html
         Troposphere link: https://github.com/cloudtools/troposphere/blob/master/troposphere/codedeploy.py
         :param title: Title of the code deploy application
-        :param service_role_arn: AWS IAM Role with Code Deploy permissions
+        :param cd_service_role_arn: AWS IAM Role with Code Deploy permissions
         :return 2 strings representing CodeDeploy Application name and CodeDeploy Group name.
         """
         cd_app_title = title + 'Cda'
@@ -151,7 +156,7 @@ class Asg(SecurityEnabledObject):
                                        DeploymentConfigName='CodeDeployDefault.OneAtATime',
                                        DeploymentGroupName=Join('', [Ref('AWS::StackName'),
                                                                      '-', cd_deploygroup_title]),
-                                       ServiceRoleArn=service_role_arn))
+                                       ServiceRoleArn=cd_service_role_arn))
         self.cd_deploygroup.DependsOn = [self.cd_app.title, self.trop_asg.title]
 
         """ Outputs
@@ -176,3 +181,8 @@ class Asg(SecurityEnabledObject):
             ))
 
         return cd_app_title, cd_deploygroup_title
+
+
+class MinMaxError(Exception):
+    def __init__(self, value):
+        self.value = value

@@ -139,6 +139,7 @@ runcmd:
                 'image_id': app_image_id,
                 'instance_type': instance_type,
                 'hosted_zone_name': None,
+                'iam_instance_profile_arn': None,
                 'userdata': userdata1}
                ]
 

@@ -27,14 +27,14 @@ class Subnet(object):
         """ Create Subnet
         """
         subnet_title = self.stack_title + self.pub_or_pri + 'Subnet' + az[-1:].upper()
-        self.subnet = self.template.add_resource(ec2.Subnet(subnet_title,
-                                                            AvailabilityZone=az,
-                                                            VpcId=Ref(self.vpc),
-                                                            CidrBlock=self.cidr,
-                                                            Tags=Tags(Name=Join("",
-                                                                                [Ref('AWS::StackName'),
-                                                                                 '-',
-                                                                                 subnet_title]))))
+        self.trop_subnet = self.template.add_resource(ec2.Subnet(subnet_title,
+                                                                 AvailabilityZone=az,
+                                                                 VpcId=Ref(self.vpc),
+                                                                 CidrBlock=self.cidr,
+                                                                 Tags=Tags(Name=Join("",
+                                                                                     [Ref('AWS::StackName'),
+                                                                                      '-',
+                                                                                      subnet_title]))))
 
         """ Create Route Table Associations
         """
@@ -50,8 +50,8 @@ class Subnet(object):
         """
 
         route_table_assoc = self.template.add_resource(ec2.SubnetRouteTableAssociation(route_table.title +
-                                                                                       self.subnet.title +
+                                                                                       self.trop_subnet.title +
                                                                                        'Association',
                                                                                        RouteTableId=Ref(route_table),
-                                                                                       SubnetId=Ref(self.subnet)))
+                                                                                       SubnetId=Ref(self.trop_subnet)))
         return route_table_assoc

@@ -84,7 +84,7 @@ class Stack(object):
                                                az=az,
                                                vpc=self.vpc,
                                                is_public=False,
-                                               cidr=self.generate_subnet_cidr(is_public=False)).subnet)
+                                               cidr=self.generate_subnet_cidr(is_public=False)).trop_subnet)
             self.public_subnets.append(Subnet(template=self.template,
                                               stack_title=self.title,
                                               route_table=self.public_route_table,
@@ -92,7 +92,7 @@ class Stack(object):
                                               vpc=self.vpc,
                                               is_public=True,
                                               cidr=self.generate_subnet_cidr(is_public=True)
-                                              ).subnet)
+                                              ).trop_subnet)
 
         """ Add Jumpbox and NAT and associated security group ingress and egress rules
         """
@@ -126,13 +126,13 @@ class Stack(object):
         self.public_route = self.template.add_resource(ec2.Route(self.title + 'PubRtInboundRoute',
                                                                  GatewayId=Ref(self.internet_gateway),
                                                                  RouteTableId=Ref(self.public_route_table),
-                                                                 DestinationCidrBlock='0.0.0.0/0'))
+                                                                 DestinationCidrBlock=public_cidr[1]))
         self.public_route.DependsOn = self.gateway_attachment.title
 
         self.private_route = self.template.add_resource(ec2.Route(self.title + 'PriRtOutboundRoute',
                                                                   InstanceId=Ref(self.nat.single),
                                                                   RouteTableId=Ref(self.private_route_table),
-                                                                  DestinationCidrBlock='0.0.0.0/0'))
+                                                                  DestinationCidrBlock=public_cidr[1]))
         self.private_route.DependsOn = self.gateway_attachment.title
 
         """ Add Units
@@ -145,7 +145,7 @@ class Stack(object):
                                    public_subnets=self.public_subnets,
                                    private_subnets=self.private_subnets,
                                    keypair=self.keypair,
-                                   service_role_arn=self.code_deploy_service_role,
+                                   cd_service_role_arn=self.code_deploy_service_role,
                                    nat=self.nat,
                                    jump=self.jump,
                                    gateway_attachment=self.gateway_attachment,

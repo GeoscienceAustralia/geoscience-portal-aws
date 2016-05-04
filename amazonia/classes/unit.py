@@ -9,8 +9,8 @@ class Unit(object):
     def __init__(self,
                  unit_title, vpc, template, protocols, public_cidr, instanceports, loadbalancerports, path2ping,
                  public_subnets, private_subnets, minsize, maxsize, keypair, image_id, instance_type, userdata,
-                 service_role_arn, nat, jump, hosted_zone_name, gateway_attachment, health_check_grace_period,
-                 health_check_type):
+                 cd_service_role_arn, nat, jump, hosted_zone_name, gateway_attachment, iam_instance_profile_arn,
+                 health_check_grace_period, health_check_type):
         """
         Create an Amazonia unit, with associated Amazonia ELB and ASG
         :param unit_title: Title of the autoscaling application  prefixedx with Stack name e.g 'MyStackWebApp1',
@@ -29,7 +29,8 @@ class Unit(object):
         :param image_id: AWS ami id to create instances from, e.g. 'ami-12345'
         :param instance_type: Instance type to create instances of e.g. 't2.micro' or 't2.nano'
         :param userdata: Instance boot script
-        :param service_role_arn: AWS IAM Role with Code Deploy permissions
+        :param iam_instance_profile_arn: Iam instance profile ARN to allow isntance access to services like S3
+        :param cd_service_role_arn: AWS IAM Role with Code Deploy permissions
         :param nat: nat instance for outbound traffic
         :param jump: jump instance for inbound ssh
         :param hosted_zone_name: Route53 hosted zone name string for Route53 record sets
@@ -65,7 +66,8 @@ class Unit(object):
             health_check_type=health_check_type,
             userdata=userdata,
             load_balancer=self.elb.trop_elb,
-            service_role_arn=service_role_arn,
+            cd_service_role_arn=cd_service_role_arn,
+            iam_instance_profile_arn=iam_instance_profile_arn
         )
         [self.elb.add_ingress(sender=self.public_cidr, port=loadbalancerport) for loadbalancerport in loadbalancerports]
         [self.elb.add_flow(receiver=self.asg, port=instanceport) for instanceport in instanceports]

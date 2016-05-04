@@ -41,6 +41,7 @@ class Yaml(object):
                               'minsize',
                               'maxsize',
                               'health_check_grace_period',
+                              'iam_instance_profile_arn',
                               'health_check_type']
 
         self.get_invalid_data()
