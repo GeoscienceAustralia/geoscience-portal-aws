@@ -2,13 +2,18 @@ import troposphere.elasticloadbalancing as elb
 from nose.tools import *
 from troposphere import ec2, Ref, Template, Join
 
-from amazonia.classes.asg import Asg
+from amazonia.classes.asg import Asg, MinMaxError
 
-userdata = vpc = subnet = template = load_balancer = health_check_grace_period = health_check_type = None
+userdata = vpc = subnet = template = load_balancer = health_check_grace_period = health_check_type = \
+    cd_service_role_arn = instance_type = image_id = keypair = iam_instance_profile_arn = None
 
 
 def setup_resources():
-    global userdata, vpc, subnet, template, load_balancer, health_check_grace_period, health_check_type
+    """
+    Initialise resources before each test
+    """
+    global userdata, vpc, subnet, template, load_balancer, health_check_grace_period, health_check_type, \
+        cd_service_role_arn, instance_type, image_id, keypair, iam_instance_profile_arn
     template = Template()
     userdata = """
 #cloud-config
@@ -20,7 +25,7 @@ packages:
 
 runcmd:
  - service httpd start
-        """
+"""
     vpc = ec2.VPC('MyVPC',
                   CidrBlock='10.0.0.0/16')
     subnet = ec2.Subnet('MySubnet',
@@ -44,13 +49,17 @@ runcmd:
 
     health_check_grace_period = 300
     health_check_type = 'ELB'
+    cd_service_role_arn = 'arn:aws:iam::658691668407:role/CodeDeployServiceRole'
+    iam_instance_profile_arn = 'arn:aws:iam::12345678987654321:role/InstanceProfileRole'
+    image_id = 'ami-05446966'
+    instance_type = 't2.micro'
+    keypair = 'pipeline'
 
 
 @with_setup(setup_resources())
 def test_asg():
     """
     Tests correct structure of autoscaling group objects.
-    :return: Pass
     """
     asg_titles = ['simple', 'hard', 'harder', 'easy']
 
@@ -69,6 +78,7 @@ def test_asg():
         assert_equals(asg.lc.ImageId, 'ami-05446966')
         assert_equals(asg.lc.InstanceType, 't2.micro')
         assert_equals(asg.lc.KeyName, 'pipeline')
+        assert_equals(asg.lc.IamInstanceProfile, 'arn:aws:iam::12345678987654321:role/InstanceProfileRole')
         [assert_is(type(sg), Ref) for sg in asg.lc.SecurityGroups]
         assert_equals(asg.cd_app.title, title + 'Asg' + 'Cda')
         assert_is(type(asg.cd_app.ApplicationName), Join)
@@ -79,12 +89,67 @@ def test_asg():
         assert_equals(asg.cd_deploygroup.ServiceRoleArn, 'arn:aws:iam::658691668407:role/CodeDeployServiceRole')
 
 
+@with_setup(setup_resources())
+def test_min_gtr_max_error():
+    """
+    Tests that a higher minsize than maxsize is detected and raises an error.
+    """
+    global userdata, vpc, subnet, template, load_balancer, health_check_grace_period, health_check_type, \
+        cd_service_role_arn, image_id, instance_type, keypair
+
+    assert_raises(MinMaxError, Asg, **{'title': 'test',
+                                       'vpc': vpc,
+                                       'template': template,
+                                       'minsize': 2,
+                                       'maxsize': 1,
+                                       'subnets': [subnet],
+                                       'load_balancer': load_balancer,
+                                       'keypair': keypair,
+                                       'image_id': image_id,
+                                       'instance_type': instance_type,
+                                       'health_check_grace_period': health_check_grace_period,
+                                       'health_check_type': health_check_type,
+                                       'userdata': userdata,
+                                       'cd_service_role_arn': None,
+                                       'iam_instance_profile_arn': None
+    })
+
+
+@with_setup(setup_resources())
+def test_no_cd_group():
+    """
+    Test that an asg is created without a CD when a null code deploy roles is passed in
+    """
+    global userdata, vpc, subnet, template, load_balancer, health_check_grace_period, health_check_type, \
+        cd_service_role_arn, image_id, instance_type, keypair
+    asg = Asg(
+        title='noCd',
+        vpc=vpc,
+        template=template,
+        minsize=1,
+        maxsize=1,
+        subnets=[subnet],
+        load_balancer=load_balancer,
+        keypair=keypair,
+        image_id=image_id,
+        instance_type=instance_type,
+        health_check_grace_period=health_check_grace_period,
+        health_check_type=health_check_type,
+        userdata=userdata,
+        cd_service_role_arn=None,
+        iam_instance_profile_arn=None
+    )
+    assert_equals(asg.cd_app, None)
+    assert_equals(asg.cd_deploygroup, None)
+
+
 def create_asg(title):
     """
     Helper function to create ASG Troposhpere object.
     :return: Troposphere object for single instance, security group and output
     """
-    global userdata, vpc, subnet, template, load_balancer, health_check_grace_period, health_check_type
+    global userdata, vpc, subnet, template, load_balancer, health_check_grace_period, health_check_type, \
+        cd_service_role_arn, image_id, instance_type, keypair, iam_instance_profile_arn
     asg = Asg(
         title=title,
         vpc=vpc,
@@ -93,13 +158,14 @@ def create_asg(title):
         maxsize=1,
         subnets=[subnet],
         load_balancer=load_balancer,
-        keypair='pipeline',
-        image_id='ami-05446966',
-        instance_type='t2.micro',
+        keypair=keypair,
+        image_id=image_id,
+        instance_type=instance_type,
         health_check_grace_period=health_check_grace_period,
         health_check_type=health_check_type,
         userdata=userdata,
-        service_role_arn='arn:aws:iam::658691668407:role/CodeDeployServiceRole'
+        cd_service_role_arn=cd_service_role_arn,
+        iam_instance_profile_arn=iam_instance_profile_arn
     )
 
     return asg

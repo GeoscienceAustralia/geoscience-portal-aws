@@ -60,7 +60,8 @@ runcmd:
         userdata=userdata,
         health_check_grace_period=300,
         health_check_type='ELB',
-        service_role_arn='arn:aws:iam::658691668407:role/CodeDeployServiceRole',
+        cd_service_role_arn='arn:aws:iam::658691668407:role/CodeDeployServiceRole',
+        iam_instance_profile_arn=None,
         template=template)
 
     print(template.to_json(indent=2, separators=(',', ': ')))

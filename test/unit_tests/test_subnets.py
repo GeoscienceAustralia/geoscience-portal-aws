@@ -55,7 +55,7 @@ def test_add_associate_route_table():
         assert_equals(type(helper_pub_subnet.rt_association.RouteTableId), type(Ref(public_route_table)))
         assert_equals(type(helper_pub_subnet.rt_association.SubnetId), type(Ref(helper_pub_subnet)))
         assert_equals(helper_pub_subnet.rt_association.title,
-                      public_route_table.title + helper_pub_subnet.subnet.title + 'Association')
+                      public_route_table.title + helper_pub_subnet.trop_subnet.title + 'Association')
 
         # For private subnets
         helper_pri_subnet = create_subnet(template=template, az=a, route_table=private_route_table, is_public=False)
@@ -63,7 +63,7 @@ def test_add_associate_route_table():
         assert_equals(type(helper_pri_subnet.rt_association.RouteTableId), type(Ref(private_route_table)))
         assert_equals(type(helper_pri_subnet.rt_association.SubnetId), type(Ref(helper_pri_subnet)))
         assert_equals(helper_pri_subnet.rt_association.title,
-                      private_route_table.title + helper_pri_subnet.subnet.title + 'Association')
+                      private_route_table.title + helper_pri_subnet.trop_subnet.title + 'Association')
 
 
 def az_num(az_list):

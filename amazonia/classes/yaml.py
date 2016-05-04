@@ -35,11 +35,13 @@ class Yaml(object):
                               'image_id',
                               'instance_type',
                               'path2ping',
-                              'protocol',
-                              'port',
+                              'protocols',
+                              'loadbalancerports',
+                              'instanceports',
                               'minsize',
                               'maxsize',
                               'health_check_grace_period',
+                              'iam_instance_profile_arn',
                               'health_check_type']
 
         self.get_invalid_data()
@@ -106,7 +108,8 @@ class Yaml(object):
 
         """ Validate title of home_cidrs tuple items
         """
-        self.united_data['home_cidrs'] = [(self.validate_title(cidr[0]), cidr[1]) for cidr in self.united_data['home_cidrs']]
+        self.united_data['home_cidrs'] = \
+            [(self.validate_title(cidr[0]), cidr[1]) for cidr in self.united_data['home_cidrs']]
 
         """ Validate for unecrypted aws access ids and aws secret keys
         """
@@ -153,7 +156,8 @@ class Yaml(object):
         """
         Searches userdata for potential AWS access ids and secret keys and substitutes entire userdata with error string
         :param userdata: Userdata for each unit in the stack
-        :return: Original userdata is no complaints, otherwise error string e.g. 'AWS_ACCESS_ID_FOUND' or 'AWS_SECRET_KEY_FOUND'
+        :return: Original userdata is no complaints, otherwise error string e.g. 'AWS_ACCESS_ID_FOUND' or
+        'AWS_SECRET_KEY_FOUND'
         """
         aws_access_id = re.compile('(?<![A-Z0-9])[A-Z0-9]{20}(?![A-Z0-9])')
         aws_secret_key = re.compile('(?<![A-Za-z0-9/+=])[A-Za-z0-9/+=]{40}(?![A-Za-z0-9/+=])')
