@@ -129,7 +129,7 @@ class Asg(SecurityEnabledObject):
             SecurityGroups=[Ref(self.security_group.name)],
         ))
         if iam_instance_profile_arn is not None:
-            self.lc.IamInstanceProfile=iam_instance_profile_arn
+            self.lc.IamInstanceProfile = iam_instance_profile_arn
         self.lc.UserData = Base64(userdata)
         return launch_config_title
 
