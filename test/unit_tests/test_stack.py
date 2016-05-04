@@ -121,7 +121,8 @@ def create_stack(stack_title):
                 'health_check_grace_period': health_check_grace_period,
                 'health_check_type': health_check_type,
                 'userdata': userdata,
-                'hosted_zone_name': None},
+                'hosted_zone_name': None,
+                'iam_instance_profile_arn': None},
                {'unit_title': 'app2',
                 'protocols': protocols,
                 'instanceports': instanceports,
@@ -134,6 +135,7 @@ def create_stack(stack_title):
                 'health_check_grace_period': health_check_grace_period,
                 'health_check_type': health_check_type,
                 'userdata': userdata,
-                'hosted_zone_name': None}],
+                'hosted_zone_name': None,
+                'iam_instance_profile_arn': None}],
     )
     return stack

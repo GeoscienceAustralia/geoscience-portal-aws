@@ -80,11 +80,12 @@ runcmd:
         image_id='ami-05446966',
         instance_type='t2.nano',
         userdata=userdata,
-        service_role_arn=service_role_arn,
+        cd_service_role_arn=service_role_arn,
         nat=nat,
         jump=jump,
         hosted_zone_name=None,
         public_cidr=('PublicIp', '0.0.0.0/0'),
+        iam_instance_profile_arn=None,
         gateway_attachment=gateway_attachment
     )
 
@@ -106,11 +107,12 @@ runcmd:
         image_id='ami-05446966',
         instance_type='t2.nano',
         userdata=userdata,
-        service_role_arn=service_role_arn,
+        cd_service_role_arn=service_role_arn,
         nat=nat,
         jump=jump,
         hosted_zone_name=None,
         public_cidr=('PublicIp', '0.0.0.0/0'),
+        iam_instance_profile_arn=None,
         gateway_attachment=gateway_attachment
     )
 

@@ -69,6 +69,7 @@ runcmd:
                 'hosted_zone_name': None,
                 'image_id': app_image_id,
                 'instance_type': instance_type,
+                'iam_instance_profile_arn': None,
                 'userdata': userdata1},
                {'unit_title': 'app2',
                 'protocols': ['HTTP'],
@@ -82,6 +83,7 @@ runcmd:
                 'hosted_zone_name': None,
                 'image_id': app_image_id,
                 'instance_type': instance_type,
+                'iam_instance_profile_arn': None,
                 'userdata': userdata2}
                ]
 

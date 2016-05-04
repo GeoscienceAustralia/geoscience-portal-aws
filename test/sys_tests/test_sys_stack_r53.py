@@ -69,6 +69,7 @@ runcmd:
                 'image_id': app_image_id,
                 'instance_type': instance_type,
                 'userdata': userdata1,
+                'iam_instance_profile_arn': None,
                 'hosted_zone_name': 'gadevs.ga.'},
                {'unit_title': 'app2',
                 'protocols': ['HTTP'],
@@ -82,6 +83,7 @@ runcmd:
                 'image_id': app_image_id,
                 'instance_type': instance_type,
                 'userdata': userdata2,
+                'iam_instance_profile_arn': None,
                 'hosted_zone_name': 'gadevs.ga.'}
                ]
 
