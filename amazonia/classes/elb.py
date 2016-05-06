@@ -52,8 +52,9 @@ class Elb(SecurityEnabledObject):
             self.elb_r53 = self.template.add_resource(route53.RecordSetType(
                                                              self.title + 'R53',
                                                              HostedZoneName=kwargs['hosted_zone_name'],
-                                                             Name=Join('', [self.title,
-                                                                            'R53',
+                                                             Name=Join('', [Ref('AWS::StackName'),
+                                                                            '-',
+                                                                            self.title,
                                                                             '.',
                                                                             kwargs['hosted_zone_name']]),
                                                              ResourceRecords=[GetAtt(self.trop_elb, 'DNSName')],
