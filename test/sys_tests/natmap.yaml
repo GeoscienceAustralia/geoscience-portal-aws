@@ -6,21 +6,20 @@ stack_title: 'natmap'
 units:
   -
     unit_title: 'app'
-    #Natmap
-    #hosted_zone_name: 'gadevs.ga.'
-    #GADevs
-    hosted_zone_name: 'gadevs.ga.'
     image_id: 'ami-6c14310f' #latest ubuntu image
     #Natmap
     #iam_instance_profile_arn: 'arn:aws:iam::074615718262:instance-profile/natmap-iam-instance-profile-InstanceProfile-2T3T9V0FUTZU'
+    #sns_topic_arn: 'arn:aws:sns:ap-southeast-2:074615718262:natmap_service_status'
+    #elb_log_bucket: 'nationalmap-loadbalancer-logs'
+    #hosted_zone_name: 'app.prod.'
+    #sns_notification_types:
+    # - 'autoscaling:EC2_INSTANCE_LAUNCH'
+    # - 'autoscaling:EC2_INSTANCE_LAUNCH_ERROR'
+    # - 'autoscaling:EC2_INSTANCE_TERMINATE'
+    # - 'autoscaling:EC2_INSTANCE_TERMINATE_ERROR'
     #GADevs
     iam_instance_profile_arn: 'arn:aws:iam::658691668407:instance-profile/natmap-iam-instance-profile-InstanceProfile-1XCAISNTXMEHG'
-    sns_topic_arn: 'arn:aws:sns:ap-southeast-2:074615718262:natmap_service_status'
-    sns_notification_types:
-     - 'autoscaling:EC2_INSTANCE_LAUNCH'
-     - 'autoscaling:EC2_INSTANCE_LAUNCH_ERROR'
-     - 'autoscaling:EC2_INSTANCE_TERMINATE'
-     - 'autoscaling:EC2_INSTANCE_TERMINATE_ERROR'
+    hosted_zone_name: 'gadevs.ga.'
     userdata: |
       #cloud-config
       # Capture all cloud-config output into a more readable logfile

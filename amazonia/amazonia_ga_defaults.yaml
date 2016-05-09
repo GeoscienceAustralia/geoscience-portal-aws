@@ -36,6 +36,7 @@ health_check_type: 'ELB'
 units:
 sns_topic_arn:
 sns_notification_types:
+elb_log_bucket:
 hosted_zone_name: null
 
 ## YAML TIPS:

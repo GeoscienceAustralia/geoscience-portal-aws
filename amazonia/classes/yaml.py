@@ -44,6 +44,7 @@ class Yaml(object):
                               'iam_instance_profile_arn',
                               'sns_topic_arn',
                               'sns_notification_types',
+                              'elb_log_bucket',
                               'health_check_type']
 
         self.get_invalid_data()
