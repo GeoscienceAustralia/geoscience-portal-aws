@@ -26,8 +26,7 @@ class Elb(SecurityEnabledObject):
         """
         self.title = title + 'Elb'
         super(Elb, self).__init__(vpc=vpc, title=self.title, template=template)
-        # Loadbalancer, Instance, Port, Protocol Tuple = lippt
-        lippts = zip(loadbalancerports, instanceports, protocols)
+        network_tuples = zip(loadbalancerports, instanceports, protocols)
         self.trop_elb = self.template.add_resource(
             elb.LoadBalancer(self.title,
                              CrossZone=True,
@@ -37,11 +36,11 @@ class Elb(SecurityEnabledObject):
                                                          UnhealthyThreshold='2',
                                                          Interval='300',
                                                          Timeout='60'),
-                             Listeners=[elb.Listener(LoadBalancerPort=lippt[0],
-                                                     Protocol=lippt[2],
-                                                     InstancePort=lippt[1],
-                                                     InstanceProtocol=lippt[2]) for lippt
-                                        in lippts],
+                             Listeners=[elb.Listener(LoadBalancerPort=network_tuple[0],
+                                                     Protocol=network_tuple[2],
+                                                     InstancePort=network_tuple[1],
+                                                     InstanceProtocol=network_tuple[2]) for network_tuple
+                                        in network_tuples],
                              Scheme='internet-facing',
                              SecurityGroups=[Ref(self.security_group)],
                              Subnets=[Ref(x) for x in subnets],
@@ -59,22 +58,23 @@ class Elb(SecurityEnabledObject):
             )
 
         if hosted_zone_name:
-            self.elb_r53 = self.template.add_resource(route53.RecordSetType(
+            self.elb_r53 = self.template.add_resource(route53.RecordSetGroup(
                 self.title + 'R53',
                 HostedZoneName=hosted_zone_name,
-                Name=Join('', [Ref('AWS::StackName'),
-                               '-',
-                               self.title,
-                               '.',
-                               hosted_zone_name]),
-                ResourceRecords=[GetAtt(self.trop_elb, 'DNSName')],
-                TTL=300,
-                Type='CNAME'))
+                RecordSets=[route53.RecordSet(
+                    Name=Join('', [Ref('AWS::StackName'),
+                                   '-',
+                                   self.title,
+                                   '.',
+                                   hosted_zone_name]),
+                    AliasTarget=route53.AliasTarget(dnsname=GetAtt(self.trop_elb, 'DNSName'),
+                                                    hostedzoneid=GetAtt(self.trop_elb, 'CanonicalHostedZoneNameID')),
+                    Type='A')]))
 
             self.template.add_output(Output(
                 self.trop_elb.title,
                 Description='URL of the {0} ELB'.format(self.title),
-                Value=Join('', ['http://', self.elb_r53.Name])
+                Value=Join('', ['http://', self.elb_r53.RecordSets[0].Name])
             ))
 
         else:
