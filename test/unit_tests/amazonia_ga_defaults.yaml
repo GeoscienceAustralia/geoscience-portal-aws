@@ -34,6 +34,8 @@ maxsize: '1'
 health_check_grace_period: '300'
 health_check_type: 'ELB'
 units:
+sns_topic_arn:
+sns_notification_types:
 hosted_zone_name: null
 
 ## YAML TIPS:

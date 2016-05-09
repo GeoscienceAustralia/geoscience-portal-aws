@@ -15,6 +15,12 @@ units:
     #iam_instance_profile_arn: 'arn:aws:iam::074615718262:instance-profile/natmap-iam-instance-profile-InstanceProfile-2T3T9V0FUTZU'
     #GADevs
     iam_instance_profile_arn: 'arn:aws:iam::658691668407:instance-profile/natmap-iam-instance-profile-InstanceProfile-1XCAISNTXMEHG'
+    sns_topic_arn: 'arn:aws:sns:ap-southeast-2:074615718262:natmap_service_status'
+    sns_notification_types:
+     - 'autoscaling:EC2_INSTANCE_LAUNCH'
+     - 'autoscaling:EC2_INSTANCE_LAUNCH_ERROR'
+     - 'autoscaling:EC2_INSTANCE_TERMINATE'
+     - 'autoscaling:EC2_INSTANCE_TERMINATE_ERROR'
     userdata: |
       #cloud-config
       # Capture all cloud-config output into a more readable logfile
