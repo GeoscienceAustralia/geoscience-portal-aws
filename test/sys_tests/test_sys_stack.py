@@ -70,6 +70,8 @@ runcmd:
                 'image_id': app_image_id,
                 'instance_type': instance_type,
                 'iam_instance_profile_arn': None,
+                'sns_topic_arn': None,
+                'sns_notification_types': None,
                 'userdata': userdata1},
                {'unit_title': 'app2',
                 'protocols': ['HTTP'],
@@ -84,6 +86,8 @@ runcmd:
                 'image_id': app_image_id,
                 'instance_type': instance_type,
                 'iam_instance_profile_arn': None,
+                'sns_topic_arn': None,
+                'sns_notification_types': None,
                 'userdata': userdata2}
                ]
 

@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 
 from troposphere import Base64, codedeploy, Ref, Join, Output
-from troposphere.autoscaling import AutoScalingGroup, LaunchConfiguration, Tag
+from troposphere.autoscaling import AutoScalingGroup, LaunchConfiguration, Tag, NotificationConfigurations
 
 from amazonia.classes.security_enabled_object import SecurityEnabledObject
 
@@ -9,7 +9,7 @@ from amazonia.classes.security_enabled_object import SecurityEnabledObject
 class Asg(SecurityEnabledObject):
     def __init__(self, title, vpc, template, minsize, maxsize, subnets, load_balancer,
                  keypair, image_id, instance_type, health_check_grace_period, health_check_type,
-                 iam_instance_profile_arn, userdata, cd_service_role_arn):
+                 iam_instance_profile_arn, userdata, sns_topic_arn, sns_notification_types, cd_service_role_arn):
         """
         Creates an autoscaling group and codedeploy definition
         :param title: Title of the autoscaling application e.g 'webApp1', 'api2' or 'dataprocessing'
@@ -26,6 +26,8 @@ class Asg(SecurityEnabledObject):
         :param health_check_type: either test health according to ELB or EC2 instance status check
         :param iam_instance_profile_arn: Iam instance profile ARN to allow isntance access to services like S3
         :param userdata: Instance boot script
+        :param sns_topic_arn: ARN for sns topic to notify regarding autoscale events
+        :param sns_notification_types: list of SNS autoscale notification types
         :param cd_service_role_arn: AWS IAM Role with Code Deploy permissions
         """
         super(Asg, self).__init__(vpc=vpc, title=title, template=template)
@@ -38,6 +40,7 @@ class Asg(SecurityEnabledObject):
         self.lc = None
         self.cd_app = None
         self.cd_deploygroup = None
+        self.sns_notification_configurations = None
         self.create_asg(
             title=self.title,
             minsize=minsize,
@@ -50,6 +53,8 @@ class Asg(SecurityEnabledObject):
             health_check_grace_period=health_check_grace_period,
             health_check_type=health_check_type,
             iam_instance_profile_arn=iam_instance_profile_arn,
+            sns_topic_arn=sns_topic_arn,
+            sns_notification_types=sns_notification_types,
             userdata=userdata
         )
         if cd_service_role_arn is not None:
@@ -59,7 +64,8 @@ class Asg(SecurityEnabledObject):
             )
 
     def create_asg(self, title, minsize, maxsize, subnets, load_balancer, keypair, image_id, instance_type,
-                   health_check_grace_period, health_check_type, iam_instance_profile_arn, userdata):
+                   health_check_grace_period, health_check_type, iam_instance_profile_arn, userdata, sns_topic_arn,
+                   sns_notification_types):
         """
         Creates an autoscaling group object
         AWS Cloud Formation:
@@ -77,6 +83,8 @@ class Asg(SecurityEnabledObject):
         :param health_check_type: either test health according to ELB or EC2 instance status check
         :param iam_instance_profile_arn: Iam instance profile ARN to allow isntance access to services like S3
         :param userdata: Instance boot script
+        :param sns_topic_arn: ARN for sns topic to notify regarding autoscale events
+        :param sns_notification_types: list of SNS autoscale notification types
         :return string representing Auto Scaling Group name
         """
 
@@ -90,9 +98,16 @@ class Asg(SecurityEnabledObject):
             LoadBalancerNames=[Ref(load_balancer)],
             HealthCheckGracePeriod=health_check_grace_period,
             HealthCheckType=health_check_type,
-            Tags=[Tag('Name', Join('', [Ref('AWS::StackName'), '-', title]), True)]
+            Tags=[Tag('Name', Join('', [Ref('AWS::StackName'), '-', title]), True)])
         )
-        )
+
+        if sns_topic_arn is not None:
+            if sns_notification_types is not None and isinstance(sns_notification_types, list):
+                self.sns_notification_configurations = self.trop_asg.NotificationConfigurations = \
+                    [NotificationConfigurations(TopicARN=sns_topic_arn, NotificationTypes=sns_notification_types)]
+            else:
+                raise MalformedSNSError("Error: sns_notification_types must be a non null list.")
+
         self.trop_asg.LaunchConfigurationName = Ref(self.create_launch_config(
             title=title,
             keypair=keypair,
@@ -184,5 +199,10 @@ class Asg(SecurityEnabledObject):
 
 
 class MinMaxError(Exception):
+    def __init__(self, value):
+        self.value = value
+
+
+class MalformedSNSError(Exception):
     def __init__(self, value):
         self.value = value

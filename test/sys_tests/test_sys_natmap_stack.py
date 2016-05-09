@@ -140,6 +140,8 @@ runcmd:
                 'instance_type': instance_type,
                 'hosted_zone_name': None,
                 'iam_instance_profile_arn': None,
+                'sns_topic_arn': None,
+                'sns_notification_types': None,
                 'userdata': userdata1}
                ]
 

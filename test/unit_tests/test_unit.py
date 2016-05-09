@@ -109,6 +109,8 @@ def create_unit(unit_title):
         nat=nat,
         jump=jump,
         hosted_zone_name=None,
-        gateway_attachment='testIgAtch'
+        gateway_attachment='testIgAtch',
+        sns_topic_arn=None,
+        sns_notification_types=None
     )
     return unit

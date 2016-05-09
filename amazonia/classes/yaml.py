@@ -42,6 +42,8 @@ class Yaml(object):
                               'maxsize',
                               'health_check_grace_period',
                               'iam_instance_profile_arn',
+                              'sns_topic_arn',
+                              'sns_notification_types',
                               'health_check_type']
 
         self.get_invalid_data()
