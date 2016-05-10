@@ -10,7 +10,7 @@ class Unit(object):
                  unit_title, vpc, template, protocols, public_cidr, instanceports, loadbalancerports, path2ping,
                  public_subnets, private_subnets, minsize, maxsize, keypair, image_id, instance_type, userdata,
                  cd_service_role_arn, nat, jump, hosted_zone_name, gateway_attachment, iam_instance_profile_arn,
-                 health_check_grace_period, health_check_type):
+                 sns_topic_arn, sns_notification_types, health_check_grace_period, health_check_type, elb_log_bucket):
         """
         Create an Amazonia unit, with associated Amazonia ELB and ASG
         :param unit_title: Title of the autoscaling application  prefixedx with Stack name e.g 'MyStackWebApp1',
@@ -35,8 +35,11 @@ class Unit(object):
         :param jump: jump instance for inbound ssh
         :param hosted_zone_name: Route53 hosted zone name string for Route53 record sets
         :param gateway_attachment: Stack's gateway attachment troposphere object
+        :param sns_topic_arn: ARN for sns topic to notify regarding autoscale events
+        :param sns_notification_types: list of SNS autoscale notification types
         :param health_check_grace_period: The amount of time to wait for an instance to start before checking health
         :param health_check_type: The type of health check. currently 'ELB' or 'EC2' are the only valid types.
+        :param elb_log_bucket: S3 bucket to log access log to
         """
         self.template = template
         self.public_cidr = public_cidr
@@ -50,7 +53,8 @@ class Unit(object):
             path2ping=path2ping,
             subnets=public_subnets,
             hosted_zone_name=hosted_zone_name,
-            gateway_attachment=gateway_attachment
+            gateway_attachment=gateway_attachment,
+            elb_log_bucket=elb_log_bucket
         )
         self.asg = Asg(
             vpc=vpc,
@@ -67,7 +71,9 @@ class Unit(object):
             userdata=userdata,
             load_balancer=self.elb.trop_elb,
             cd_service_role_arn=cd_service_role_arn,
-            iam_instance_profile_arn=iam_instance_profile_arn
+            iam_instance_profile_arn=iam_instance_profile_arn,
+            sns_topic_arn=sns_topic_arn,
+            sns_notification_types=sns_notification_types
         )
         [self.elb.add_ingress(sender=self.public_cidr, port=loadbalancerport) for loadbalancerport in loadbalancerports]
         [self.elb.add_flow(receiver=self.asg, port=instanceport) for instanceport in instanceports]

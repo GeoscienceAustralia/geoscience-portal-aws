@@ -2,48 +2,58 @@
 # Test Stack User Yaml for Amazonia
 #
 stack_title: 'natmap'
-
+#Natmap
+keypair: 'ga-webadmin'
 units:
   -
     unit_title: 'app'
-    image_id: 'ami-6c14310f' #latest ubuntu image
+    #Natmap
+    iam_instance_profile_arn: 'arn:aws:iam::074615718262:instance-profile/natmap-iam-instance-profile-InstanceProfile-2T3T9V0FUTZU'
+    sns_topic_arn: 'arn:aws:sns:ap-southeast-2:074615718262:natmap_service_status'
+    elb_log_bucket: 'nationalmap-loadbalancer-logs'
+    hosted_zone_name: 'app.prod.'
+    minsize: 2
+    maxsize: 2
+    image_id: 'ami-eb2b64d1'
+    instance_type: 'r3.large'
+    sns_notification_types:
+     - 'autoscaling:EC2_INSTANCE_LAUNCH'
+     - 'autoscaling:EC2_INSTANCE_LAUNCH_ERROR'
+     - 'autoscaling:EC2_INSTANCE_TERMINATE'
+     - 'autoscaling:EC2_INSTANCE_TERMINATE_ERROR'
+    #GADevs
+    #iam_instance_profile_arn: 'arn:aws:iam::658691668407:instance-profile/natmap-iam-instance-profile-InstanceProfile-1XCAISNTXMEHG'
+    #hosted_zone_name: 'gadevs.ga.'
+    #image_id: 'ami-6c14310f' #latest ubuntu image
     userdata: |
       #cloud-config
-
       # Capture all cloud-config output into a more readable logfile
-      output: {all: '| tee -a /var/log/cloud-init-output.log'}
-
+      output: {all: '| tee -a /var/log/cloud-config.log'}
+      # add a custom apt source for nodejs
+      apt_sources:
+       - source: "ppa:chris-lea/node.js"
       # update and install packages, reboot if necessary
       package_upgrade: true
       package_reboot_if_required: true
       packages:
        - ntp
        - python-pip
-       - nodejs-legacy
-       - npm
+       - nodejs
        - varnish
        - gdal-bin
-
       # any files to create
       write_files:
-
        - path: /etc/varnish/default.vcl
          content: |
           backend default {
               .host = "127.0.0.1";
               .port = "3001";
           }
-
           acl purge {
             "localhost";
             "127.0.0.1";
           }
-
-
           sub vcl_recv {
-          #  if (req.request == "GET" && req.http.cookie || req.http.authorization) {
-          #    return (lookup);
-          #  }
             if (req.request == "PURGE") {
               if (!client.ip ~ purge) {
                 error 405 "Method Not Allowed";
@@ -54,62 +64,61 @@ units:
               return (lookup);
             }
           }
-
           sub vcl_hit {
             if (req.request == "PURGE") {
               purge;
               error 200 "Purged";
             }
           }
-
           sub vcl_miss {
             if (req.request == "PURGE") {
               purge;
               error 200 "Purged";
             }
           }
-
           sub vcl_fetch
           {
             if ( beresp.status >= 400 ) {
               set beresp.ttl = 0s;
             }
           }
-
        - path: /etc/default/varnish
          content: |
           START=yes
           NFILES=131072
           MEMLOCK=82000
-          DAEMON_OPTS="-a :80 -T localhost:6082 -f /etc/varnish/default.vcl -S /etc/varnish/secret -s memcache=malloc,2G -s filecache=file,/tmp/varnish_storage.bin,10G"
-
+          DAEMON_OPTS="-a :80 -T localhost:6082 -f /etc/varnish/default.vcl -S /etc/varnish/secret -s memcache=malloc,4G -s filecache=file,/mnt/varnish_storage.bin,29G"
        - path: /etc/rsyslog.d/30-natmap.conf
          content: |
           :syslogtag, isequal, "natmap:" /var/log/natmap.log
           & ~
-
        - path: /etc/init/natmap.conf
          content: |
           start on (net-device-up and local-filesystems and runlevel [2345])
           stop on runlevel [016]
           console log
-          exec bash -c "cd /opt/natmap-2016-04-05 && /opt/natmap-2016-04-05/run_server.sh 2>&1 | logger -t natmap"
-
+          exec bash -c "cd /opt/natmap-2016-04-15 && /opt/natmap-2016-04-15/node_modules/terriajs-server/run_server.sh --config-file serverconfig.json 2>&1 | logger -t natmap"
       # run all the commands to set this instance up
       runcmd:
        - echo 'APT::Periodic::Unattended-Upgrade "1";' >> /etc/apt/apt.conf.d/10periodic
-
+       - pip install awscli
+       - npm install -g forever
       # copy and extract the webapps from S3
        - mkdir /tmp/ramfs
-
-      # natmap
+      # natmap:2016-04-15
        - mount -t ramfs ramfs /tmp/ramfs
-       - wget https://s3-ap-southeast-2.amazonaws.com/smallest-bucket-in-history/natmap/natmap-2016-04-05.tar.gz -O /tmp/ramfs/natmap-2016-04-05.tar.gz
-       - mkdir /opt/natmap-2016-04-05
-       - tar xzf /tmp/ramfs/natmap-2016-04-05.tar.gz -C /opt/natmap-2016-04-05
+       - aws s3 cp --region ap-southeast-2 s3://ga-nationalmap-apps/natmap-2016-04-15.tar.gz /tmp/ramfs/
+       - mkdir /opt/natmap-2016-04-15
+       - tar xzf /tmp/ramfs/natmap-2016-04-15.tar.gz -C /opt/natmap-2016-04-15
+       - aws s3 cp --region ap-southeast-2 s3://ga-nationalmap-apps/update-keys.sh /tmp/ramfs/update-keys.sh
+       - chmod a+x /tmp/ramfs/update-keys.sh
+       - /tmp/ramfs/update-keys.sh natmap-2016-04-15
        - umount /tmp/ramfs
-
+      # ephemeral varnish cache
+       - mke2fs -j -t ext4 -T largefile4 -L Varnish /dev/xvdb
+       - mount /dev/xvdb /mnt
       # start/restart services
        - service rsyslog restart
        - service varnish restart
        - service natmap start
+

@@ -3,7 +3,7 @@
 #
 
 userdata:
-image_id: 'ami-05446966'
+image_id: 'ami-0c95b86f'
 instance_type: 't2.micro'
 stack_title: 'GAtestStack'
 code_deploy_service_role:
@@ -15,7 +15,7 @@ availability_zones:
   - 'ap-southeast-2c'
 vpc_cidr: '10.0.0.0/16'
 public_cidr: !!python/tuple ['PublicIp', '0.0.0.0/0']
-jump_image_id: 'ami-05446966'
+jump_image_id: 'ami-0c95b86f'
 jump_instance_type: 't2.micro'
 nat_image_id: 'ami-162c0c75'
 nat_instance_type: 't2.micro'
@@ -34,7 +34,10 @@ maxsize: '1'
 health_check_grace_period: '300'
 health_check_type: 'ELB'
 units:
-hosted_zone_name: null
+sns_topic_arn:
+sns_notification_types:
+elb_log_bucket:
+hosted_zone_name:
 
 ## YAML TIPS:
 #   Lists: are denoted by indented hypens

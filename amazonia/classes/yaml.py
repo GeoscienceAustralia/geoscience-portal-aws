@@ -42,6 +42,9 @@ class Yaml(object):
                               'maxsize',
                               'health_check_grace_period',
                               'iam_instance_profile_arn',
+                              'sns_topic_arn',
+                              'sns_notification_types',
+                              'elb_log_bucket',
                               'health_check_type']
 
         self.get_invalid_data()
@@ -114,10 +117,12 @@ class Yaml(object):
         """ Validate for unecrypted aws access ids and aws secret keys
         """
         for unit, unit_values in enumerate(self.united_data['units']):
-            if self.unencrypted_access_keys(self.united_data['units'][unit]['userdata']) == 'AWS_ACCESS_ID_FOUND':
-                self.united_data['units'][unit]['userdata'] = 'AWS_ACCESS_ID_FOUND'
-            elif self.unencrypted_access_keys(self.united_data['units'][unit]['userdata']) == 'AWS_SECRET_KEY_FOUND':
-                self.united_data['units'][unit]['userdata'] = 'AWS_SECRET_KEY_FOUND'
+            if self.united_data['units'][unit]['userdata'] is not None:
+                if self.unencrypted_access_keys(self.united_data['units'][unit]['userdata']) == 'AWS_ACCESS_ID_FOUND':
+                    self.united_data['units'][unit]['userdata'] = 'AWS_ACCESS_ID_FOUND'
+                elif self.unencrypted_access_keys(self.united_data['units'][unit]['userdata']) == \
+                        'AWS_SECRET_KEY_FOUND':
+                    self.united_data['units'][unit]['userdata'] = 'AWS_SECRET_KEY_FOUND'
 
     def get_values(self, value):
         """

@@ -86,6 +86,9 @@ runcmd:
         hosted_zone_name=None,
         public_cidr=('PublicIp', '0.0.0.0/0'),
         iam_instance_profile_arn=None,
+        sns_topic_arn=None,
+        sns_notification_types=None,
+        elb_log_bucket=None,
         gateway_attachment=gateway_attachment
     )
 
@@ -113,6 +116,9 @@ runcmd:
         hosted_zone_name=None,
         public_cidr=('PublicIp', '0.0.0.0/0'),
         iam_instance_profile_arn=None,
+        sns_topic_arn=None,
+        sns_notification_types=None,
+        elb_log_bucket=None,
         gateway_attachment=gateway_attachment
     )
 
