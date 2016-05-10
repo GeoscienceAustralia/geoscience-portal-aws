@@ -2,25 +2,29 @@
 # Test Stack User Yaml for Amazonia
 #
 stack_title: 'natmap'
-
+#Natmap
+keypair: 'ga-webadmin'
 units:
   -
     unit_title: 'app'
     #Natmap
-    #hosted_zone_name: 'gadevs.ga.'
-    #GADevs
-    hosted_zone_name: 'gadevs.ga.'
-    image_id: 'ami-6c14310f' #latest ubuntu image
-    #Natmap
-    #iam_instance_profile_arn: 'arn:aws:iam::074615718262:instance-profile/natmap-iam-instance-profile-InstanceProfile-2T3T9V0FUTZU'
-    #GADevs
-    iam_instance_profile_arn: 'arn:aws:iam::658691668407:instance-profile/natmap-iam-instance-profile-InstanceProfile-1XCAISNTXMEHG'
+    iam_instance_profile_arn: 'arn:aws:iam::074615718262:instance-profile/natmap-iam-instance-profile-InstanceProfile-2T3T9V0FUTZU'
     sns_topic_arn: 'arn:aws:sns:ap-southeast-2:074615718262:natmap_service_status'
+    elb_log_bucket: 'nationalmap-loadbalancer-logs'
+    hosted_zone_name: 'app.prod.'
+    minsize: 2
+    maxsize: 2
+    image_id: 'ami-eb2b64d1'
+    instance_type: 'r3.large'
     sns_notification_types:
      - 'autoscaling:EC2_INSTANCE_LAUNCH'
      - 'autoscaling:EC2_INSTANCE_LAUNCH_ERROR'
      - 'autoscaling:EC2_INSTANCE_TERMINATE'
      - 'autoscaling:EC2_INSTANCE_TERMINATE_ERROR'
+    #GADevs
+    #iam_instance_profile_arn: 'arn:aws:iam::658691668407:instance-profile/natmap-iam-instance-profile-InstanceProfile-1XCAISNTXMEHG'
+    #hosted_zone_name: 'gadevs.ga.'
+    #image_id: 'ami-6c14310f' #latest ubuntu image
     userdata: |
       #cloud-config
       # Capture all cloud-config output into a more readable logfile
@@ -103,10 +107,6 @@ units:
        - mkdir /tmp/ramfs
       # natmap:2016-04-15
        - mount -t ramfs ramfs /tmp/ramfs
-       - aws s3 cp --region ap-southeast-2 s3://smallest-bucket-in-history/natmap/natmap-2016-04-15.tar.gz /tmp/ramfs/
-       - mkdir /opt/natmap-2016-04-15
-       - tar xzf /tmp/ramfs/natmap-2016-04-15.tar.gz -C /opt/natmap-2016-04-15
-       - aws s3 cp --region ap-southeast-2 s3://smallest-bucket-in-history/natmap/update-keys.sh /tmp/ramfs/update-keys.sh
        - aws s3 cp --region ap-southeast-2 s3://ga-nationalmap-apps/natmap-2016-04-15.tar.gz /tmp/ramfs/
        - mkdir /opt/natmap-2016-04-15
        - tar xzf /tmp/ramfs/natmap-2016-04-15.tar.gz -C /opt/natmap-2016-04-15

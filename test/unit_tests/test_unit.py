@@ -110,6 +110,7 @@ def create_unit(unit_title):
         jump=jump,
         hosted_zone_name=None,
         gateway_attachment='testIgAtch',
+        elb_log_bucket=None,
         sns_topic_arn=None,
         sns_notification_types=None
     )

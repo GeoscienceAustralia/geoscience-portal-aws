@@ -47,7 +47,8 @@ def main():
         hosted_zone_name=hosted_zone.Name,
         path2ping='/index.html',
         template=template,
-        gateway_attachment=gateway_attachment)
+        gateway_attachment=gateway_attachment,
+        elb_log_bucket='my-s3-bucket')
 
     print(template.to_json(indent=2, separators=(',', ': ')))
 

@@ -1,31 +1,36 @@
 #!/usr/bin/python3
 
+import re
 from nose.tools import *
 from troposphere import Template, Ref
+
 from amazonia.classes.elb import Elb
-import re
 
 
-def create_elb(**kwargs):
+def create_elb(instanceport='80', loadbalancerport='80', protocol='HTTP', hosted_zone_name=None, path2ping='index.html',
+               elb_log_bucket=None):
     """
     Helper function to create Elb Troposhpere object to interate through.
     :param instanceport - port for traffic to instances from the load balancer
     :param loadbalancerport - port for traffic to the load balancer from public
     :param protocol: protocol for traffic
     :param path2ping: path to test page
+    :param elb_log_bucket: S3 bucket to log access log to
+    :param hosted_zone_name: Route53 hosted zone ID
     :return: Troposphere object for Elb,
     """
     vpc = 'vpc-12345'
     pub_sub_list = ['subnet-123456', 'subnet-123496', 'subnet-123454']
     elb = Elb(title='elb',
-              instanceports=[kwargs.get('instanceport', '80')],
-              loadbalancerports=[kwargs.get('loadbalancerport', '80')],
+              instanceports=[instanceport],
+              loadbalancerports=[loadbalancerport],
               subnets=pub_sub_list,
-              protocols=[kwargs.get('protocol', 'HTTP')],
+              protocols=[protocol],
               vpc=vpc,
-              hosted_zone_name=kwargs.get('hosted_zone_name', None),
-              path2ping=kwargs.get('path2ping', 'index.html'),
+              hosted_zone_name=hosted_zone_name,
+              path2ping=path2ping,
               template=Template(),
+              elb_log_bucket=elb_log_bucket,
               gateway_attachment='testIgAtch')
     return elb
 
@@ -73,6 +78,7 @@ def test_instance_ports():
         for listener in helper_elb.trop_elb.Listeners:
             assert_equal(port, listener.InstancePort)
 
+
 def test_loadbalancer_ports():
     """
     Tests to validate that passing 'loadbalancerport' correctly sets the loadbalancer port for the Listener on the ELB
@@ -110,3 +116,8 @@ def test_security_group():
 def test_hosted_zone_name():
     helper_elb = create_elb(hosted_zone_name='myhostedzone.gadevs.ga.')
     assert helper_elb.elb_r53
+
+
+def test_elb_log_bucket():
+    helper_elb = create_elb(elb_log_bucket='my_elb_log_bucket')
+    assert helper_elb.access_logging_policy
