@@ -1,29 +1,59 @@
 #!/usr/bin/python3
-# pylint: disable=too-many-arguments, line-too-long
 
-from amazonia.amazonia_resources import *
-from amazonia.classes.stack import Stack
+from amazonia.classes.security_enabled_object import SecurityEnabledObject
+from troposphere import Tags, Ref, rds, Join, Output, GetAtt, Parameter
 
 
 class Database(SecurityEnabledObject):
-    def __init__(self, title):
-        """ Class to create a single AZ Database in a vpc """
-        super(Database, self).__init__(vpc, title)
+    def __init__(self, title, vpc, template, subnets, db_instance_type, db_engine, db_port):
+        """ Class to create an RDS and DB subnet group in a vpc
+        :param title: Title of the autoscaling application e.g 'webApp1', 'api2' or 'dataprocessing'
+        :param vpc: Troposphere vpc object, required for SecurityEnabledObject class
+        :param template: Troposphere stack to append resources to
+        :param subnets: subnets to create autoscaled instances in
+        :param db_instance_type: Size of the RDS instance
+        :param db_engine: DB engine type (Postgres, Oracle, MySQL, etc)
+        :param db_port: Port of RDS instance
+        """
+        self.title = title + 'Rds'
+        self.db_subnet_group_title = title + "Dsg"
+        super(Database, self).__init__(vpc=vpc, title=self.title, template=template)
 
-        my_hiera_client = hiera.HieraClient(hiera_file, hiera_path=hiera_directory, application='my_app_name')
-        username = my_hiera_client.get('my_app_name::rds_user')
-        password = my_hiera_client.get('my_app_name::rds_password')
+        self.db_subnet_group = template.add_resource(
+            rds.DBSubnetGroup(self.db_subnet_group_title,
+                              DBSubnetGroupDescription=self.db_subnet_group_title,
+                              SubnetIds=[Ref(x) for x in subnets],
+                              Tags=Tags(Name=self.db_subnet_group_title)))
 
-        raw_subnets = [self.sub_pri1, self.sub_pri2, self.sub_pri3]
+        self.username = self.template.add_parameter(Parameter(
+            self.title+'Username', Type='String', Description='Master username of {0} RDS'.format(self.title),
+            NoEcho=True))
 
-        db_subnet_group = add_db_subnet_group(self, raw_subnets)
-        # managed by SEO - db_security_group = add_security_group(self, self.vpc)
-        db = add_db(self, "postgres", db_subnet_group, username, password, db_security_groups=db_security_group)
-        # TODO convert to troposhere
-        # TODO pass and contruct title rather than generate
+        self.password = self.template.add_parameter(Parameter(
+            self.title+'Password', Type='String', Description='Master password of {0} RDS'.format(self.title),
+            NoEcho=True))
 
-        # Security Group Ingress/Egress
-        add_security_group_ingress(self, db_security_group, "tcp", db.db_port, db.db_port)
+        self.db = template.add_resource(
+            rds.DBInstance(self.title,
+                           AllocatedStorage=5,
+                           AllowMajorVersionUpgrade=True,
+                           AutoMinorVersionUpgrade=True,
+                           MultiAZ=True,
+                           DBInstanceClass=db_instance_type,
+                           DBSubnetGroupName=Ref(self.db_subnet_group),
+                           Engine=db_engine,
+                           MasterUsername=Ref(self.username),
+                           MasterUserPassword=Ref(self.password),
+                           Port=db_port,
+                           VPCSecurityGroups=[Ref(self.security_group)],
+                           Tags=Tags(Name=Join('', [Ref('AWS::StackName'), '-', self.title]))))
 
+        self.template.add_output(Output(
+            self.db.title+'Address',
+            Description='Address of the {0} RDS'.format(self.title),
+            Value=GetAtt(self.db, 'Endpoint.Address')))
 
-
+        self.template.add_output(Output(
+            self.db.title+'Port',
+            Description='Port of the {0} RDS'.format(self.title),
+            Value=GetAtt(self.db, 'Endpoint.Port')))
