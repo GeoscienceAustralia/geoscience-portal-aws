@@ -4,6 +4,7 @@ from troposphere import ec2, Ref, Tags, Template
 
 from amazonia.classes.database import Database
 
+
 def main():
     template = Template()
     vpc = template.add_resource(ec2.VPC('MyVPC',
