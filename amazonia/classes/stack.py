@@ -124,7 +124,6 @@ class Stack(object):
         """ Add Routes
         """
 
-
         self.public_route = self.template.add_resource(ec2.Route(self.title + 'PubRtInboundRoute',
                                                                  GatewayId=Ref(self.internet_gateway),
                                                                  RouteTableId=Ref(self.public_route_table),
