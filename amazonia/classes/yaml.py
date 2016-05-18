@@ -178,6 +178,6 @@ class Yaml(object):
         :param home_cidrs: list of cidr tuples from unit_data yaml, tuple is in the form (name, cidr)
         """
         for num, cidr in enumerate(home_cidrs):
-            if validate_cidr(cidr[1]) is False:
-                cidr_title = self.validate_title(cidr[0])
+            if validate_cidr(cidr['cidr']) is False:
+                cidr_title = self.validate_title(cidr['name'])
                 self.united_data['home_cidrs'][num] = cidr_title, 'INVALID_CIDR'
