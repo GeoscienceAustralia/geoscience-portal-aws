@@ -2,7 +2,7 @@
 
 from troposphere import ec2, Ref, Tags, Template
 
-from amazonia.classes.database import Database
+from amazonia.classes.database_unit import DatabaseUnit
 
 
 def main():
@@ -31,14 +31,14 @@ def main():
                                                        VpcId=Ref(vpc),
                                                        CidrBlock='10.0.3.0/24'))]
 
-    Database(title='MyDb',
-             subnets=public_subnets,
-             vpc=vpc,
-             template=template,
-             db_instance_type='db.m1.small',
-             db_engine='postgres',
-             db_port='5432'
-             )
+    DatabaseUnit(title='MyDb',
+                 subnets=public_subnets,
+                 vpc=vpc,
+                 template=template,
+                 db_instance_type='db.m1.small',
+                 db_engine='postgres',
+                 db_port='5432'
+                 )
 
     print(template.to_json(indent=2, separators=(',', ': ')))
 

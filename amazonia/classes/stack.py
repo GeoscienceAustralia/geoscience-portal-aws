@@ -4,12 +4,14 @@ from troposphere import Ref, Template, ec2, Tags, Join
 
 from amazonia.classes.single_instance import SingleInstance
 from amazonia.classes.subnet import Subnet
-from amazonia.classes.unit import Unit
+from amazonia.classes.autoscaling_unit import AutoscalingUnit
+from amazonia.classes.database_unit import DatabaseUnit
 
 
 class Stack(object):
     def __init__(self, stack_title, code_deploy_service_role, keypair, availability_zones, vpc_cidr, home_cidrs,
-                 public_cidr, jump_image_id, jump_instance_type, nat_image_id, nat_instance_type, units):
+                 public_cidr, jump_image_id, jump_instance_type, nat_image_id, nat_instance_type, autoscaling_units,
+                 database_units):
         """
         Create a vpc, nat, jumphost, internet gateway, public/private route tables, public/private subnets
          and collection of Amazonia units
@@ -28,8 +30,9 @@ class Stack(object):
         :param jump_instance_type: instance type for jumphost
         :param nat_image_id: AMI for nat
         :param nat_instance_type: instance type for nat
-        :param units: list of unit dicts (unit_title, protocol, port, path2ping, minsize, maxsize, image_id,
-        instance_type, userdata, hosted_zone_name)
+        :param autoscaling_units: list of autoscaling_unit dicts (unit_title, protocol, port, path2ping, minsize,
+        maxsize, image_id, instance_type, userdata, hosted_zone_name)
+        :param database_units: list of dabase_unit dicts (db_instance_type, db_engine, db_port)
         """
         super(Stack, self).__init__()
         self.title = stack_title
@@ -41,7 +44,7 @@ class Stack(object):
         self.home_cidrs = home_cidrs
         self.public_cidr = public_cidr
 
-        self.units = []
+        self.units = {}
         self.private_subnets = []
         self.public_subnets = []
 
@@ -135,23 +138,45 @@ class Stack(object):
                                                                   DestinationCidrBlock=public_cidr[1]))
         self.private_route.DependsOn = self.gateway_attachment.title
 
-        """ Add Units
+        """ Add Autoscaling Units
         """
-        for unit in units:
-            unit['unit_title'] = self.title + unit['unit_title']
-            self.units.append(Unit(
-                                   vpc=self.vpc,
-                                   template=self.template,
-                                   public_subnets=self.public_subnets,
-                                   private_subnets=self.private_subnets,
-                                   keypair=self.keypair,
-                                   cd_service_role_arn=self.code_deploy_service_role,
-                                   nat=self.nat,
-                                   jump=self.jump,
-                                   gateway_attachment=self.gateway_attachment,
-                                   public_cidr=self.public_cidr,
-                                   **unit
-                                   ))
+        for unit in autoscaling_units:
+            if unit['unit_title'] in self.units:
+                raise DuplicateUnitNameError("Error: autoscaling unit name '{0}' has already been specified, "
+                                             "it must be unique.".format(unit['unit_title']))
+            self.units['unit_title'] = AutoscalingUnit(
+                unit_title=self.title + unit['unit_title'],
+                vpc=self.vpc,
+                template=self.template,
+                public_subnets=self.public_subnets,
+                private_subnets=self.private_subnets,
+                keypair=self.keypair,
+                cd_service_role_arn=self.code_deploy_service_role,
+                nat=self.nat,
+                jump=self.jump,
+                gateway_attachment=self.gateway_attachment,
+                public_cidr=self.public_cidr,
+                **unit
+            )
+        """ Add Database Units
+        """
+        for unit in database_units:
+            if unit['unit_title'] in self.units:
+                raise DuplicateUnitNameError("Error: database unit name '{0}' has already been specified, "
+                                             "it must be unique.".format(unit['unit_title']))
+            self.units['unit_title'] = DatabaseUnit(
+                unit_title=self.title + unit['unit_title'],
+                vpc=self.vpc,
+                template=self.template,
+                subnets=self.private_subnets,
+                **unit
+            )
+        """ Add Unit flow
+        """
+        for unit_name in self.units:
+            dependencies = self.units[unit_name].get_dependencies()
+            for dependency in dependencies:
+                self.units[unit_name].add_unit_flow(self.units[dependency])
 
     def generate_subnet_cidr(self, is_public):
         """
@@ -168,3 +193,8 @@ class Stack(object):
         cidr_split[3] = '/'.join(cidr_last)  # join last group for subnet mask
 
         return '.'.join(cidr_split)
+
+
+class DuplicateUnitNameError(Exception):
+    def __init__(self, value):
+        self.value = value

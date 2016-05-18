@@ -2,7 +2,7 @@ from nose.tools import *
 from troposphere import ec2, Ref, Template
 
 from amazonia.classes.single_instance import SingleInstance
-from amazonia.classes.unit import Unit
+from amazonia.classes.autoscaling_unit import AutoscalingUnit
 
 userdata = template = vpc = private_subnets = public_subnets = nat = jump = health_check_grace_period = \
     health_check_type = None
@@ -85,7 +85,7 @@ def test_unit_association():
 def create_unit(unit_title):
     global userdata, template, vpc, private_subnets, public_subnets, nat, jump, health_check_grace_period, \
         health_check_type
-    unit = Unit(
+    unit = AutoscalingUnit(
         unit_title=unit_title,
         vpc=vpc,
         template=template,

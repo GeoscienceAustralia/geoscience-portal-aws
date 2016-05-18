@@ -3,7 +3,7 @@
 from nose.tools import *
 from troposphere import ec2, Ref, Tags, Template
 
-from amazonia.classes.database import Database
+from amazonia.classes.database_unit import DatabaseUnit
 
 
 def test_database():
@@ -30,14 +30,14 @@ def test_database():
                                                        AvailabilityZone='ap-southeast-2c',
                                                        VpcId=Ref(vpc),
                                                        CidrBlock='10.0.3.0/24'))]
-    db = Database(title='MyDb',
-                  subnets=public_subnets,
-                  vpc=vpc,
-                  template=template,
-                  db_instance_type='db.m1.small',
-                  db_engine='postgres',
-                  db_port='5432'
-                  )
+    db = DatabaseUnit(title='MyDb',
+                      subnets=public_subnets,
+                      vpc=vpc,
+                      template=template,
+                      db_instance_type='db.m1.small',
+                      db_engine='postgres',
+                      db_port='5432'
+                      )
     assert_equals(db.trop_db.DBInstanceClass, 'db.m1.small')
     assert_equals(db.trop_db.Engine, 'postgres')
     assert_equals(db.trop_db.Port, '5432')

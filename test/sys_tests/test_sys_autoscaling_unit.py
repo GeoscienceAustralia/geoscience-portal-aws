@@ -3,7 +3,7 @@
 from troposphere import ec2, Ref, Template, Join, Tags
 
 from amazonia.classes.single_instance import SingleInstance
-from amazonia.classes.unit import Unit
+from amazonia.classes.autoscaling_unit import AutoscalingUnit
 
 
 def main():
@@ -62,7 +62,7 @@ runcmd:
 
     service_role_arn = 'arn:aws:iam::658691668407:role/CodeDeployServiceRole'
 
-    unit1 = Unit(
+    unit1 = AutoscalingUnit(
         unit_title='app1',
         vpc=vpc,
         template=template,
@@ -92,7 +92,7 @@ runcmd:
         gateway_attachment=gateway_attachment
     )
 
-    unit2 = Unit(
+    unit2 = AutoscalingUnit(
         unit_title='app2',
         vpc=vpc,
         template=template,

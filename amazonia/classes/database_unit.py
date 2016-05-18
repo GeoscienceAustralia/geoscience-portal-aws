@@ -4,20 +4,25 @@ from amazonia.classes.security_enabled_object import SecurityEnabledObject
 from troposphere import Tags, Ref, rds, Join, Output, GetAtt, Parameter
 
 
-class Database(SecurityEnabledObject):
-    def __init__(self, title, vpc, template, subnets, db_instance_type, db_engine, db_port):
+class DatabaseUnit(SecurityEnabledObject):
+    def __init__(self, unit_title, vpc, template, subnets, db_instance_type, db_engine, db_port, dependencies):
         """ Class to create an RDS and DB subnet group in a vpc
-        :param title: Title of the autoscaling application e.g 'webApp1', 'api2' or 'dataprocessing'
+        :param unit_title: Title of the autoscaling application e.g 'webApp1', 'api2' or 'dataprocessing'
         :param vpc: Troposphere vpc object, required for SecurityEnabledObject class
         :param template: Troposphere stack to append resources to
         :param subnets: subnets to create autoscaled instances in
         :param db_instance_type: Size of the RDS instance
         :param db_engine: DB engine type (Postgres, Oracle, MySQL, etc)
         :param db_port: Port of RDS instance
+        :param dependencies: list of unit names this unit needs access to
         """
-        self.title = title + 'Rds'
-        self.db_subnet_group_title = title + "Dsg"
-        super(Database, self).__init__(vpc=vpc, title=self.title, template=template)
+        self.title = unit_title + 'Rds'
+        if dependencies is not None:
+            raise InvalidFlowError("Error: database_unit {0} may only be the destination of flow, not the originator."
+                                   .format(self.title))
+        self.db_subnet_group_title = unit_title + "Dsg"
+        self.port = db_port
+        super(DatabaseUnit, self).__init__(vpc=vpc, title=self.title, template=template)
 
         self.trop_db_subnet_group = template.add_resource(
             rds.DBSubnetGroup(self.db_subnet_group_title,
@@ -44,7 +49,7 @@ class Database(SecurityEnabledObject):
                            Engine=db_engine,
                            MasterUsername=Ref(self.username),
                            MasterUserPassword=Ref(self.password),
-                           Port=db_port,
+                           Port=self.port,
                            VPCSecurityGroups=[Ref(self.security_group)],
                            Tags=Tags(Name=Join('', [Ref('AWS::StackName'), '-', self.title]))))
 
@@ -57,3 +62,35 @@ class Database(SecurityEnabledObject):
             self.trop_db.title+'Port',
             Description='Port of the {0} RDS'.format(self.title),
             Value=GetAtt(self.trop_db, 'Endpoint.Port')))
+
+    def get_dependencies(self):
+        """
+        :return: returns an empty list as a database has no upstream dependencies
+        """
+        return []
+
+    def get_destination(self):
+        """
+        :return: returns a reference to the destination security enabled object of the unit, in this case: itself
+        """
+        return self
+
+    def get_inbound_ports(self):
+        """
+        :return: returns database port in an array
+        """
+        return [self.port]
+
+    def add_unit_flow(self, receiver, port):
+        """
+        Create security group flow from this Amazonia unit's ASG to another unit's ELB
+        :param receiver: Other Amazonia Unit
+        :param port: port for webserver and ELB to communicate via
+        """
+        raise InvalidFlowError("Error: database_unit {0} may only be the destination of flow, not the originator."
+                               .format(self.title))
+
+
+class InvalidFlowError(Exception):
+    def __init__(self, value):
+        self.value = value
