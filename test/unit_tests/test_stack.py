@@ -35,14 +35,14 @@ runcmd:
     instance_type = 't2.nano'
     code_deploy_service_role = 'arn:aws:iam::658691668407:role/CodeDeployServiceRole'
     vpc_cidr = '10.0.0.0/16'
-    home_cidrs = [('GA', '192.104.44.129/32'), ('home', '192.168.0.1/16')]
+    home_cidrs = [{'name': 'GA', 'cidr': '192.104.44.129/32'}, {'name': 'home', 'cidr': '192.168.0.1/16'}]
     instanceports = ['80']
     loadbalancerports = ['80']
     protocols = ['HTTP']
     minsize = 1
     maxsize = 1
     path2ping = '/index.html'
-    public_cidr = ('PublicIp', '0.0.0.0/0')
+    public_cidr = [{'name': 'PublicIp', 'cidr': '0.0.0.0/0'}]
     health_check_grace_period = 300
     health_check_type = 'ELB'
 
@@ -57,7 +57,7 @@ def test_stack():
     assert_equals(stack.availability_zones, availability_zones)
     assert_equals(stack.vpc_cidr, vpc_cidr)
     [assert_equals(stack.home_cidrs[num], home_cidrs[num]) for num in range(len(home_cidrs))]
-    assert_equals(stack.public_cidr, ('PublicIp', '0.0.0.0/0'))
+    assert_equals(stack.public_cidr, {'name': 'PublicIp', 'cidr': '0.0.0.0/0'})
 
     assert_equals(stack.vpc.title, title + 'Vpc')
     assert_equals(stack.vpc.CidrBlock, vpc_cidr)

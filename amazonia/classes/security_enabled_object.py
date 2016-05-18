@@ -48,10 +48,10 @@ class SecurityEnabledObject(object):
                 **common
                 )))
         else:
-            name = self.title + port + 'From' + sender[0] + port
+            name = self.title + port + 'From' + sender['name'] + port
             self.ingress.append(self.template.add_resource(ec2.SecurityGroupIngress(
                 name,
-                CidrIp=sender[1],
+                CidrIp=sender['cidr'],
                 **common
                 )))
 
@@ -75,10 +75,10 @@ class SecurityEnabledObject(object):
                 **common
                 )))
         else:
-            name = self.title + port + 'To' + receiver[0] + port
+            name = self.title + port + 'To' + receiver['name'] + port
             self.egress.append(self.template.add_resource(ec2.SecurityGroupEgress(
                 name,
-                CidrIp=receiver[1],
+                CidrIp=receiver['cidr'],
                 **common
                 )))
 
