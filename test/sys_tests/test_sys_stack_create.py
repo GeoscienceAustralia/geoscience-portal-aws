@@ -51,7 +51,6 @@ create_response = cf_client.create_stack(
             'Value': infra_code_version
         },
         tags,
-
     ]
 )
 
