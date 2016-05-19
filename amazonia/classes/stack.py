@@ -39,7 +39,7 @@ class Stack(object):
         self.availability_zones = availability_zones
         self.vpc_cidr = vpc_cidr
         self.home_cidrs = home_cidrs
-        self.public_cidr = public_cidr[0]
+        self.public_cidr = public_cidr
 
         self.units = []
         self.private_subnets = []

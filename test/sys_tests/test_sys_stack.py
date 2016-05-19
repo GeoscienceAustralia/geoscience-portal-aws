@@ -56,7 +56,7 @@ runcmd:
         nat_image_id=nat_image_id,
         nat_instance_type=instance_type,
         home_cidrs=[{'name': 'GA', 'cidr': '192.104.44.129/32'}],
-        public_cidr=[{'name': 'PublicIp', 'cidr': '0.0.0.0/0'}],
+        public_cidr={'name': 'PublicIp', 'cidr': '0.0.0.0/0'},
         units=[{'unit_title': 'app1',
                 'protocols': ['HTTP'],
                 'instanceports': ['80'],

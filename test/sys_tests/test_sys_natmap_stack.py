@@ -121,7 +121,7 @@ runcmd:
         keypair='pipeline',
         availability_zones=['ap-southeast-2a', 'ap-southeast-2b', 'ap-southeast-2c'],
         vpc_cidr='10.0.0.0/16',
-        public_cidr=[{'name': 'PublicIp', 'cidr': '0.0.0.0/0'}],
+        public_cidr={'name': 'PublicIp', 'cidr': '0.0.0.0/0'},
         jump_image_id=jump_image_id,
         jump_instance_type=instance_type,
         nat_image_id=nat_image_id,

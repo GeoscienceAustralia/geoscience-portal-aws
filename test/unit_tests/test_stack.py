@@ -42,7 +42,7 @@ runcmd:
     minsize = 1
     maxsize = 1
     path2ping = '/index.html'
-    public_cidr = [{'name': 'PublicIp', 'cidr': '0.0.0.0/0'}]
+    public_cidr = {'name': 'PublicIp', 'cidr': '0.0.0.0/0'}
     health_check_grace_period = 300
     health_check_type = 'ELB'
 
