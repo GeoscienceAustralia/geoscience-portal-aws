@@ -112,7 +112,7 @@ class Yaml(object):
         """ Validate title of home_cidrs tuple items
         """
         self.united_data['home_cidrs'] = \
-            [(self.validate_title(cidr[0]), cidr[1]) for cidr in self.united_data['home_cidrs']]
+            [{'name': self.validate_title(cidr['name']), 'cidr': cidr['cidr']} for cidr in self.united_data['home_cidrs']]
 
         """ Validate for unecrypted aws access ids and aws secret keys
         """
@@ -178,6 +178,6 @@ class Yaml(object):
         :param home_cidrs: list of cidr tuples from unit_data yaml, tuple is in the form (name, cidr)
         """
         for num, cidr in enumerate(home_cidrs):
-            if validate_cidr(cidr[1]) is False:
-                cidr_title = self.validate_title(cidr[0])
-                self.united_data['home_cidrs'][num] = cidr_title, 'INVALID_CIDR'
+            if validate_cidr(cidr['cidr']) is False:
+                cidr_title = self.validate_title(cidr['name'])
+                self.united_data['home_cidrs'][num] = {'name': cidr_title, 'cidr': 'INVALID_CIDR'}

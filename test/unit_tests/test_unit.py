@@ -95,7 +95,7 @@ def create_unit(unit_title):
         path2ping='index.html',
         public_subnets=public_subnets,
         private_subnets=private_subnets,
-        public_cidr=('PublicIp', '0.0.0.0/0'),
+        public_cidr={'name': 'PublicIp','cidr': '0.0.0.0/0'},
         minsize=1,
         maxsize=1,
         keypair='pipeline',

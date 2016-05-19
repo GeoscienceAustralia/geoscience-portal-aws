@@ -123,16 +123,17 @@ class Stack(object):
 
         """ Add Routes
         """
+
         self.public_route = self.template.add_resource(ec2.Route(self.title + 'PubRtInboundRoute',
                                                                  GatewayId=Ref(self.internet_gateway),
                                                                  RouteTableId=Ref(self.public_route_table),
-                                                                 DestinationCidrBlock=public_cidr[1]))
+                                                                 DestinationCidrBlock=self.public_cidr['cidr']))
         self.public_route.DependsOn = self.gateway_attachment.title
 
         self.private_route = self.template.add_resource(ec2.Route(self.title + 'PriRtOutboundRoute',
                                                                   InstanceId=Ref(self.nat.single),
                                                                   RouteTableId=Ref(self.private_route_table),
-                                                                  DestinationCidrBlock=public_cidr[1]))
+                                                                  DestinationCidrBlock=self.public_cidr['cidr']))
         self.private_route.DependsOn = self.gateway_attachment.title
 
         """ Add Units

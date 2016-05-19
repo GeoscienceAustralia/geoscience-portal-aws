@@ -78,13 +78,13 @@ def test_add_ip_ingress():
     myvpc = ec2.VPC('myVpc', CidrBlock='10.0.0.0/16')
     myobj = SecurityEnabledObject(title="Unit01Web", vpc=myvpc, template=template)
 
-    cidrs = [('GA1', '123.123.132.123/24'),
-             ('GA2', '321.321.321.321/32'),
-             ('PublicIp', '0.0.0.0/0')]
+    cidrs = [{'name': 'GA1', 'cidr': '123.123.132.123/24'},
+             {'name': 'GA2', 'cidr': '321.321.321.321/32'},
+             {'name': 'PublicIp', 'cidr': '0.0.0.0/0'}]
 
     for num, cidr in enumerate(cidrs):
         myobj.add_ingress(cidr, port='80')
-        assert_equals(myobj.ingress[num].title, 'Unit01Web80From{0}80'.format(cidr[0]))
+        assert_equals(myobj.ingress[num].title, 'Unit01Web80From{0}80'.format(cidr['name']))
         assert_equals(myobj.ingress[num].IpProtocol, 'tcp')
         assert_equals(myobj.ingress[num].FromPort, '80')
         assert_equals(myobj.ingress[num].ToPort, '80')
@@ -98,13 +98,13 @@ def test_add_ip_egress():
     myvpc = ec2.VPC('myVpc', CidrBlock='10.0.0.0/16')
     myobj = SecurityEnabledObject(title="Unit01Web", vpc=myvpc, template=template)
 
-    cidrs = [('GA1', '123.123.132.123/24'),
-             ('GA2', '321.321.321.321/32'),
-             ('PublicIp', '0.0.0.0/0')]
+    cidrs = [{'name': 'GA1', 'cidr': '123.123.132.123/24'},
+             {'name': 'GA2', 'cidr': '321.321.321.321/32'},
+             {'name': 'PublicIp', 'cidr': '0.0.0.0/0'}]
 
     for num, cidr in enumerate(cidrs):
         myobj.add_egress(cidr, port='80')
-        assert_equals(myobj.egress[num].title, 'Unit01Web80To{0}80'.format(cidr[0]))
+        assert_equals(myobj.egress[num].title, 'Unit01Web80To{0}80'.format(cidr['name']))
         assert_equals(myobj.egress[num].IpProtocol, 'tcp')
         assert_equals(myobj.egress[num].FromPort, '80')
         assert_equals(myobj.egress[num].ToPort, '80')
