@@ -52,7 +52,7 @@ runcmd:
 
     health_check_grace_period = 300
     health_check_type = 'ELB'
-    cd_service_role_arn = 'arn:aws:iam::658691668407:role/CodeDeployServiceRole'
+    cd_service_role_arn = 'arn:aws:iam::12345678987654321:role/CodeDeployServiceRole'
     iam_instance_profile_arn = 'arn:aws:iam::12345678987654321:role/InstanceProfileRole'
     image_id = 'ami-05446966'
     instance_type = 't2.micro'
@@ -98,7 +98,7 @@ def test_asg():
         assert_equals(asg.cd_deploygroup.title, title + 'Asg' + 'Cdg')
         assert_is(type(asg.cd_deploygroup.DeploymentGroupName), Join)
         [assert_is(type(cdasg), Ref) for cdasg in asg.cd_deploygroup.AutoScalingGroups]
-        assert_equals(asg.cd_deploygroup.ServiceRoleArn, 'arn:aws:iam::658691668407:role/CodeDeployServiceRole')
+        assert_equals(asg.cd_deploygroup.ServiceRoleArn, 'arn:aws:iam::12345678987654321:role/CodeDeployServiceRole')
 
 
 @with_setup(setup_resources())

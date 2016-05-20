@@ -1,10 +1,11 @@
 #!/usr/bin/python3
 
-from nose.tools import *
-from amazonia.classes.yaml import Yaml, InvalidKeyError, InsecureVariableError, InvalidTitleError
-import string
-import yaml
 import os
+
+import yaml
+from nose.tools import *
+
+from amazonia.classes.yaml import Yaml, InvalidKeyError, InsecureVariableError, InvalidTitleError, InvalidCidrError
 
 default_data = None
 
@@ -31,136 +32,146 @@ def open_yaml_file(file_path):
 
 
 @with_setup(setup_resources())
-def test_get_valid_values():
-    """     Testing for multiple conditions:
-            Valid values in stack_key_list
-            Valid values in unit_key_list
-            Invalid values in stack_key_list
-            Invalid values in unit_key_list
-    """
-    valid_stack_data = open_yaml_file('valid.yaml')
-    yaml_return = Yaml(valid_stack_data, default_data)
-    stack_input = yaml_return.united_data
-
-    valid_stack_values = {'jump_image_id': 'ami-05446966',
-                          'nat_image_id': 'ami-162c0c75',
-                          'vpc_cidr': '10.0.0.0.0/16'}
-    valid_unit_values = {'unit_title': 'app1',
-                         'protocol': 'HTTP',
-                         'minsize': '1'}
-
-    [assert_in(k, yaml_return.stack_key_list) for k, _ in valid_stack_values.items()]
-    [assert_in(k, yaml_return.unit_key_list) for k, _ in valid_unit_values.items()]
-    [assert_not_in(k, yaml_return.stack_key_list) for k, _ in invalid_stack_values.items()]
-    [assert_not_in(k, yaml_return.unit_key_list) for k, _ in invalid_unit_values.items()]
-
-    minsize = stack_input['units'][0]['minsize']
-    assert_equals(minsize, '1')
-
-    instanceport = stack_input['units'][0]['instanceports'][0]
-    assert_equals(instanceport, '80')
-
-    loadbalancerport = stack_input['units'][0]['loadbalancerports'][0]
-    assert_equals(loadbalancerport, '80')
-
-    nat_instance_type = stack_input['nat_instance_type']
-    assert_equals(nat_instance_type, 't2.micro')
-
-    keypair = stack_input['keypair']
-    assert_equals(keypair, 'pipeline')
-
-
-@with_setup(setup_resources())
-def test_stack_value():
+def test_complete_valid_values():
     """
     Validate stack yaml value is a list of dictionaries
     Validate that stack value exists in expected list of stack values
     :return:
     """
-    stack_key_list = yaml_return.stack_key_list
+    global default_data
+    valid_stack_data = open_yaml_file('complete_valid.yaml')
+    amz_yaml = Yaml(valid_stack_data, default_data)
+    stack_input = amz_yaml.united_data
 
-    """ Assert stack values are of type dict
-    """
+    """ Assert stack values are of type dict"""
     assert_equals(type(stack_input), dict)
 
-    """
-    Create counter dictionary, Assert stack_key is part of stack key list, delete from counter dictionary,
-    Assert no values of united stack values remain after deleting them after verifying their existence
-    in amazonia's expected stack_key_list
-    """
-    counter = {unit_key: unit_value for unit_key, unit_value in stack_input.items()}
-    for stack_key, stack_value in stack_input.items():
-        assert_in(stack_key, stack_key_list)
-        del counter[stack_key]
+    ''' Assert that there are no invalid stack keys'''
+    stack_input_set = set(stack_input)
+    expected_stack_set = set(Yaml.stack_key_list)
+    assert_equals(len(stack_input_set.difference(expected_stack_set)), 0)
 
-    assert_equals(len(counter), 0)
+    ''' Assert that there are no stack keys we missed'''
+    assert_equals(len(expected_stack_set.difference(stack_input_set)), 0)
+
+    '''Assert correct values'''
+    assert_equals(stack_input['stack_title'], '')
+    assert_equals(stack_input['code_deploy_service_role'], '')
+    assert_equals(stack_input['keypair'], '')
+    assert_equals(stack_input['availability_zones'], '')
+    assert_equals(stack_input['vpc_cidr'], '')
+    assert_equals(stack_input['public_cidr'], '')
+    assert_equals(stack_input['jump_image_id'], '')
+    assert_equals(stack_input['jump_instance_type'], '')
+    assert_equals(stack_input['nat_image_id'], '')
+    assert_equals(stack_input['nat_instance_type'], '')
+    assert_equals(stack_input['home_cidrs'], '')
+    assert_equals(stack_input['autoscaling_units'], '')
+    assert_equals(stack_input['database_units'], '')
+
+    autoscaling_unit_input = stack_input['autoscaling_units'][0]
+
+    """ Assert autoscaling unit values are of type dict"""
+    assert_equals(type(autoscaling_unit_input), dict)
+
+    '''Assert that there are no invalid autoscaling unit keys'''
+    autoscaling_unit_input_set = set(autoscaling_unit_input)
+    expected_autoscaling_unit_set = set(Yaml.unit_key_list['autoscaling_units'])
+    assert_equals(len(autoscaling_unit_input_set.difference(expected_autoscaling_unit_set)), 0)
+
+    ''' Assert that there are no autoscaling unit keys we missed'''
+    assert_equals(len(expected_autoscaling_unit_set.difference(autoscaling_unit_input_set)), 0)
+
+    assert_equals(autoscaling_unit_input['unit_title'], '')
+    assert_equals(autoscaling_unit_input['hosted_zone_name'], '')
+    assert_equals(autoscaling_unit_input['userdata'], '')
+    assert_equals(autoscaling_unit_input['image_id'], '')
+    assert_equals(autoscaling_unit_input['instance_type'], '')
+    assert_equals(autoscaling_unit_input['path2ping'], '')
+    assert_equals(autoscaling_unit_input['protocols'], '')
+    assert_equals(autoscaling_unit_input['loadbalancerports'], '')
+    assert_equals(autoscaling_unit_input['instanceports'], '')
+    assert_equals(autoscaling_unit_input['minsize'], '')
+    assert_equals(autoscaling_unit_input['maxsize'], '')
+    assert_equals(autoscaling_unit_input['health_check_grace_period'], '')
+    assert_equals(autoscaling_unit_input['iam_instance_profile_arn'], '')
+    assert_equals(autoscaling_unit_input['sns_topic_arn'], '')
+    assert_equals(autoscaling_unit_input['sns_notification_types'], '')
+    assert_equals(autoscaling_unit_input['elb_log_bucket'], '')
+    assert_equals(autoscaling_unit_input['health_check_type'], '')
+    assert_equals(autoscaling_unit_input['dependencies'], '')
+
+    database_unit_input = stack_input['database_units'][0]
+
+    """ Assert database unit values are of type dict"""
+    assert_equals(type(database_unit_input), dict)
+
+    '''Assert that there are no invalid database unit keys'''
+    database_unit_input_set = set(database_unit_input)
+    expected_database_unit_set = set(Yaml.unit_key_list['database_units'])
+    assert_equals(len(database_unit_input_set.difference(expected_database_unit_set)), 0)
+
+    ''' Assert that there are no database unit keys we missed'''
+    assert_equals(len(expected_database_unit_set.difference(database_unit_input_set)), 0)
+
+    assert_equals(database_unit_input['unit_title'], '')
+    assert_equals(database_unit_input['db_instance_type'], '')
+    assert_equals(database_unit_input['db_engine'], '')
+    assert_equals(database_unit_input['db_port'], '')
+    assert_equals(database_unit_input['dependencies'], '')
 
 
 @with_setup(setup_resources())
-def test_units():
-    """
-    Validate unit yaml value is a list of dictionaries
-    Validate that unit value exists in expected list of unit values
-    """
-    unit_key_list = yaml_return.unit_key_list
-
-    """ Assert units is of type list
-    """
-    assert_equals(type(stack_input['units']), list)
-
-    """ Assert unit is of type dictionary
-    """
-    for unit in stack_input['units']:
-        assert_equals(type(unit), dict)
-        """
-        Create counter dictionary, Assert unit_key is part of unit key list, delete from counter dictionary,
-        Assert no values of united unit values remain after deleting them after verifying their existence
-        in amazonia's expected unit_key_list
-        """
-        counter = {unit_key: unit_value for unit_key, unit_value in unit.items()}
-        for unit_key in unit:
-            assert_in(unit_key, unit_key_list)
-            del counter[unit_key]
-
-        assert_equals(len(counter), 0)
-
-
-@with_setup(setup_resources())
-def validate_home_cidrs():
-    """
-    Testing home_cidr with invalid CIDR notation updates united data with 'INVALID_CIDR'
-    """
-    cidr = stack_input['home_cidrs'][0]
-    assert_equals(cidr, 'INVALID_CIDR')
-
-
-@with_setup(setup_resources())
-def test_validate_cidr():
+def test_validate_cidr_yaml():
     """
     Testing vpc_cidr with invalid CIDR notation updates united data with 'INVALID_CIDR'
     """
-    cidr = stack_input['vpc_cidr']
-    assert_equals(cidr, 'INVALID_CIDR')
+    global default_data
+
+    invalid_stack_data = open_yaml_file('invalid_cidr_stack.yaml')
+    invalid_unit_data = open_yaml_file('invalid_cidr_autoscaling_unit.yaml')
+    assert_raises(InvalidCidrError, Yaml, **{'user_stack_data': invalid_stack_data,
+                                             'default_data': default_data})
+    assert_raises(InvalidCidrError, Yaml, **{'user_stack_data': invalid_unit_data,
+                                             'default_data': default_data})
 
 
 @with_setup(setup_resources())
-def test_get_values():
+def test_get_invalid_values_yaml():
     """
-    Validated that Yaml.get_values (done during setup) is correctly returning expected values in users stack_yaml
-    and where it is missing it using the default_data value (e.g. in keypair)
+    Test the detection of unrecognized or invalid keys within YAML files
     """
+    global default_data
+
+    invalid_stack_data = open_yaml_file('invalid_key_stack.yaml')
+    invalid_autoscaling_unit_data = open_yaml_file('invalid_key_autoscaling_unit.yaml')
+    invalid_database_unit_data = open_yaml_file('invalid_key_database_unit.yaml')
+    assert_raises(InvalidKeyError, Yaml, **{'user_stack_data': invalid_stack_data,
+                                            'default_data': default_data})
+    assert_raises(InvalidKeyError, Yaml, **{'user_stack_data': invalid_autoscaling_unit_data,
+                                            'default_data': default_data})
+    assert_raises(InvalidKeyError, Yaml, **{'user_stack_data': invalid_database_unit_data,
+                                            'default_data': default_data})
 
 
 @with_setup(setup_resources())
-def test_get_unit_values():
+def test_validate_cidr_yaml():
     """
-    Testing unit values return expected results
+    Test the detection of insecure variables within YAML files
     """
+    global default_data
+
+    insecure_access_id = open_yaml_file('insecure_access_id.yaml')
+    insecure_secret_key = open_yaml_file('insecure_secret_key.yaml')
+    assert_raises(InsecureVariableError, Yaml, **{'user_stack_data': insecure_access_id,
+                                                  'default_data': default_data})
+    assert_raises(InsecureVariableError, Yaml, **{'user_stack_data': insecure_secret_key,
+                                                  'default_data': default_data})
 
 
 def test_get_invalid_values():
     """
-    Test the detection of unrecognized or invalid yaml keys
+    Test the detection of unrecognized or invalid keys
     """
     invalid_stack_values = {'invalid_key': 'what',
                             'mistake': 'this is a mistake',
