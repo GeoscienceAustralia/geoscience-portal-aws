@@ -4,6 +4,7 @@ Ingest User YAML and GA defaults YAML
 Overwrite GA defaults YAML with User YAML
 """
 import re
+
 from iptools.ipv4 import validate_cidr
 
 
@@ -66,19 +67,19 @@ class Yaml(object):
         """
         Detect Invalid keys in stack and unit yaml and raise error if any exist
         """
-        self.get_invalid_values(self.user_stack_data, self.stack_key_list)
+        self.get_invalid_values(self.user_stack_data, Yaml.stack_key_list)
 
         for unit_type in self.unit_types:
             if unit_type in self.user_stack_data:
                 for unit, unit_values in enumerate(self.user_stack_data[unit_type]):
-                    self.get_invalid_values(unit_values, self.unit_key_list[unit_type])
+                    self.get_invalid_values(unit_values, Yaml.unit_key_list[unit_type])
 
     def set_values(self):
         """
         Assigning values to the united_data dictionary
         Validating values such as vpc cidr, home cidrs, aws access ids and secret keys and reassigning if required
         """
-        for stack_key in self.stack_key_list:
+        for stack_key in Yaml.stack_key_list:
             """ Add stack key value pairs to united data"""
             self.united_data[stack_key] = self.user_stack_data.get(stack_key, self.default_data[stack_key])
 
@@ -100,16 +101,15 @@ class Yaml(object):
         for unit_type in self.unit_types:
             if unit_type in self.user_stack_data:
                 for unit, unit_values in enumerate(self.user_stack_data[unit_type]):
-                    """ Add stack key value pair to united data"""
-                    self.validate_title(self.united_data[unit_type][unit]['unit_title'])
-
-                    for unit_value in self.unit_key_list:
+                    for unit_value in Yaml.unit_key_list[unit_type]:
+                        self.united_data[unit_type][unit][unit_value] = \
+                            self.user_stack_data[unit_type][unit].get(unit_value, self.default_data[unit_value])
+                        """ Validate for unit title"""
+                        if unit_value == 'unit_title':
+                            self.validate_title(self.united_data[unit_type][unit]['unit_title'])
                         """ Validate for unecrypted aws access ids and aws secret keys"""
                         if unit_value == 'userdata':
                             self.detect_unencrypted_access_keys(self.united_data[unit_type][unit]['userdata'])
-
-                        self.united_data[unit_type][unit][unit_value] = \
-                            self.user_stack_data[unit_type][unit].get(unit_value, self.default_data[unit_value])
 
     @staticmethod
     def validate_title(title):
@@ -117,11 +117,11 @@ class Yaml(object):
         Validate that the string passed in returns the same string stripped of non alphanumeric characters
         :param title: Title from the united_data yaml containing hte stack or unit title
         """
-        pattern = re.compile('[\\W_]+')  # pattern is one or more non work characters
+        pattern = re.compile('[^a-zA-Z0-9]+')  # pattern is one or more non work characters
 
-        if pattern.match(title):
+        if pattern.search(title):
             raise InvalidTitleError('Error: invalid characters used in stack or unit title: {0}'
-                                    .format(pattern.match(title)))
+                                    .format(title))
 
     @staticmethod
     def detect_unencrypted_access_keys(userdata):

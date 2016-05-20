@@ -36,11 +36,11 @@ def test_complete_valid_values():
     """
     Validate stack yaml value is a list of dictionaries
     Validate that stack value exists in expected list of stack values
-    :return:
     """
     global default_data
     valid_stack_data = open_yaml_file('complete_valid.yaml')
     amz_yaml = Yaml(valid_stack_data, default_data)
+
     stack_input = amz_yaml.united_data
 
     """ Assert stack values are of type dict"""
@@ -55,19 +55,21 @@ def test_complete_valid_values():
     assert_equals(len(expected_stack_set.difference(stack_input_set)), 0)
 
     '''Assert correct values'''
-    assert_equals(stack_input['stack_title'], '')
-    assert_equals(stack_input['code_deploy_service_role'], '')
-    assert_equals(stack_input['keypair'], '')
-    assert_equals(stack_input['availability_zones'], '')
-    assert_equals(stack_input['vpc_cidr'], '')
-    assert_equals(stack_input['public_cidr'], '')
-    assert_equals(stack_input['jump_image_id'], '')
-    assert_equals(stack_input['jump_instance_type'], '')
-    assert_equals(stack_input['nat_image_id'], '')
-    assert_equals(stack_input['nat_instance_type'], '')
-    assert_equals(stack_input['home_cidrs'], '')
-    assert_equals(stack_input['autoscaling_units'], '')
-    assert_equals(stack_input['database_units'], '')
+    assert_equals(stack_input['stack_title'], 'testStack')
+    assert_equals(stack_input['code_deploy_service_role'], 'arn:aws:iam::1234567890124:role/CodeDeployServiceRole')
+    assert_equals(stack_input['keypair'], 'key')
+    assert_list_equal(stack_input['availability_zones'], ['ap-southeast-2a', 'ap-southeast-2b', 'ap-southeast-2c'])
+    assert_equals(stack_input['vpc_cidr'], '10.0.0.0/16')
+    assert_tuple_equal(stack_input['public_cidr'], ('PublicIp', '0.0.0.0/0'))
+    assert_equals(stack_input['jump_image_id'], 'ami-05446966')
+    assert_equals(stack_input['jump_instance_type'], 't2.micro')
+    assert_equals(stack_input['nat_image_id'], 'ami-162c0c75')
+    assert_equals(stack_input['nat_instance_type'], 't2.micro')
+    assert_list_equal(stack_input['home_cidrs'], [('GA_1', '124.47.132.132/32'), ('GA_2', '192.104.44.10/22')])
+    assert_equals(type(stack_input['autoscaling_units']), list)
+    assert_equals(len(stack_input['autoscaling_units']), 2)
+    assert_equals(type(stack_input['database_units']), list)
+    assert_equals(len(stack_input['database_units']), 1)
 
     autoscaling_unit_input = stack_input['autoscaling_units'][0]
 
@@ -75,31 +77,30 @@ def test_complete_valid_values():
     assert_equals(type(autoscaling_unit_input), dict)
 
     '''Assert that there are no invalid autoscaling unit keys'''
-    autoscaling_unit_input_set = set(autoscaling_unit_input)
+    autoscaling_unit_input_set = set(autoscaling_unit_input.keys())
     expected_autoscaling_unit_set = set(Yaml.unit_key_list['autoscaling_units'])
     assert_equals(len(autoscaling_unit_input_set.difference(expected_autoscaling_unit_set)), 0)
 
     ''' Assert that there are no autoscaling unit keys we missed'''
     assert_equals(len(expected_autoscaling_unit_set.difference(autoscaling_unit_input_set)), 0)
 
-    assert_equals(autoscaling_unit_input['unit_title'], '')
-    assert_equals(autoscaling_unit_input['hosted_zone_name'], '')
-    assert_equals(autoscaling_unit_input['userdata'], '')
-    assert_equals(autoscaling_unit_input['image_id'], '')
-    assert_equals(autoscaling_unit_input['instance_type'], '')
-    assert_equals(autoscaling_unit_input['path2ping'], '')
-    assert_equals(autoscaling_unit_input['protocols'], '')
-    assert_equals(autoscaling_unit_input['loadbalancerports'], '')
-    assert_equals(autoscaling_unit_input['instanceports'], '')
-    assert_equals(autoscaling_unit_input['minsize'], '')
-    assert_equals(autoscaling_unit_input['maxsize'], '')
-    assert_equals(autoscaling_unit_input['health_check_grace_period'], '')
-    assert_equals(autoscaling_unit_input['iam_instance_profile_arn'], '')
-    assert_equals(autoscaling_unit_input['sns_topic_arn'], '')
-    assert_equals(autoscaling_unit_input['sns_notification_types'], '')
-    assert_equals(autoscaling_unit_input['elb_log_bucket'], '')
-    assert_equals(autoscaling_unit_input['health_check_type'], '')
-    assert_equals(autoscaling_unit_input['dependencies'], '')
+    assert_equals(autoscaling_unit_input['unit_title'], 'app1')
+    assert_equals(autoscaling_unit_input['hosted_zone_name'], '.test.lan')
+    assert_equals(autoscaling_unit_input['image_id'], 'ami-05446966')
+    assert_equals(autoscaling_unit_input['instance_type'], 't2.micro')
+    assert_equals(autoscaling_unit_input['path2ping'], '/index.html')
+    assert_list_equal(autoscaling_unit_input['protocols'], ['HTTP'])
+    assert_list_equal(autoscaling_unit_input['loadbalancerports'], ['80'])
+    assert_list_equal(autoscaling_unit_input['instanceports'], ['80'])
+    assert_equals(autoscaling_unit_input['minsize'], '1')
+    assert_equals(autoscaling_unit_input['maxsize'], '1')
+    assert_equals(autoscaling_unit_input['health_check_grace_period'], '300')
+    assert_equals(autoscaling_unit_input['iam_instance_profile_arn'], 'arn:aws:iam::1234567890124:role/InstanceProfile')
+    assert_equals(autoscaling_unit_input['sns_topic_arn'], 'sns_topic_arn')
+    assert_equals(autoscaling_unit_input['sns_notification_types'], 'sns_notification_types')
+    assert_equals(autoscaling_unit_input['elb_log_bucket'], 'elb_log_bucket')
+    assert_equals(autoscaling_unit_input['health_check_type'], 'ELB')
+    assert_list_equal(autoscaling_unit_input['dependencies'], ['app2', 'db1'])
 
     database_unit_input = stack_input['database_units'][0]
 
@@ -114,25 +115,25 @@ def test_complete_valid_values():
     ''' Assert that there are no database unit keys we missed'''
     assert_equals(len(expected_database_unit_set.difference(database_unit_input_set)), 0)
 
-    assert_equals(database_unit_input['unit_title'], '')
-    assert_equals(database_unit_input['db_instance_type'], '')
-    assert_equals(database_unit_input['db_engine'], '')
-    assert_equals(database_unit_input['db_port'], '')
-    assert_equals(database_unit_input['dependencies'], '')
+    assert_equals(database_unit_input['unit_title'], 'db1')
+    assert_equals(database_unit_input['db_instance_type'], 'db.m1.small')
+    assert_equals(database_unit_input['db_engine'], 'postgres')
+    assert_equals(database_unit_input['db_port'], '5432')
+    assert_equals(database_unit_input['dependencies'], None)
 
 
 @with_setup(setup_resources())
 def test_validate_cidr_yaml():
     """
-    Testing vpc_cidr with invalid CIDR notation updates united data with 'INVALID_CIDR'
+    Test the detection of invalid CIDRs
     """
     global default_data
 
-    invalid_stack_data = open_yaml_file('invalid_cidr_stack.yaml')
-    invalid_unit_data = open_yaml_file('invalid_cidr_autoscaling_unit.yaml')
-    assert_raises(InvalidCidrError, Yaml, **{'user_stack_data': invalid_stack_data,
+    invalid_vpc_cidr_data = open_yaml_file('invalid_vpc_cidr.yaml')
+    invalid_home_cidrs_data = open_yaml_file('invalid_home_cidrs.yaml')
+    assert_raises(InvalidCidrError, Yaml, **{'user_stack_data': invalid_vpc_cidr_data,
                                              'default_data': default_data})
-    assert_raises(InvalidCidrError, Yaml, **{'user_stack_data': invalid_unit_data,
+    assert_raises(InvalidCidrError, Yaml, **{'user_stack_data': invalid_home_cidrs_data,
                                              'default_data': default_data})
 
 
@@ -155,7 +156,7 @@ def test_get_invalid_values_yaml():
 
 
 @with_setup(setup_resources())
-def test_validate_cidr_yaml():
+def test_insecure_variables_yaml():
     """
     Test the detection of insecure variables within YAML files
     """
@@ -184,7 +185,7 @@ def test_get_invalid_values():
                                                                'key_list': Yaml.stack_key_list})
     for unit_type in Yaml.unit_types:
         assert_raises(InvalidKeyError, Yaml.get_invalid_values, **{'user_key': invalid_unit_values,
-                                                                   'key_list': Yaml.unit_types[unit_type]})
+                                                                   'key_list': Yaml.unit_key_list[unit_type]})
 
 
 def test_detect_unencrypted_access_keys():
@@ -202,7 +203,7 @@ def test_validate_title():
     """
     Tests validate_title function that returns string without any non alphanumeric data
     """
-    test_strings = ['test_Stack', 'test*String', 'test-string_']
 
-    for test_string in test_strings:
-        assert_raises(InvalidTitleError, Yaml.validate_title, test_string)
+    assert_raises(InvalidTitleError, Yaml.validate_title, **{'title': 'test_Title'})
+    assert_raises(InvalidTitleError, Yaml.validate_title, **{'title': 'test*Title'})
+    assert_raises(InvalidTitleError, Yaml.validate_title, **{'title': 'test-title_'})

@@ -2,9 +2,9 @@
 # Test Stack Yaml for Amazonia
 #
 
-stack_title: 'test_Stack'
-code_deploy_service_role: 'arn:aws:iam::658691668407:role/CodeDeployServiceRole'
-#keypair: 'pipeline'
+stack_title: 'testStack'
+code_deploy_service_role: 'arn:aws:iam::1234567890124:role/CodeDeployServiceRole'
+keypair: 'key'
 availability_zones:
   - 'ap-southeast-2a'
   - 'ap-southeast-2b'
@@ -21,7 +21,7 @@ home_cidrs:
 autoscaling_units:
   -
     unit_title: 'app1'
-    hosted_zone_name: null
+    hosted_zone_name: '.test.lan'
     image_id: 'ami-05446966'
     instance_type: 't2.micro'
     protocols:
@@ -33,11 +33,19 @@ autoscaling_units:
     path2ping: '/index.html'
     minsize: '1'
     maxsize: '1'
+    health_check_grace_period: '300'
+    iam_instance_profile_arn: 'arn:aws:iam::1234567890124:role/InstanceProfile'
+    sns_topic_arn: 'sns_topic_arn'
+    sns_notification_types: 'sns_notification_types'
+    elb_log_bucket: 'elb_log_bucket'
+    health_check_type: 'ELB'
+    dependencies:
+     - 'app2'
+     - 'db1'
     userdata: |
       #cloud-config
       repo_update: true
       repo_upgrade: all
-      AKI3ISW6DFTLGVWEDYMQ
 
       packages:
        - httpd
@@ -61,10 +69,16 @@ autoscaling_units:
     userdata: |
       #cloud-config
       repo_update: true
-      repo_upgrade: 9VJrJAil2XtEC/B7g+Y+/Fmerk3iqyDH/UIhKjXk
+      repo_upgrade: all
 
       packages:
        - httpd
 
       runcmd:
        - service httpd start
+database_units:
+  -
+    unit_title: 'db1'
+    db_instance_type: 'db.m1.small'
+    db_engine: 'postgres'
+    db_port: '5432'
