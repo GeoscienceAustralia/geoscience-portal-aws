@@ -7,9 +7,9 @@ from troposphere import ec2, Template
 def main():
     template = Template()
     myvpc = template.add_resource(ec2.VPC('myVpc', CidrBlock='10.0.0.0/16'))
-    home_cidrs = [('GA1', '123.123.132.123/24'),
-                  ('GA2', '231.231.231.231/32')]
-    public_cidr = ('PublicIp', '0.0.0.0/0')
+    home_cidrs = [{'name': 'GA1', 'cidr': '123.123.132.123/24'},
+                  {'name': 'GA2', 'cidr': '231.231.231.231/32'}]
+    public_cidr = {'name': 'PublicIp', 'cidr': '0.0.0.0/0'}
 
     seo0_jump = SecurityEnabledObject(title="StackJump", vpc=myvpc, template=template)
     seo1_nat = SecurityEnabledObject(title="StackNAT", vpc=myvpc, template=template)

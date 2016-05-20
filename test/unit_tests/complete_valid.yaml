@@ -10,14 +10,18 @@ availability_zones:
   - 'ap-southeast-2b'
   - 'ap-southeast-2c'
 vpc_cidr: '10.0.0.0/16'
-public_cidr: !!python/tuple ['PublicIp', '0.0.0.0/0']
+public_cidr:
+  name: 'PublicIp'
+  cidr: '0.0.0.0/0'
 jump_image_id: 'ami-05446966'
 jump_instance_type: 't2.micro'
 nat_image_id: 'ami-162c0c75'
 nat_instance_type: 't2.micro'
 home_cidrs:
-  - !!python/tuple ['GA_1', '124.47.132.132/32']
-  - !!python/tuple ['GA_2', '192.104.44.10/22']
+  - name: 'GA1'
+    cidr: '124.47.132.132/32'
+  - name: 'GA2'
+    cidr: '192.104.44.10/22'
 autoscaling_units:
   -
     unit_title: 'app1'

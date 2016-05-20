@@ -94,9 +94,11 @@ class Yaml(object):
 
         """ Validate title and CIDRs of Home CIDRs list
         """
-        for num, cidr in enumerate(self.united_data['home_cidrs']):
-            if not validate_cidr(cidr[1]):
-                raise InvalidCidrError('Error: An invalid CIDR {0} was found.'.format(cidr[0]))
+
+        for cidr in self.united_data['home_cidrs']:
+            self.validate_title(cidr['name'])
+            if not validate_cidr(cidr['cidr']):
+                raise InvalidCidrError('Error: An invalid CIDR {0} was found.'.format(cidr['cidr']))
 
         for unit_type in self.unit_types:
             if unit_type in self.user_stack_data:

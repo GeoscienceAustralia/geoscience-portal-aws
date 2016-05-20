@@ -28,7 +28,7 @@ def open_yaml_file(file_path):
     __location__ = os.path.realpath(
         os.path.join(os.getcwd(), os.path.dirname(__file__)))
     with open(os.path.join(__location__, file_path), 'r') as input_yaml:
-        return yaml.load(input_yaml)
+        return yaml.safe_load(input_yaml)
 
 
 @with_setup(setup_resources())
@@ -60,12 +60,13 @@ def test_complete_valid_values():
     assert_equals(stack_input['keypair'], 'key')
     assert_list_equal(stack_input['availability_zones'], ['ap-southeast-2a', 'ap-southeast-2b', 'ap-southeast-2c'])
     assert_equals(stack_input['vpc_cidr'], '10.0.0.0/16')
-    assert_tuple_equal(stack_input['public_cidr'], ('PublicIp', '0.0.0.0/0'))
+    assert_dict_equal(stack_input['public_cidr'], {'name': 'PublicIp', 'cidr': '0.0.0.0/0'})
     assert_equals(stack_input['jump_image_id'], 'ami-05446966')
     assert_equals(stack_input['jump_instance_type'], 't2.micro')
     assert_equals(stack_input['nat_image_id'], 'ami-162c0c75')
     assert_equals(stack_input['nat_instance_type'], 't2.micro')
-    assert_list_equal(stack_input['home_cidrs'], [('GA_1', '124.47.132.132/32'), ('GA_2', '192.104.44.10/22')])
+    assert_list_equal(stack_input['home_cidrs'], [{'name': 'GA1', 'cidr': '124.47.132.132/32'},
+                                                  {'name': 'GA2', 'cidr': '192.104.44.10/22'}])
     assert_equals(type(stack_input['autoscaling_units']), list)
     assert_equals(len(stack_input['autoscaling_units']), 2)
     assert_equals(type(stack_input['database_units']), list)
@@ -131,10 +132,13 @@ def test_validate_cidr_yaml():
 
     invalid_vpc_cidr_data = open_yaml_file('invalid_vpc_cidr.yaml')
     invalid_home_cidrs_data = open_yaml_file('invalid_home_cidrs.yaml')
+    invalid_home_cidr_title_data = open_yaml_file('invalid_home_cidr_title.yaml')
     assert_raises(InvalidCidrError, Yaml, **{'user_stack_data': invalid_vpc_cidr_data,
                                              'default_data': default_data})
     assert_raises(InvalidCidrError, Yaml, **{'user_stack_data': invalid_home_cidrs_data,
                                              'default_data': default_data})
+    assert_raises(InvalidTitleError, Yaml, **{'user_stack_data': invalid_home_cidr_title_data,
+                                              'default_data': default_data})
 
 
 @with_setup(setup_resources())

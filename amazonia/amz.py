@@ -13,7 +13,7 @@ def read_yaml(user_yaml):
     """ Ingest user YAML
     """
     with open(user_yaml, 'r') as stack_yaml:
-        return yaml.load(stack_yaml)
+        return yaml.safe_load(stack_yaml)
 
 
 def create_stack(united_data):
