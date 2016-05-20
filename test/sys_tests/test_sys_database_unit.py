@@ -31,13 +31,14 @@ def main():
                                                        VpcId=Ref(vpc),
                                                        CidrBlock='10.0.3.0/24'))]
 
-    DatabaseUnit(title='MyDb',
+    DatabaseUnit(unit_title='MyDb',
                  subnets=public_subnets,
                  vpc=vpc,
                  template=template,
                  db_instance_type='db.m1.small',
                  db_engine='postgres',
-                 db_port='5432'
+                 db_port='5432',
+                 dependencies=None
                  )
 
     print(template.to_json(indent=2, separators=(',', ': ')))

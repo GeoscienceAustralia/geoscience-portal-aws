@@ -12,7 +12,7 @@ def main():
         user_stack_data = yaml.safe_load(stack_yaml)
         print('\nuser_stack_data=\n{0}\n'.format(user_stack_data))
 
-    with open(os.path.join(__location__, 'amazonia_ga_defaults.yaml'), 'r') as default_yaml:
+    with open(os.path.join(__location__, '../../amazonia/amazonia_ga_defaults.yaml'), 'r') as default_yaml:
         default_data = yaml.safe_load(default_yaml)
         print('\ndefault_data=\n{0}\n'.format(default_data))
 
