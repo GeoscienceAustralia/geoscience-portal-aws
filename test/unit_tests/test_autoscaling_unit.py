@@ -70,7 +70,7 @@ def test_unit():
 def test_unit_association():
     unit1 = create_unit(unit_title='app1')
     unit2 = create_unit(unit_title='app2')
-    unit1.add_unit_flow(receiver=unit2, port='80')
+    unit1.add_unit_flow(receiver=unit2)
     assert_equals(len(unit1.asg.egress), 3)
     assert_equals(len(unit1.asg.ingress), 2)
     assert_equals(len(unit1.elb.ingress), 1)
@@ -112,6 +112,7 @@ def create_unit(unit_title):
         gateway_attachment='testIgAtch',
         elb_log_bucket=None,
         sns_topic_arn=None,
-        sns_notification_types=None
+        sns_notification_types=None,
+        dependencies=None
     )
     return unit

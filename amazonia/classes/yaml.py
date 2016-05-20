@@ -8,6 +8,47 @@ from iptools.ipv4 import validate_cidr
 
 
 class Yaml(object):
+    """Setting these as class variables rather than instance variables so that they can be resolved and referred to
+     statically"""
+    unit_types = ['autoscaling_units', 'database_units']
+    stack_key_list = ['stack_title',
+                      'code_deploy_service_role',
+                      'keypair',
+                      'availability_zones',
+                      'vpc_cidr',
+                      'public_cidr',
+                      'jump_image_id',
+                      'jump_instance_type',
+                      'nat_image_id',
+                      'nat_instance_type',
+                      'home_cidrs',
+                      'autoscaling_units',
+                      'database_units']
+    unit_key_list = {'autoscaling_units': ['unit_title',
+                                           'hosted_zone_name',
+                                           'userdata',
+                                           'image_id',
+                                           'instance_type',
+                                           'path2ping',
+                                           'protocols',
+                                           'loadbalancerports',
+                                           'instanceports',
+                                           'minsize',
+                                           'maxsize',
+                                           'health_check_grace_period',
+                                           'iam_instance_profile_arn',
+                                           'sns_topic_arn',
+                                           'sns_notification_types',
+                                           'elb_log_bucket',
+                                           'health_check_type',
+                                           'dependencies'],
+                     'database_units': ['unit_title',
+                                        'db_instance_type',
+                                        'db_engine',
+                                        'db_port',
+                                        'dependencies']
+                     }
+
     def __init__(self, user_stack_data, default_data):
         """
         :param user_stack_data: User yaml document used to read stack values
@@ -17,45 +58,6 @@ class Yaml(object):
         self.default_data = default_data
         self.united_data = dict()
         self.unit_key_list = dict()
-        self.unit_types = ['autoscaling_units', 'database_units']
-        self.stack_key_list = ['stack_title',
-                               'code_deploy_service_role',
-                               'keypair',
-                               'availability_zones',
-                               'vpc_cidr',
-                               'public_cidr',
-                               'jump_image_id',
-                               'jump_instance_type',
-                               'nat_image_id',
-                               'nat_instance_type',
-                               'home_cidrs',
-                               'autoscaling_units',
-                               'database_units']
-
-        self.unit_key_list['autoscaling_units'] = ['unit_title',
-                                                   'hosted_zone_name',
-                                                   'userdata',
-                                                   'image_id',
-                                                   'instance_type',
-                                                   'path2ping',
-                                                   'protocols',
-                                                   'loadbalancerports',
-                                                   'instanceports',
-                                                   'minsize',
-                                                   'maxsize',
-                                                   'health_check_grace_period',
-                                                   'iam_instance_profile_arn',
-                                                   'sns_topic_arn',
-                                                   'sns_notification_types',
-                                                   'elb_log_bucket',
-                                                   'health_check_type',
-                                                   'dependencies']
-
-        self.unit_key_list['database_units'] = ['unit_title',
-                                                'db_instance_type',
-                                                'db_engine',
-                                                'db_port',
-                                                'dependencies']
 
         self.get_invalid_keys()
         self.set_values()
@@ -67,8 +69,9 @@ class Yaml(object):
         self.get_invalid_values(self.user_stack_data, self.stack_key_list)
 
         for unit_type in self.unit_types:
-            for unit, unit_values in enumerate(self.user_stack_data[unit_type]):
-                self.get_invalid_values(unit_values, self.unit_key_list[unit_type])
+            if unit_type in self.user_stack_data:
+                for unit, unit_values in enumerate(self.user_stack_data[unit_type]):
+                    self.get_invalid_values(unit_values, self.unit_key_list[unit_type])
 
     def set_values(self):
         """
@@ -81,41 +84,44 @@ class Yaml(object):
 
         """ Validate Stack Title
         """
-        self.united_data['stack_title'] = self.validate_title(self.united_data['stack_title'])
+        self.validate_title(self.united_data['stack_title'])
 
         """ Validate VPC CIDR
         """
-        if validate_cidr(self.united_data['vpc_cidr']) is False:
+        if not validate_cidr(self.united_data['vpc_cidr']):
             raise InvalidCidrError('Error: An invalid CIDR {0} was found.'.format('vpc_cidr'))
 
         """ Validate title and CIDRs of Home CIDRs list
         """
         for num, cidr in enumerate(self.united_data['home_cidrs']):
-            cidr[0] = self.validate_title(cidr[0])
-            if validate_cidr(cidr[1]) is False:
+            if not validate_cidr(cidr[1]):
                 raise InvalidCidrError('Error: An invalid CIDR {0} was found.'.format(cidr[0]))
 
         for unit_type in self.unit_types:
-            for unit, unit_values in enumerate(self.user_stack_data[unit_type]):
-                """ Add stack key value pair to united data"""
-                for unit_value in self.unit_key_list:
-                    """ Validate for unecrypted aws access ids and aws secret keys"""
-                    if unit_value == 'userdata':
-                        self.detect_unencrypted_access_keys(self.united_data[unit_type][unit]['userdata'])
+            if unit_type in self.user_stack_data:
+                for unit, unit_values in enumerate(self.user_stack_data[unit_type]):
+                    """ Add stack key value pair to united data"""
+                    self.validate_title(self.united_data[unit_type][unit]['unit_title'])
 
-                    self.united_data[unit_type][unit][unit_value] = \
-                        self.user_stack_data[unit_type][unit].get(unit_value, self.default_data[unit_value])
+                    for unit_value in self.unit_key_list:
+                        """ Validate for unecrypted aws access ids and aws secret keys"""
+                        if unit_value == 'userdata':
+                            self.detect_unencrypted_access_keys(self.united_data[unit_type][unit]['userdata'])
+
+                        self.united_data[unit_type][unit][unit_value] = \
+                            self.user_stack_data[unit_type][unit].get(unit_value, self.default_data[unit_value])
 
     @staticmethod
-    def validate_title(stack_or_unit_title):
+    def validate_title(title):
         """
         Validate that the string passed in returns the same string stripped of non alphanumeric characters
-        :param stack_or_unit_title: Title from the united_data yaml containing hte stack or unit title
-        :return: String stripped of non alphanumeric characters
+        :param title: Title from the united_data yaml containing hte stack or unit title
         """
         pattern = re.compile('[\\W_]+')  # pattern is one or more non work characters
-        new_title = pattern.sub('', stack_or_unit_title)  # Regex sub nothing '' for pattern match
-        return new_title
+
+        if pattern.match(title):
+            raise InvalidTitleError('Error: invalid characters used in stack or unit title: {0}'
+                                    .format(pattern.match(title)))
 
     @staticmethod
     def detect_unencrypted_access_keys(userdata):
@@ -159,5 +165,10 @@ class InvalidCidrError(Exception):
 
 
 class InvalidKeyError(Exception):
+    def __init__(self, value):
+        self.value = value
+
+
+class InvalidTitleError(Exception):
     def __init__(self, value):
         self.value = value

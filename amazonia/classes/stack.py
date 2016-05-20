@@ -141,11 +141,14 @@ class Stack(object):
         """ Add Autoscaling Units
         """
         for unit in autoscaling_units:
-            if unit['unit_title'] in self.units:
+            orig_unit_title = unit['unit_title']
+            if orig_unit_title in self.units:
                 raise DuplicateUnitNameError("Error: autoscaling unit name '{0}' has already been specified, "
-                                             "it must be unique.".format(unit['unit_title']))
-            self.units['unit_title'] = AutoscalingUnit(
-                unit_title=self.title + unit['unit_title'],
+                                             "it must be unique.".format(orig_unit_title))
+            """ Update unit title with stackname prefix
+            """
+            unit['unit_title'] = self.title + orig_unit_title
+            self.units[orig_unit_title] = AutoscalingUnit(
                 vpc=self.vpc,
                 template=self.template,
                 public_subnets=self.public_subnets,
@@ -161,11 +164,12 @@ class Stack(object):
         """ Add Database Units
         """
         for unit in database_units:
-            if unit['unit_title'] in self.units:
+            orig_unit_title = unit['unit_title']
+            if orig_unit_title in self.units:
                 raise DuplicateUnitNameError("Error: database unit name '{0}' has already been specified, "
-                                             "it must be unique.".format(unit['unit_title']))
-            self.units['unit_title'] = DatabaseUnit(
-                unit_title=self.title + unit['unit_title'],
+                                             "it must be unique.".format(orig_unit_title))
+            unit['unit_title'] = self.title + orig_unit_title
+            self.units[orig_unit_title] = DatabaseUnit(
                 vpc=self.vpc,
                 template=self.template,
                 subnets=self.private_subnets,

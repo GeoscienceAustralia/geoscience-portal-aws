@@ -5,7 +5,7 @@ from amazonia.classes.stack import Stack
 
 userdata = keypair = instance_type = code_deploy_service_role = vpc_cidr = public_cidr = \
     minsize = maxsize = path2ping = nat_image_id = jump_image_id = unit_image_id = health_check_grace_period = \
-    health_check_type = None
+    health_check_type = db_instance_type = db_engine = db_port = None
 availability_zones = []
 home_cidrs = []
 instanceports = []
@@ -16,7 +16,8 @@ protocols = []
 def setup_resources():
     global userdata, availability_zones, keypair, instance_type, code_deploy_service_role, vpc_cidr, \
         public_cidr, instanceports, loadbalancerports, protocols, minsize, maxsize, path2ping, home_cidrs, \
-        nat_image_id, jump_image_id, health_check_grace_period, health_check_type, unit_image_id
+        nat_image_id, jump_image_id, health_check_grace_period, health_check_type, unit_image_id, db_instance_type, \
+        db_engine, db_port
     userdata = """#cloud-config
 repo_update: true
 repo_upgrade: all
@@ -45,6 +46,10 @@ runcmd:
     public_cidr = ('PublicIp', '0.0.0.0/0')
     health_check_grace_period = 300
     health_check_type = 'ELB'
+
+    db_instance_type = 'db.m1.small'
+    db_engine = 'postgres'
+    db_port = '5432'
 
 
 @with_setup(setup_resources())
@@ -90,13 +95,14 @@ def test_stack():
         private_subnet = stack.private_subnets[num]
         assert_equals(private_subnet.CidrBlock, ''.join(['10.0.', str(num + 100), '.0/24']))
 
-    assert_equals(len(stack.units), 2)
+    assert_equals(len(stack.units), 3)
 
 
 def create_stack(stack_title):
     global userdata, availability_zones, keypair, instance_type, code_deploy_service_role, vpc_cidr, \
         public_cidr, instanceports, loadbalancerports, protocols, minsize, maxsize, path2ping, home_cidrs, \
-        nat_image_id, jump_image_id, health_check_grace_period, health_check_type, unit_image_id
+        nat_image_id, jump_image_id, health_check_grace_period, health_check_type, unit_image_id, db_instance_type, \
+        db_engine, db_port
     stack = Stack(
         stack_title=stack_title,
         code_deploy_service_role=code_deploy_service_role,
@@ -109,39 +115,47 @@ def create_stack(stack_title):
         jump_instance_type=instance_type,
         nat_image_id=nat_image_id,
         nat_instance_type=instance_type,
-        units=[{'unit_title': 'app1',
-                'protocols': protocols,
-                'instanceports': instanceports,
-                'loadbalancerports': loadbalancerports,
-                'path2ping': path2ping,
-                'minsize': minsize,
-                'maxsize': maxsize,
-                'image_id': unit_image_id,
-                'instance_type': instance_type,
-                'health_check_grace_period': health_check_grace_period,
-                'health_check_type': health_check_type,
-                'userdata': userdata,
-                'hosted_zone_name': None,
-                'iam_instance_profile_arn': None,
-                'sns_topic_arn': None,
-                'sns_notification_types': None,
-                'elb_log_bucket': None},
-               {'unit_title': 'app2',
-                'protocols': protocols,
-                'instanceports': instanceports,
-                'loadbalancerports': loadbalancerports,
-                'path2ping': path2ping,
-                'minsize': minsize,
-                'maxsize': maxsize,
-                'image_id': unit_image_id,
-                'instance_type': instance_type,
-                'health_check_grace_period': health_check_grace_period,
-                'health_check_type': health_check_type,
-                'userdata': userdata,
-                'hosted_zone_name': None,
-                'iam_instance_profile_arn': None,
-                'sns_topic_arn': None,
-                'sns_notification_types': None,
-                'elb_log_bucket': None}],
+        autoscaling_units=[{'unit_title': 'app1',
+                            'protocols': protocols,
+                            'instanceports': instanceports,
+                            'loadbalancerports': loadbalancerports,
+                            'path2ping': path2ping,
+                            'minsize': minsize,
+                            'maxsize': maxsize,
+                            'image_id': unit_image_id,
+                            'instance_type': instance_type,
+                            'health_check_grace_period': health_check_grace_period,
+                            'health_check_type': health_check_type,
+                            'userdata': userdata,
+                            'hosted_zone_name': None,
+                            'iam_instance_profile_arn': None,
+                            'sns_topic_arn': None,
+                            'sns_notification_types': None,
+                            'elb_log_bucket': None,
+                            'dependencies': ['app2', 'db1']},
+                           {'unit_title': 'app2',
+                            'protocols': protocols,
+                            'instanceports': instanceports,
+                            'loadbalancerports': loadbalancerports,
+                            'path2ping': path2ping,
+                            'minsize': minsize,
+                            'maxsize': maxsize,
+                            'image_id': unit_image_id,
+                            'instance_type': instance_type,
+                            'health_check_grace_period': health_check_grace_period,
+                            'health_check_type': health_check_type,
+                            'userdata': userdata,
+                            'hosted_zone_name': None,
+                            'iam_instance_profile_arn': None,
+                            'sns_topic_arn': None,
+                            'sns_notification_types': None,
+                            'elb_log_bucket': None,
+                            'dependencies': []}],
+        database_units=[{
+            'unit_title': 'db1',
+            'db_instance_type': db_instance_type,
+            'db_engine': db_engine,
+            'db_port': db_port,
+            'dependencies': None}]
     )
     return stack

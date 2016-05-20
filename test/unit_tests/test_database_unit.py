@@ -18,26 +18,28 @@ def test_database():
                                                                         VpcId=Ref(vpc)))
     gateway_attachment.DependsOn = internet_gateway.title
 
-    public_subnets = [template.add_resource(ec2.Subnet('MyPubSub1',
-                                                       AvailabilityZone='ap-southeast-2a',
-                                                       VpcId=Ref(vpc),
-                                                       CidrBlock='10.0.1.0/24')),
-                      template.add_resource(ec2.Subnet('MyPubSub2',
-                                                       AvailabilityZone='ap-southeast-2b',
-                                                       VpcId=Ref(vpc),
-                                                       CidrBlock='10.0.2.0/24')),
-                      template.add_resource(ec2.Subnet('MyPubSub3',
-                                                       AvailabilityZone='ap-southeast-2c',
-                                                       VpcId=Ref(vpc),
-                                                       CidrBlock='10.0.3.0/24'))]
-    db = DatabaseUnit(title='MyDb',
-                      subnets=public_subnets,
+    private_subnets = [template.add_resource(ec2.Subnet('MyPrivSub1',
+                                                        AvailabilityZone='ap-southeast-2a',
+                                                        VpcId=Ref(vpc),
+                                                        CidrBlock='10.0.1.0/24')),
+                       template.add_resource(ec2.Subnet('MyPrivSub2',
+                                                        AvailabilityZone='ap-southeast-2b',
+                                                        VpcId=Ref(vpc),
+                                                        CidrBlock='10.0.2.0/24')),
+                       template.add_resource(ec2.Subnet('MyPrivSub3',
+                                                        AvailabilityZone='ap-southeast-2c',
+                                                        VpcId=Ref(vpc),
+                                                        CidrBlock='10.0.3.0/24'))]
+    db = DatabaseUnit(unit_title='MyDb',
+                      subnets=private_subnets,
                       vpc=vpc,
                       template=template,
                       db_instance_type='db.m1.small',
                       db_engine='postgres',
-                      db_port='5432'
+                      db_port='5432',
+                      dependencies=None
                       )
     assert_equals(db.trop_db.DBInstanceClass, 'db.m1.small')
     assert_equals(db.trop_db.Engine, 'postgres')
     assert_equals(db.trop_db.Port, '5432')
+
