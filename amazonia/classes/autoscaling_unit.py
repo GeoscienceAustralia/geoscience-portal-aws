@@ -45,7 +45,7 @@ class AutoscalingUnit(object):
         self.template = template
         self.public_cidr = public_cidr
         self.loadbalancerports = loadbalancerports
-        self.dependencies = dependencies
+        self.dependencies = dependencies if dependencies else []
         self.elb = Elb(
             vpc=vpc,
             title=unit_title,
