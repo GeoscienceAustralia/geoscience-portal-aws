@@ -46,7 +46,7 @@ runcmd:
                                                                                    InstancePort='80',
                                                                                    InstanceProtocol='HTTP')],
                                                            Scheme='internet-facing',
-                                                           Subnets=[Ref(subnets)]))
+                                                           Subnets=[Ref(subnet) for subnet in subnets]))
 
     Asg(title='simple',
         keypair='pipeline',

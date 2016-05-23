@@ -14,13 +14,16 @@ availability_zones:
   - 'ap-southeast-2b'
   - 'ap-southeast-2c'
 vpc_cidr: '10.0.0.0/16'
-public_cidr: !!python/tuple ['PublicIp', '0.0.0.0/0']
+public_cidr:
+  name: 'PublicIp'
+  cidr: '0.0.0.0/0'
 jump_image_id: 'ami-0c95b86f'
 jump_instance_type: 't2.micro'
 nat_image_id: 'ami-162c0c75'
 nat_instance_type: 't2.micro'
 home_cidrs:
-  - !!python/tuple ['GA', '192.104.44.129/32']
+  - name: 'GA'
+    cidr: '192.104.44.129/32'
 unit_title: 'app1'
 protocols:
   - 'HTTP'

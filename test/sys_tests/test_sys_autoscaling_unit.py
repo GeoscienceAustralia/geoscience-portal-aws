@@ -3,7 +3,7 @@
 from troposphere import ec2, Ref, Template, Join, Tags
 
 from amazonia.classes.single_instance import SingleInstance
-from amazonia.classes.unit import Unit
+from amazonia.classes.autoscaling_unit import AutoscalingUnit
 
 
 def main():
@@ -62,7 +62,7 @@ runcmd:
 
     service_role_arn = 'arn:aws:iam::658691668407:role/CodeDeployServiceRole'
 
-    unit1 = Unit(
+    unit1 = AutoscalingUnit(
         unit_title='app1',
         vpc=vpc,
         template=template,
@@ -84,15 +84,16 @@ runcmd:
         nat=nat,
         jump=jump,
         hosted_zone_name=None,
-        public_cidr=('PublicIp', '0.0.0.0/0'),
+        public_cidr={'name': 'PublicIp', 'cidr': '0.0.0.0/0'},
         iam_instance_profile_arn=None,
         sns_topic_arn=None,
         sns_notification_types=None,
         elb_log_bucket=None,
-        gateway_attachment=gateway_attachment
+        gateway_attachment=gateway_attachment,
+        dependencies='app2'
     )
 
-    unit2 = Unit(
+    unit2 = AutoscalingUnit(
         unit_title='app2',
         vpc=vpc,
         template=template,
@@ -114,15 +115,16 @@ runcmd:
         nat=nat,
         jump=jump,
         hosted_zone_name=None,
-        public_cidr=('PublicIp', '0.0.0.0/0'),
+        public_cidr={'name': 'PublicIp', 'cidr': '0.0.0.0/0'},
         iam_instance_profile_arn=None,
         sns_topic_arn=None,
         sns_notification_types=None,
         elb_log_bucket=None,
-        gateway_attachment=gateway_attachment
+        gateway_attachment=gateway_attachment,
+        dependencies='app1'
     )
 
-    unit1.add_unit_flow(receiver=unit2, port='80')
+    unit1.add_unit_flow(unit2)
     print(template.to_json(indent=2, separators=(',', ': ')))
 
 

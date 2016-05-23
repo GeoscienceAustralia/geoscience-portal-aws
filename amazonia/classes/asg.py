@@ -114,7 +114,7 @@ class Asg(SecurityEnabledObject):
             image_id=image_id,
             instance_type=instance_type,
             iam_instance_profile_arn=iam_instance_profile_arn,
-            userdata=userdata
+            userdata=userdata if userdata is not None else ""
         ))
         return title
 
