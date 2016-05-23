@@ -158,7 +158,7 @@ class Yaml(object):
         invalid_set = user_set.difference(expected_set)
         if len(invalid_set) > 0:
             raise InvalidKeyError('Error: invalid keys {0} were found in your yaml, please remove or adjust.'
-                                  .format('invalid_set'))
+                                  .format(invalid_set))
 
 
 class InsecureVariableError(Exception):
