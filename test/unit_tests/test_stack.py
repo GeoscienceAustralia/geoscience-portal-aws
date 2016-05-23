@@ -1,7 +1,7 @@
 from nose.tools import *
 from troposphere import Tags, Ref
 
-from amazonia.classes.stack import Stack
+from amazonia.classes.stack import Stack, DuplicateUnitNameError
 
 userdata = keypair = instance_type = code_deploy_service_role = vpc_cidr = public_cidr = \
     minsize = maxsize = path2ping = nat_image_id = jump_image_id = unit_image_id = health_check_grace_period = \
@@ -99,6 +99,119 @@ def test_stack():
     assert_equals(len(stack.units), 3)
 
 
+def test_duplicate_unit_names():
+    """Test 3 different variations of duplicate unit names"""
+    assert_raises(DuplicateUnitNameError, Stack, **{
+        'stack_title': 'TestStack',
+        'code_deploy_service_role': code_deploy_service_role,
+        'keypair': keypair,
+        'availability_zones': availability_zones,
+        'vpc_cidr': vpc_cidr,
+        'public_cidr': public_cidr,
+        'home_cidrs': home_cidrs,
+        'jump_image_id': jump_image_id,
+        'jump_instance_type': instance_type,
+        'nat_image_id': nat_image_id,
+        'nat_instance_type': instance_type,
+        'autoscaling_units': [{'unit_title': 'app1',
+                               'protocols': protocols,
+                               'instanceports': instanceports,
+                               'loadbalancerports': loadbalancerports,
+                               'path2ping': path2ping,
+                               'minsize': minsize,
+                               'maxsize': maxsize,
+                               'image_id': unit_image_id,
+                               'instance_type': instance_type,
+                               'health_check_grace_period': health_check_grace_period,
+                               'health_check_type': health_check_type,
+                               'userdata': userdata,
+                               'hosted_zone_name': None,
+                               'iam_instance_profile_arn': None,
+                               'sns_topic_arn': None,
+                               'sns_notification_types': None,
+                               'elb_log_bucket': None,
+                               'dependencies': ['app2', 'db1']},
+                              {'unit_title': 'app1',
+                               'protocols': protocols,
+                               'instanceports': instanceports,
+                               'loadbalancerports': loadbalancerports,
+                               'path2ping': path2ping,
+                               'minsize': minsize,
+                               'maxsize': maxsize,
+                               'image_id': unit_image_id,
+                               'instance_type': instance_type,
+                               'health_check_grace_period': health_check_grace_period,
+                               'health_check_type': health_check_type,
+                               'userdata': userdata,
+                               'hosted_zone_name': None,
+                               'iam_instance_profile_arn': None,
+                               'sns_topic_arn': None,
+                               'sns_notification_types': None,
+                               'elb_log_bucket': None,
+                               'dependencies': []}],
+        'database_units': []
+    })
+
+    assert_raises(DuplicateUnitNameError, Stack, **{
+        'stack_title': 'TestStack',
+        'code_deploy_service_role': code_deploy_service_role,
+        'keypair': keypair,
+        'availability_zones': availability_zones,
+        'vpc_cidr': vpc_cidr,
+        'public_cidr': public_cidr,
+        'home_cidrs': home_cidrs,
+        'jump_image_id': jump_image_id,
+        'jump_instance_type': instance_type,
+        'nat_image_id': nat_image_id,
+        'nat_instance_type': instance_type,
+        'autoscaling_units': [],
+        'database_units': [{'unit_title': 'db1',
+                            'db_instance_type': db_instance_type,
+                            'db_engine': db_engine,
+                            'db_port': db_port},
+                           {'unit_title': 'db1',
+                            'db_instance_type': db_instance_type,
+                            'db_engine': db_engine,
+                            'db_port': db_port}]
+    })
+
+    assert_raises(DuplicateUnitNameError, Stack, **{
+        'stack_title': 'TestStack',
+        'code_deploy_service_role': code_deploy_service_role,
+        'keypair': keypair,
+        'availability_zones': availability_zones,
+        'vpc_cidr': vpc_cidr,
+        'public_cidr': public_cidr,
+        'home_cidrs': home_cidrs,
+        'jump_image_id': jump_image_id,
+        'jump_instance_type': instance_type,
+        'nat_image_id': nat_image_id,
+        'nat_instance_type': instance_type,
+        'autoscaling_units': [{'unit_title': 'app1',
+                               'protocols': protocols,
+                               'instanceports': instanceports,
+                               'loadbalancerports': loadbalancerports,
+                               'path2ping': path2ping,
+                               'minsize': minsize,
+                               'maxsize': maxsize,
+                               'image_id': unit_image_id,
+                               'instance_type': instance_type,
+                               'health_check_grace_period': health_check_grace_period,
+                               'health_check_type': health_check_type,
+                               'userdata': userdata,
+                               'hosted_zone_name': None,
+                               'iam_instance_profile_arn': None,
+                               'sns_topic_arn': None,
+                               'sns_notification_types': None,
+                               'elb_log_bucket': None,
+                               'dependencies': ['app2', 'db1']}],
+        'database_units': [{'unit_title': 'app1',
+                            'db_instance_type': db_instance_type,
+                            'db_engine': db_engine,
+                            'db_port': db_port}]
+    })
+
+
 def create_stack(stack_title):
     """Helper function to create a stack with default values
     :param stack_title: Title of stack
@@ -155,10 +268,9 @@ def create_stack(stack_title):
                             'sns_notification_types': None,
                             'elb_log_bucket': None,
                             'dependencies': []}],
-        database_units=[{
-            'unit_title': 'db1',
-            'db_instance_type': db_instance_type,
-            'db_engine': db_engine,
-            'db_port': db_port}]
+        database_units=[{'unit_title': 'db1',
+                         'db_instance_type': db_instance_type,
+                         'db_engine': db_engine,
+                         'db_port': db_port}]
     )
     return stack
