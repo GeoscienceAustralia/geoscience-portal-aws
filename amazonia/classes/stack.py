@@ -43,7 +43,8 @@ class Stack(object):
         self.vpc_cidr = vpc_cidr
         self.home_cidrs = home_cidrs
         self.public_cidr = public_cidr
-
+        self.autoscaling_units = autoscaling_units if autoscaling_units else []
+        self.database_units = database_units if database_units else []
         self.units = {}
         self.private_subnets = []
         self.public_subnets = []
@@ -141,7 +142,7 @@ class Stack(object):
 
         """ Add Autoscaling Units
         """
-        for unit in autoscaling_units:
+        for unit in self.autoscaling_units:
             orig_unit_title = unit['unit_title']
             if orig_unit_title in self.units:
                 raise DuplicateUnitNameError("Error: autoscaling unit name '{0}' has already been specified, "
@@ -164,7 +165,7 @@ class Stack(object):
             )
         """ Add Database Units
         """
-        for unit in database_units:
+        for unit in self.database_units:
             orig_unit_title = unit['unit_title']
             if orig_unit_title in self.units:
                 raise DuplicateUnitNameError("Error: database unit name '{0}' has already been specified, "
