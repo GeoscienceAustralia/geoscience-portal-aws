@@ -3,7 +3,7 @@
 from nose.tools import *
 from troposphere import ec2, Ref, Tags, Template
 
-from amazonia.classes.database_unit import DatabaseUnit
+from amazonia.classes.database_unit import DatabaseUnit, InvalidFlowError
 
 
 def test_database():
@@ -43,3 +43,5 @@ def test_database():
     assert_equals(db.trop_db.DBInstanceClass, 'db.m1.small')
     assert_equals(db.trop_db.Engine, 'postgres')
     assert_equals(db.trop_db.Port, '5432')
+
+    assert_raises(InvalidFlowError, db.add_unit_flow, **{'receiver': db})
