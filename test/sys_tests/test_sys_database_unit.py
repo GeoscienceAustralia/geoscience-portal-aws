@@ -37,8 +37,7 @@ def main():
                  template=template,
                  db_instance_type='db.m1.small',
                  db_engine='postgres',
-                 db_port='5432',
-                 dependencies=None
+                 db_port='5432'
                  )
 
     print(template.to_json(indent=2, separators=(',', ': ')))

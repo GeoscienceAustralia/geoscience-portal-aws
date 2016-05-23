@@ -5,7 +5,7 @@ from troposphere import Tags, Ref, rds, Join, Output, GetAtt, Parameter
 
 
 class DatabaseUnit(SecurityEnabledObject):
-    def __init__(self, unit_title, vpc, template, subnets, db_instance_type, db_engine, db_port, dependencies):
+    def __init__(self, unit_title, vpc, template, subnets, db_instance_type, db_engine, db_port):
         """ Class to create an RDS and DB subnet group in a vpc
         :param unit_title: Title of the autoscaling application e.g 'webApp1', 'api2' or 'dataprocessing'
         :param vpc: Troposphere vpc object, required for SecurityEnabledObject class
@@ -14,12 +14,9 @@ class DatabaseUnit(SecurityEnabledObject):
         :param db_instance_type: Size of the RDS instance
         :param db_engine: DB engine type (Postgres, Oracle, MySQL, etc)
         :param db_port: Port of RDS instance
-        :param dependencies: list of unit names this unit needs access to
         """
         self.title = unit_title + 'Rds'
-        if dependencies is not None:
-            raise InvalidFlowError("Error: database_unit {0} may only be the destination of flow, not the originator."
-                                   .format(self.title))
+        self.dependencies = []
         self.db_subnet_group_title = unit_title + "Dsg"
         self.port = db_port
         super(DatabaseUnit, self).__init__(vpc=vpc, title=self.title, template=template)
@@ -67,7 +64,7 @@ class DatabaseUnit(SecurityEnabledObject):
         """
         :return: returns an empty list as a database has no upstream dependencies
         """
-        return []
+        return self.dependencies
 
     def get_destination(self):
         """
@@ -81,11 +78,10 @@ class DatabaseUnit(SecurityEnabledObject):
         """
         return [self.port]
 
-    def add_unit_flow(self, receiver, port):
+    def add_unit_flow(self, receiver):
         """
         Create security group flow from this Amazonia unit's ASG to another unit's ELB
         :param receiver: Other Amazonia Unit
-        :param port: port for webserver and ELB to communicate via
         """
         raise InvalidFlowError("Error: database_unit {0} may only be the destination of flow, not the originator."
                                .format(self.title))

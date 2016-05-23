@@ -11,7 +11,6 @@ from iptools.ipv4 import validate_cidr
 class Yaml(object):
     """Setting these as class variables rather than instance variables so that they can be resolved and referred to
      statically"""
-    unit_types = ['autoscaling_units', 'database_units']
     stack_key_list = ['stack_title',
                       'code_deploy_service_role',
                       'keypair',
@@ -46,8 +45,7 @@ class Yaml(object):
                      'database_units': ['unit_title',
                                         'db_instance_type',
                                         'db_engine',
-                                        'db_port',
-                                        'dependencies']
+                                        'db_port']
                      }
 
     def __init__(self, user_stack_data, default_data):
@@ -58,7 +56,6 @@ class Yaml(object):
         self.user_stack_data = user_stack_data
         self.default_data = default_data
         self.united_data = dict()
-        self.unit_key_list = dict()
 
         self.get_invalid_keys()
         self.set_values()
@@ -69,7 +66,7 @@ class Yaml(object):
         """
         self.get_invalid_values(self.user_stack_data, Yaml.stack_key_list)
 
-        for unit_type in self.unit_types:
+        for unit_type in Yaml.unit_key_list:
             if unit_type in self.user_stack_data:
                 for unit, unit_values in enumerate(self.user_stack_data[unit_type]):
                     self.get_invalid_values(unit_values, Yaml.unit_key_list[unit_type])
@@ -100,7 +97,7 @@ class Yaml(object):
             if not validate_cidr(cidr['cidr']):
                 raise InvalidCidrError('Error: An invalid CIDR {0} was found.'.format(cidr['cidr']))
 
-        for unit_type in self.unit_types:
+        for unit_type in Yaml.unit_key_list:
             if unit_type in self.user_stack_data:
                 for unit, unit_values in enumerate(self.user_stack_data[unit_type]):
                     for unit_value in Yaml.unit_key_list[unit_type]:

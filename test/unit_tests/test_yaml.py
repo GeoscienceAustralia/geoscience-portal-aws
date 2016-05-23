@@ -120,7 +120,6 @@ def test_complete_valid_values():
     assert_equals(database_unit_input['db_instance_type'], 'db.m1.small')
     assert_equals(database_unit_input['db_engine'], 'postgres')
     assert_equals(database_unit_input['db_port'], '5432')
-    assert_equals(database_unit_input['dependencies'], None)
 
 
 @with_setup(setup_resources())
@@ -187,7 +186,7 @@ def test_get_invalid_values():
 
     assert_raises(InvalidKeyError, Yaml.get_invalid_values, **{'user_key': invalid_stack_values,
                                                                'key_list': Yaml.stack_key_list})
-    for unit_type in Yaml.unit_types:
+    for unit_type in Yaml.unit_key_list:
         assert_raises(InvalidKeyError, Yaml.get_invalid_values, **{'user_key': invalid_unit_values,
                                                                    'key_list': Yaml.unit_key_list[unit_type]})
 

@@ -155,7 +155,6 @@ def create_stack(stack_title):
             'unit_title': 'db1',
             'db_instance_type': db_instance_type,
             'db_engine': db_engine,
-            'db_port': db_port,
-            'dependencies': None}]
+            'db_port': db_port}]
     )
     return stack
