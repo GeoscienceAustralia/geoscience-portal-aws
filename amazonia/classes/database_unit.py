@@ -7,6 +7,8 @@ from troposphere import Tags, Ref, rds, Join, Output, GetAtt, Parameter
 class DatabaseUnit(SecurityEnabledObject):
     def __init__(self, unit_title, vpc, template, subnets, db_instance_type, db_engine, db_port):
         """ Class to create an RDS and DB subnet group in a vpc
+        http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-rds-database-instance.html
+        https://github.com/cloudtools/troposphere/blob/master/troposphere/rds.py
         :param unit_title: Title of the autoscaling application e.g 'webApp1', 'api2' or 'dataprocessing'
         :param vpc: Troposphere vpc object, required for SecurityEnabledObject class
         :param template: Troposphere stack to append resources to

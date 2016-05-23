@@ -114,10 +114,16 @@ def test_security_group():
 
 
 def test_hosted_zone_name():
+    """
+    Test route 53 record is created when hosted_zone_name is supplied
+    """
     helper_elb = create_elb(hosted_zone_name='myhostedzone.gadevs.ga.')
     assert helper_elb.elb_r53
 
 
 def test_elb_log_bucket():
+    """
+    Test elb log bucked is associated when when elb_log_bucket is supplied
+    """
     helper_elb = create_elb(elb_log_bucket='my_elb_log_bucket')
     assert helper_elb.access_logging_policy

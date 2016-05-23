@@ -191,6 +191,7 @@ def test_no_cd_group_and_no_sns():
 def create_asg(title):
     """
     Helper function to create ASG Troposhpere object.
+    :param title: Title of autoscaling group to create
     :return: Troposphere object for single instance, security group and output
     """
     global userdata, vpc, subnet, template, load_balancer, health_check_grace_period, health_check_type, \

@@ -54,6 +54,7 @@ runcmd:
 
 @with_setup(setup_resources())
 def test_stack():
+    """Test stack structure"""
     title = 'app'
     stack = create_stack(stack_title=title)
     assert_equals(stack.title, title)
@@ -99,6 +100,9 @@ def test_stack():
 
 
 def create_stack(stack_title):
+    """Helper function to create a stack with default values
+    :param stack_title: Title of stack
+    :return new stack"""
     global userdata, availability_zones, keypair, instance_type, code_deploy_service_role, vpc_cidr, \
         public_cidr, instanceports, loadbalancerports, protocols, minsize, maxsize, path2ping, home_cidrs, \
         nat_image_id, jump_image_id, health_check_grace_period, health_check_type, unit_image_id, db_instance_type, \

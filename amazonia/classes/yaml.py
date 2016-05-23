@@ -50,6 +50,7 @@ class Yaml(object):
 
     def __init__(self, user_stack_data, default_data):
         """
+        Initializes united, user and default data dictionaries
         :param user_stack_data: User yaml document used to read stack values
         :param default_data: Company yaml to read in company default values
         """
