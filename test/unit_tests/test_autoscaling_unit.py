@@ -2,13 +2,14 @@ from nose.tools import *
 from troposphere import ec2, Ref, Template
 
 from amazonia.classes.single_instance import SingleInstance
-from amazonia.classes.unit import Unit
+from amazonia.classes.autoscaling_unit import AutoscalingUnit
 
 userdata = template = vpc = private_subnets = public_subnets = nat = jump = health_check_grace_period = \
     health_check_type = None
 
 
 def setup_resources():
+    """ Setup global variables between tests"""
     global userdata, template, vpc, private_subnets, public_subnets, nat, jump, health_check_grace_period, \
         health_check_type
     userdata = """
@@ -54,9 +55,10 @@ runcmd:
 
 
 @with_setup(setup_resources())
-def test_unit():
+def test_autoscaling_unit():
+    """Test autoscaling unit structure"""
     title = 'app'
-    unit = create_unit(unit_title=title)
+    unit = create_autoscaling_unit(unit_title=title)
     assert_equals(unit.asg.trop_asg.title, title + 'Asg')
     assert_equals(unit.elb.trop_elb.title, title + 'Elb')
     [assert_is(type(lbn), Ref) for lbn in unit.asg.trop_asg.LoadBalancerNames]
@@ -68,9 +70,10 @@ def test_unit():
 
 @with_setup(setup_resources())
 def test_unit_association():
-    unit1 = create_unit(unit_title='app1')
-    unit2 = create_unit(unit_title='app2')
-    unit1.add_unit_flow(receiver=unit2, port='80')
+    """Test autoscaling unit flow"""
+    unit1 = create_autoscaling_unit(unit_title='app1')
+    unit2 = create_autoscaling_unit(unit_title='app2')
+    unit1.add_unit_flow(receiver=unit2)
     assert_equals(len(unit1.asg.egress), 3)
     assert_equals(len(unit1.asg.ingress), 2)
     assert_equals(len(unit1.elb.ingress), 1)
@@ -82,10 +85,14 @@ def test_unit_association():
     assert_equals(len(unit2.elb.egress), 1)
 
 
-def create_unit(unit_title):
+def create_autoscaling_unit(unit_title):
+    """Helper function to create unit
+    :param unit_title: title of unit
+    :return new autoscaling unit
+    """
     global userdata, template, vpc, private_subnets, public_subnets, nat, jump, health_check_grace_period, \
         health_check_type
-    unit = Unit(
+    unit = AutoscalingUnit(
         unit_title=unit_title,
         vpc=vpc,
         template=template,
@@ -112,6 +119,7 @@ def create_unit(unit_title):
         gateway_attachment='testIgAtch',
         elb_log_bucket=None,
         sns_topic_arn=None,
-        sns_notification_types=None
+        sns_notification_types=None,
+        dependencies=None
     )
     return unit
