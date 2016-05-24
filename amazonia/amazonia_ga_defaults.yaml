@@ -5,7 +5,7 @@
 userdata:
 image_id: 'ami-0c95b86f'
 instance_type: 't2.micro'
-stack_title: 'GAtestStack'
+stack_title: 'testStack'
 code_deploy_service_role:
 iam_instance_profile_arn:
 keypair: 'pipeline'
