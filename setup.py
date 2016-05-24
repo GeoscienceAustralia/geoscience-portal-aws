@@ -13,7 +13,6 @@ setup(
     packages=['amazonia'],
     install_requires=[
         'troposphere',
-        'inflection',
         'nose',
         'iptools',
         'boto3',
