@@ -15,7 +15,6 @@ setup(
         'troposphere',
         'inflection',
         'nose',
-        'hiera-py',
         'iptools',
         'boto3',
         'pyyaml'

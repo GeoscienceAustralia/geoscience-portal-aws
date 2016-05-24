@@ -2,7 +2,7 @@
 # This makefile installs the amazonia package and its dependencies
 #
 # To install Amazonia run "make install"
-# To use amazonia run ...(To be updated)
+# See the readme.md for more information.
 # Have fun!
 
 

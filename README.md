@@ -6,33 +6,16 @@ To install library locally for the current user, from the amazonia root director
 
 Alternatively, you can use:
 
-`pip install -e . --user`
+`pip3 install -e . --user`
 
 Note: this will install all of the dependencies for the project. The dependencies list can be found in the setup.py file in the 'Install Requires:' section.
 
-Amazonia expects either a HIERA_PATH environment variable that points to a hiera instance with variables for amazonia/amazonia_resources.py, or a config.yaml file in the root of the amazonia directory with those variables. There is an example of this config.yaml file in the examples folder.
+To generate cloud formation using amazonia, you need to provide two yaml documents. One containing any application specific details and another for the environmental defaults.
 
-To generate cloud formation using this library, you can use make to refer to any of the existing examples:
+Amazonia will read the two yaml documets and give priority to the application specific yaml, meaning that the defaults can be overridden in the application specific yaml if required. Because of this, it is best to set as many defaults as possible to ensure the best functionality out of this library.
 
-`make AutoscalingWebEnv.json`
+See template.yaml for a guide showing all possible yaml variables and the expected types of contents.
 
-Alternatively, you can use:
+Once you have both of your yaml documents, you can run amazonia using the below command
 
-`python ./examples/AutoscalingWebEnv > yourfilenamehere.template`
-
-To use in a downstream project:
-
-```python
-from troposphere import Template
-from amazonia.amazonia_resources import *
-from amazonia.cftemplates import *
-
-template = new Template()
-vpc = add_vpc(template, "yourvpccidr")
-private_subnet = add_subnet(template, vpc, "yoursubnetname", "yoursubnetcidr")
-template.add_resource(...)
-template.add_resource(...)
-print(template.to_json())
-```
-
-Note: amazonia classes (such as cftemplates.dualAZ) extend the troposphere.Template class. This means that any troposphere calls can be made to add resources. The amazonia_resources file contains functions that hope to provide somewhat of a 'shortcut' for users.
+`python3 amazonia/amz.py -y APPLICATION_YAML_LOCATION -d ENVIRONMENTAL_DEFAULT_YAML_LOCATION`
