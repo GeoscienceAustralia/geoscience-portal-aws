@@ -16,7 +16,7 @@ def setup_resources():
     """
     global default_data
 
-    default_data = open_yaml_file('../../amazonia/amazonia_ga_defaults.yaml')
+    default_data = open_yaml_file('amazonia_ga_defaults.yaml')
 
 
 def open_yaml_file(file_path):
