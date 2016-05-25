@@ -16,7 +16,7 @@ def setup_resources():
     """
     global default_data
 
-    default_data = open_yaml_file('../../amazonia/amazonia_ga_defaults.yaml')
+    default_data = open_yaml_file('amazonia_ga_defaults.yaml')
 
 
 def open_yaml_file(file_path):
@@ -65,8 +65,8 @@ def test_complete_valid_values():
     assert_equals(stack_input['jump_instance_type'], 't2.micro')
     assert_equals(stack_input['nat_image_id'], 'ami-162c0c75')
     assert_equals(stack_input['nat_instance_type'], 't2.micro')
-    assert_list_equal(stack_input['home_cidrs'], [{'name': 'GA1', 'cidr': '124.47.132.132/32'},
-                                                  {'name': 'GA2', 'cidr': '192.104.44.10/22'}])
+    assert_equals(type(stack_input['home_cidrs']), list)
+    assert_equals(len(stack_input['home_cidrs']), 2)
     assert_equals(type(stack_input['autoscaling_units']), list)
     assert_equals(len(stack_input['autoscaling_units']), 2)
     assert_equals(type(stack_input['database_units']), list)

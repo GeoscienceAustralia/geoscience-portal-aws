@@ -55,7 +55,7 @@ runcmd:
         jump_instance_type=instance_type,
         nat_image_id=nat_image_id,
         nat_instance_type=instance_type,
-        home_cidrs=[{'name': 'GA', 'cidr': '192.104.44.129/32'}],
+        home_cidrs=[{'name': 'GA', 'cidr': '123.123.12.34/32'}],
         public_cidr={'name': 'PublicIp', 'cidr': '0.0.0.0/0'},
         autoscaling_units=[{'unit_title': 'app1',
                             'protocols': ['HTTP'],

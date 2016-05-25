@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 """
-Ingest User YAML and GA defaults YAML
-Overwrite GA defaults YAML with User YAML
+Ingest User YAML and defaults YAML
+Overwrite defaults YAML with User YAML
 """
 import re
 

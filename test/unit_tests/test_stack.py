@@ -36,7 +36,7 @@ runcmd:
     instance_type = 't2.nano'
     code_deploy_service_role = 'arn:aws:iam::658691668407:role/CodeDeployServiceRole'
     vpc_cidr = '10.0.0.0/16'
-    home_cidrs = [{'name': 'GA', 'cidr': '192.104.44.129/32'}, {'name': 'home', 'cidr': '192.168.0.1/16'}]
+    home_cidrs = [{'name': 'GA', 'cidr': '123.123.12.34/32'}, {'name': 'home', 'cidr': '192.168.0.1/16'}]
     instanceports = ['80']
     loadbalancerports = ['80']
     protocols = ['HTTP']
