@@ -16,6 +16,8 @@ Amazonia will read the two yaml documets and give priority to the application sp
 
 See template.yaml for a guide showing all possible yaml variables and the expected types of contents.
 
+if no yaml files are provided, amazonia will read from amazonia/application.yaml and amazonia/defaults.yaml.
+
 Once you have both of your yaml documents, you can run amazonia using the below command
 
 `python3 amazonia/amz.py -y APPLICATION_YAML_LOCATION -d ENVIRONMENTAL_DEFAULT_YAML_LOCATION`
