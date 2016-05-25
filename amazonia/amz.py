@@ -1,6 +1,7 @@
 #!/usr/bin/python3
+
 """
-Ingest User YAML and GA defaults YAML and send to yaml class to return as one unified data dictionary for stack input
+Ingest User YAML and defaults YAML and send to yaml class to return as one unified data dictionary for stack input
 
 """
 import yaml
@@ -33,7 +34,7 @@ def create_stack(united_data):
 def main():
     """
     Ingest User YAML as user_stack_data
-    Ingest GA defaults YAML as default_data
+    Ingest default YAML as default_data
     Create list of stack input dictoinary objects from yaml class
     Create stack from stack input dictionary
     Create Stack template from stack output
@@ -42,10 +43,10 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('-y', '--yaml',
                         default='./amazonia/amazonia.yaml',
-                        help="Path to the user's amazonia yaml file")
+                        help="Path to the applications amazonia yaml file")
     parser.add_argument('-d', '--default',
                         default='./amazonia/amazonia_ga_defaults.yaml',
-                        help="Path to the user's amazonia default yaml file")
+                        help="Path to the environmental default amazonia yaml file")
     parser.add_argument('-t', '--template',
                         default='stack.template',
                         help="Path for amazonia to place template file")

@@ -1,7 +1,0 @@
-#
-# Test Stack User Yaml for Amazonia
-#
-stack_title: 'testStack'
-autoscaling_units:
-  -
-    unit_title: 'app1'
