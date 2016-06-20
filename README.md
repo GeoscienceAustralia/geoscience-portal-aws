@@ -2,7 +2,7 @@
 
 #### Prerequisites
 ```
-pip install awscli boto troposhpere
+pip install awscli boto troposphere
 aws configure
 ```
 
