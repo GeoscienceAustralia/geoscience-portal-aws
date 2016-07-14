@@ -1,4 +1,7 @@
 #!/bin/bash
 export AWS_PROFILE=geoscience-portal
+
+HTTPS_PROXY=https://pc-65024:5865
+HTTP_PROXY=http://pc-65024:5865
 PATH=~/.local/bin:$PATH
 ENV=Dev GEOSCIENCE_PORTAL_VERSION=1.0.0-SNAPSHOT GEOSCIENCE_GEONETWORK_VERSION=1.0.0-SNAPSHOT make clean restack
