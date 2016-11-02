@@ -1,5 +1,7 @@
 ## AWS Infrastructure for Geoscience Portal
 
+Use this branch to run deployments on a PC external to GA's corporate proxy
+
 #### Prerequisites
 ```
 pip install awscli boto troposphere

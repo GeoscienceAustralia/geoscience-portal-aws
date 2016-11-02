@@ -76,8 +76,8 @@ class GeosciencePortalStack(SingleAZenv):
             HealthCheck=elb.HealthCheck(
                 Target="HTTP:8080/gmap.html",
                 HealthyThreshold="2",
-                UnhealthyThreshold="5",
-                Interval="60",
+                UnhealthyThreshold="10",
+                Interval="300",
                 Timeout="30",
             ),
             Listeners=[
@@ -118,15 +118,9 @@ def system_prefix():
     return "GeosciencePortal" + environment()
 
 def get_nexus_artifact_url(group_id, artifact_id, version):
-    #arg = GA_PUBLIC_NEXUS + '&g=' + group_id + '&a=' + artifact_id + '&v=' + version + '&e=war'
-    #call(["wget", arg, '--content-disposition', "--timestamping"])
-    #war_filename = max(glob.iglob(artifact_id + "*.war"), key=os.path.getctime)
-    #call(["aws", "s3", "cp", war_filename, "s3://" + MVN_SNAPSHOTS, "--profile", "geoscience-portal", "--quiet", "--acl", "public-read"])
-    #call(["rm", war_filename])
-
     os.chdir("target")
-    #war_filename = max(glob.iglob("*.war"), key=os.path.getctime)
-    war_filename = artifact_id + "-" + version + ".war"
+    war_filename = max(glob.iglob("*.war"), key=os.path.getctime)
+    #war_filename = artifact_id + "-" + version + ".war"
     call(["aws", "s3", "cp", war_filename, "s3://" + MVN_SNAPSHOTS, "--profile", "geoscience-portal", "--quiet", "--acl", "public-read"])
     os.chdir("..")
 
@@ -165,9 +159,10 @@ def make_webserver(nat_wait, security_group):
                 on_create=cf.InitConfig(
                     packages={
                         "yum": {
-                            "tomcat8": [],
+                            "tomcat7": [],
                             "wget": [],
                             "postgresql92-server": [],
+                            "java-1.8.0-openjdk": [],
                             # "python-pip": [], TODO: leave out for now
                             # "python34": [],
                             "unzip": [],
@@ -210,7 +205,7 @@ def make_webserver(nat_wait, security_group):
                     }),
                     commands={
                         "00-disable-webapp-auto-deployment": {
-                            "command": "sed -i 's/autoDeploy=\"true\"/autoDeploy=\"false\"/' /usr/share/tomcat8/conf/server.xml"
+                            "command": "sed -i 's/autoDeploy=\"true\"/autoDeploy=\"false\"/' /usr/share/tomcat7/conf/server.xml"
                         },
                         "20-allow-sudo-without-tty": {
                             "command": "sed -i '/Defaults    requiretty/s/^/#/g' /etc/sudoers"
@@ -240,7 +235,7 @@ def make_webserver(nat_wait, security_group):
                                 enabled=True,
                                 ensureRunning=True,
                             ),
-                            "tomcat8": cf.InitService(
+                            "tomcat7": cf.InitService(
                                 enabled=True,
                                 ensureRunning=True,
                             ),
@@ -257,12 +252,12 @@ def make_webserver(nat_wait, security_group):
                 ),
                 on_update=cf.InitConfig(
                     files=cf.InitFiles({
-                        "/usr/share/tomcat8/webapps/ROOT.war": cf.InitFile(
+                        "/usr/share/tomcat7/webapps/ROOT.war": cf.InitFile(
                             source=get_geoscience_portal_war_url(),
                             owner="tomcat",
                             group="tomcat",
                         ),
-                        "/usr/share/tomcat8/webapps/geonetwork.war": cf.InitFile(
+                        "/usr/share/tomcat7/webapps/geonetwork.war": cf.InitFile(
                             source=get_geoscience_portal_geonetwork_war_url(),
                             owner="tomcat",
                             group="tomcat",
@@ -270,24 +265,24 @@ def make_webserver(nat_wait, security_group):
                     }),
                     commands={
                         "00-stop-tomcat": {
-                            "command": "service tomcat8 stop"
+                            "command": "service tomcat7 stop"
                         },
                         "10-setup-geonetwork-database": {
-                            "command": "unzip -p /usr/share/tomcat8/webapps/geonetwork.war WEB-INF/classes/geonetwork-db.sql"
+                            "command": "unzip -p /usr/share/tomcat7/webapps/geonetwork.war WEB-INF/classes/geonetwork-db.sql"
                                        "| sed 's/${password}/" + GEONETWORK_DB_PASSWORD + "/' | psql -U postgres"
                         },
                         "20-undeploy-geonetwork": {
-                            "command": "rm -rf /usr/share/tomcat8/webapps/geonetwork",
+                            "command": "rm -rf /usr/share/tomcat7/webapps/geonetwork",
                         },
                         "30-undeploy-geoscience-portal": {
-                            "command": "rm -rf /usr/share/tomcat8/webapps/ROOT",
+                            "command": "rm -rf /usr/share/tomcat7/webapps/ROOT",
                         },
                         "35-set-geonetwork-password": {
-                            "command": "(cd /usr/share/tomcat8/webapps && unzip -q geonetwork.war -d geonetwork && chown -R tomcat.tomcat geonetwork"
+                            "command": "(cd /usr/share/tomcat7/webapps && unzip -q geonetwork.war -d geonetwork && chown -R tomcat.tomcat geonetwork"
                                        " && sed -i 's/${password}/" + GEONETWORK_DB_PASSWORD + "/' geonetwork/WEB-INF/config-db/jdbc.properties)"
                         },
                         "40-start-tomcat": {
-                            "command": "service tomcat8 start"
+                            "command": "service tomcat7 start"
                         },
                     },
                 )
