@@ -119,8 +119,8 @@ def system_prefix():
 
 def get_nexus_artifact_url(group_id, artifact_id, version):
     os.chdir("target")
-    war_filename = max(glob.iglob("*.war"), key=os.path.getctime)
-    #war_filename = artifact_id + "-" + version + ".war"
+    #war_filename = max(glob.iglob("*.war"), key=os.path.getctime)
+    war_filename = artifact_id + "-" + version + ".war"
     call(["aws", "s3", "cp", war_filename, "s3://" + MVN_SNAPSHOTS, "--profile", "geoscience-portal", "--quiet", "--acl", "public-read"])
     os.chdir("..")
 
@@ -159,7 +159,7 @@ def make_webserver(nat_wait, security_group):
                 on_create=cf.InitConfig(
                     packages={
                         "yum": {
-                            "tomcat7": [],
+                            "tomcat8": [],
                             "wget": [],
                             "postgresql92-server": [],
                             "java-1.8.0-openjdk": [],
@@ -205,7 +205,7 @@ def make_webserver(nat_wait, security_group):
                     }),
                     commands={
                         "00-disable-webapp-auto-deployment": {
-                            "command": "sed -i 's/autoDeploy=\"true\"/autoDeploy=\"false\"/' /usr/share/tomcat7/conf/server.xml"
+                            "command": "sed -i 's/autoDeploy=\"true\"/autoDeploy=\"false\"/' /usr/share/tomcat8/conf/server.xml"
                         },
                         "20-allow-sudo-without-tty": {
                             "command": "sed -i '/Defaults    requiretty/s/^/#/g' /etc/sudoers"
@@ -235,7 +235,7 @@ def make_webserver(nat_wait, security_group):
                                 enabled=True,
                                 ensureRunning=True,
                             ),
-                            "tomcat7": cf.InitService(
+                            "tomcat8": cf.InitService(
                                 enabled=True,
                                 ensureRunning=True,
                             ),
@@ -252,12 +252,12 @@ def make_webserver(nat_wait, security_group):
                 ),
                 on_update=cf.InitConfig(
                     files=cf.InitFiles({
-                        "/usr/share/tomcat7/webapps/ROOT.war": cf.InitFile(
+                        "/usr/share/tomcat8/webapps/ROOT.war": cf.InitFile(
                             source=get_geoscience_portal_war_url(),
                             owner="tomcat",
                             group="tomcat",
                         ),
-                        "/usr/share/tomcat7/webapps/geonetwork.war": cf.InitFile(
+                        "/usr/share/tomcat8/webapps/geonetwork.war": cf.InitFile(
                             source=get_geoscience_portal_geonetwork_war_url(),
                             owner="tomcat",
                             group="tomcat",
@@ -265,24 +265,24 @@ def make_webserver(nat_wait, security_group):
                     }),
                     commands={
                         "00-stop-tomcat": {
-                            "command": "service tomcat7 stop"
+                            "command": "service tomcat8 stop"
                         },
                         "10-setup-geonetwork-database": {
-                            "command": "unzip -p /usr/share/tomcat7/webapps/geonetwork.war WEB-INF/classes/geonetwork-db.sql"
+                            "command": "unzip -p /usr/share/tomcat8/webapps/geonetwork.war WEB-INF/classes/geonetwork-db.sql"
                                        "| sed 's/${password}/" + GEONETWORK_DB_PASSWORD + "/' | psql -U postgres"
                         },
                         "20-undeploy-geonetwork": {
-                            "command": "rm -rf /usr/share/tomcat7/webapps/geonetwork",
+                            "command": "rm -rf /usr/share/tomcat8/webapps/geonetwork",
                         },
                         "30-undeploy-geoscience-portal": {
-                            "command": "rm -rf /usr/share/tomcat7/webapps/ROOT",
+                            "command": "rm -rf /usr/share/tomcat8/webapps/ROOT",
                         },
                         "35-set-geonetwork-password": {
-                            "command": "(cd /usr/share/tomcat7/webapps && unzip -q geonetwork.war -d geonetwork && chown -R tomcat.tomcat geonetwork"
+                            "command": "(cd /usr/share/tomcat8/webapps && unzip -q geonetwork.war -d geonetwork && chown -R tomcat.tomcat geonetwork"
                                        " && sed -i 's/${password}/" + GEONETWORK_DB_PASSWORD + "/' geonetwork/WEB-INF/config-db/jdbc.properties)"
                         },
                         "40-start-tomcat": {
-                            "command": "service tomcat7 start"
+                            "command": "service tomcat8 start"
                         },
                     },
                 )
