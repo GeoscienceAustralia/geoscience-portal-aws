@@ -46,6 +46,7 @@
                         <artifactItem>
                             <groupId>au.gov.ga</groupId>
                             <artifactId>geoscience-portal</artifactId>
+			    <destFileName>geoscience-portal-1.0.0-SNAPSHOT.war</destFileName>
                             <type>war</type>
                         </artifactItem>
                         <artifactItem>
