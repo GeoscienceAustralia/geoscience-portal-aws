@@ -118,12 +118,6 @@ def system_prefix():
     return "GeosciencePortal" + environment()
 
 def get_nexus_artifact_url(group_id, artifact_id, version):
-    #arg = GA_PUBLIC_NEXUS + '&g=' + group_id + '&a=' + artifact_id + '&v=' + version + '&e=war'
-    #call(["wget", arg, '--content-disposition', "--timestamping"])
-    #war_filename = max(glob.iglob(artifact_id + "*.war"), key=os.path.getctime)
-    #call(["aws", "s3", "cp", war_filename, "s3://" + MVN_SNAPSHOTS, "--profile", "geoscience-portal", "--quiet", "--acl", "public-read"])
-    #call(["rm", war_filename])
-
     os.chdir("target")
     #war_filename = max(glob.iglob("*.war"), key=os.path.getctime)
     war_filename = artifact_id + "-" + version + ".war"
@@ -168,6 +162,7 @@ def make_webserver(nat_wait, security_group):
                             "tomcat8": [],
                             "wget": [],
                             "postgresql92-server": [],
+                            "java-1.8.0-openjdk": [],
                             # "python-pip": [], TODO: leave out for now
                             # "python34": [],
                             "unzip": [],
@@ -211,6 +206,9 @@ def make_webserver(nat_wait, security_group):
                     commands={
                         "00-disable-webapp-auto-deployment": {
                             "command": "sed -i 's/autoDeploy=\"true\"/autoDeploy=\"false\"/' /usr/share/tomcat8/conf/server.xml"
+                        },
+                        "10-uninstall-jdk-1.7.0": {
+                                                        "command": "yum erase -y java-1.7.0-openjdk"
                         },
                         "20-allow-sudo-without-tty": {
                             "command": "sed -i '/Defaults    requiretty/s/^/#/g' /etc/sudoers"
