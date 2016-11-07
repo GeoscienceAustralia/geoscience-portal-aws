@@ -1,4 +1,4 @@
-stack.json: stack.py webserver-init.sh nat-init.sh war-file
+stack.json: stack.py webserver-init.sh nat-init.sh #war-file
 	python stack.py ${GEOSCIENCE_PORTAL_VERSION} ${GEOSCIENCE_GEONETWORK_VERSION} ${ENV} > $@
 
 %.jpg: %.json
