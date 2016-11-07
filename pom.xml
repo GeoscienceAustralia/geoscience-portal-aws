@@ -5,13 +5,13 @@
     <artifactId>geoscience-portal-aws</artifactId>
     <packaging>pom</packaging>
     <version>1.0.0-SNAPSHOT</version>
-    <name>RDI Portal POM</name>
+    <name>Geoscience Portal POM</name>
     <description></description>
     <repositories>
         <repository>
             <id>ga-nexus</id>
             <name>nexus.gadevs</name>
-            <url>https://nexus.gadevs.ga./repository/maven-snapshots/</url>
+            <url>https://nexus.gadevs.ga/repository/maven-snapshots/</url>
         </repository>
     </repositories>
     <dependencies>
