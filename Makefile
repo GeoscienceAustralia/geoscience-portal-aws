@@ -1,8 +1,11 @@
-stack.json: stack.py webserver-init.sh nat-init.sh
+stack.json: stack.py webserver-init.sh nat-init.sh war-file
 	python stack.py ${GEOSCIENCE_PORTAL_VERSION} ${GEOSCIENCE_GEONETWORK_VERSION} ${ENV} > $@
 
 %.jpg: %.json
 	cat $< | cfviz | dot -Tjpg -o$@
+
+war-file:
+		mvn package -Dmaven.wagon.http.ssl.insecure=true -Dmaven.wagon.http.ssl.allowall=true -Dmaven.test.skip=true
 
 .PHONEY:
 stack: stack.json

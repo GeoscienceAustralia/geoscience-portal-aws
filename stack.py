@@ -118,11 +118,14 @@ def system_prefix():
     return "GeosciencePortal" + environment()
 
 def get_nexus_artifact_url(group_id, artifact_id, version):
-    arg = GA_PUBLIC_NEXUS + '&g=' + group_id + '&a=' + artifact_id + '&v=' + version + '&e=war'
-    call(["wget", arg, '--content-disposition', "--timestamping"])
-    war_filename = max(glob.iglob(artifact_id + "*.war"), key=os.path.getctime)
+    #arg = GA_PUBLIC_NEXUS + '&g=' + group_id + '&a=' + artifact_id + '&v=' + version + '&e=war'
+    #call(["wget", arg, '--content-disposition', "--timestamping"])
+    os.chdir("target")
+    war_filename = artifact_id + "-" + version + ".war"
+    
     call(["aws", "s3", "cp", war_filename, "s3://" + MVN_SNAPSHOTS, "--profile", "geoscience-portal", "--quiet", "--acl", "public-read"])
-    call(["rm", war_filename])
+    os.chdir("..")
+    #call(["rm", war_filename])
     s3 = boto3.client("s3")
     bucket, folder = tuple(MVN_SNAPSHOTS.split("/", 1))
     return s3.generate_presigned_url(

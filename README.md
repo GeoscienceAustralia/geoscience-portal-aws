@@ -1,5 +1,7 @@
 ## AWS Infrastructure for Geoscience Portal
 
+To deploy AUSGIN 1.0.0  - use this in case of rollback requirement
+
 #### Prerequisites
 ```
 pip install awscli boto troposphere
