@@ -11,7 +11,7 @@
         <repository>
             <id>ga-nexus</id>
             <name>nexus.gadevs</name>
-            <url>https://nexus.gadevs.ga./repository/maven-snapshots/</url>
+            <url>https://nexus.gadevs.ga/repository/maven-public/</url>
         </repository>
     </repositories>
     <dependencies>
