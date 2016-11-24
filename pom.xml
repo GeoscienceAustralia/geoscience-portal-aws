@@ -5,7 +5,7 @@
     <artifactId>geoscience-portal-aws</artifactId>
     <packaging>pom</packaging>
     <version>1.0.0-SNAPSHOT</version>
-    <name>RDI Portal POM</name>
+    <name>Geoscience Portal POM</name>
     <description></description>
     <repositories>
         <repository>
@@ -18,13 +18,13 @@
         <dependency>
             <groupId>au.gov.ga</groupId>
             <artifactId>geoscience-portal</artifactId>
-            <version>1.0.0-SNAPSHOT</version>
+	   		<version>${env.GEOSCIENCE_PORTAL_VERSION}</version>
             <type>war</type>
         </dependency>
         <dependency>
             <groupId>au.gov.ga</groupId>
             <artifactId>geoscience-portal-geonetwork</artifactId>
-            <version>1.0.0-SNAPSHOT</version>
+	    <version>${env.GEOSCIENCE_GEONETWORK_VERSION}</version>
             <type>war</type>
         </dependency>
     </dependencies>
@@ -46,13 +46,13 @@
                         <artifactItem>
                             <groupId>au.gov.ga</groupId>
                             <artifactId>geoscience-portal</artifactId>
-			    <destFileName>geoscience-portal-1.0.0-SNAPSHOT.war</destFileName>
+			    			<destFileName>geoscience-portal-${env.GEOSCIENCE_PORTAL_VERSION}.war</destFileName>
                             <type>war</type>
                         </artifactItem>
                         <artifactItem>
                             <groupId>au.gov.ga</groupId>
                             <artifactId>geoscience-portal-geonetwork</artifactId>
-                            <destFileName>geoscience-portal-geonetwork-1.0.0-SNAPSHOT.war</destFileName>
+                            <destFileName>geoscience-portal-geonetwork-${env.GEOSCIENCE_GEONETWORK_VERSION}.war</destFileName>
                             <type>war</type>
                         </artifactItem>
                     </artifactItems>
