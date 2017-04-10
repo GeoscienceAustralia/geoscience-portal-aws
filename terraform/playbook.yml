@@ -1,0 +1,24 @@
+# demo_setup.yml
+
+# - hosts: tag_Name_GeosciencePortalDev-asg
+#   remote_user: ec2-user
+#   become: yes
+#
+#   tasks:
+#     -group:
+#       name: tomcat8
+#       state: present
+#
+#     -user:
+#       name: tomcat8
+#       shell: /bin/false
+#       groups: tomcat8
+#       append: no
+
+- hosts: tag_Name_GeosciencePortalDev_jumpbox
+  remote_user: ec2-user
+  become: yes
+  tasks:
+    - name: test connection
+      ping:
+      remote_user: ec2-user

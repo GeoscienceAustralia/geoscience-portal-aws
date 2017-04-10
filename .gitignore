@@ -1,3 +1,6 @@
 tags
 stack.json
 target
+*.tfstate*
+.terraform
+.DS_Store
