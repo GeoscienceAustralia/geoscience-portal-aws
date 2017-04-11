@@ -5,4 +5,4 @@ before_install:
   - sudo apt-get install -y ansible
 before_script:
   - ./setup.sh
-  - ansible/ansible_setup.sh
+  - cd ansible && ./ansible_setup.sh
