@@ -1,8 +1,12 @@
 #!/bin/bash
 export ANSIBLE_DIR=/etc/ansible
 
-sudo wget https://raw.githubusercontent.com/ansible/ansible/devel/contrib/inventory/ec2.py $ANSIBLE_DIR
-sudo wget https://raw.githubusercontent.com/ansible/ansible/devel/contrib/inventory/ec2.ini $ANSIBLE_DIR
+sudo wget https://raw.githubusercontent.com/ansible/ansible/devel/contrib/inventory/ec2.py 
+sudo wget https://raw.githubusercontent.com/ansible/ansible/devel/contrib/inventory/ec2.ini 
+
+mv ec2.py $ANSIBLE_DIR
+mv ec2.ini $ANSIBLE_DIR
+
 
 export ANSIBLE_HOSTS=$ANSIBLE_DIR/ec2.py
 export EC2_INI_PATH=$ANSIBLE_DIR/ec2.ini
@@ -13,7 +17,7 @@ export JUMPBOX_IP="$(python $ANSIBLE_DIR/ec2.py | python -c 'import sys, json, o
 echo $JUMPBOX_IP
 
 
-cp ssh.config ~/.ssh/config && sed -i '/s/JUMPBOX_IP/$JUMPBOX_IP/'
+cp ssh.config ~/.ssh/config && sed -i '/s/JUMPBOX_IP/$JUMPBOX_IP/' ~/.ssh/config 
 
 # Replace remotely supplied ini file with our own
-cp ec2.ini $ANSIBLE_DIR
+cp mod-ec2.ini $ANSIBLE_DIR/ec2.ini
