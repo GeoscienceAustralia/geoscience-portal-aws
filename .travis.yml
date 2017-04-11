@@ -1,2 +1,6 @@
+language: generic
+before_install:
+  - sudo apt-get -qq update
+  - sudo apt-get install -y ansible
 before_script:
   - ansible/ansible_setup.sh
