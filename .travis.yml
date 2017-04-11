@@ -1,2 +1,2 @@
 before_script:
-  - ansible_setup.sh
+  -ansible/ansible_setup.sh
