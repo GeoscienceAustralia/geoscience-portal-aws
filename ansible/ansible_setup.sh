@@ -1,11 +1,11 @@
 #!/bin/bash
 export ANSIBLE_DIR=/etc/ansible
 
-sudo wget https://raw.githubusercontent.com/ansible/ansible/devel/contrib/inventory/ec2.py 
-sudo wget https://raw.githubusercontent.com/ansible/ansible/devel/contrib/inventory/ec2.ini 
+wget https://raw.githubusercontent.com/ansible/ansible/devel/contrib/inventory/ec2.py 
+wget https://raw.githubusercontent.com/ansible/ansible/devel/contrib/inventory/ec2.ini 
 
-mv ec2.py $ANSIBLE_DIR
-mv ec2.ini $ANSIBLE_DIR
+sudo mv ec2.py $ANSIBLE_DIR
+sudo mv ec2.ini $ANSIBLE_DIR
 
 
 export ANSIBLE_HOSTS=$ANSIBLE_DIR/ec2.py
