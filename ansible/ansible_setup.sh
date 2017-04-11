@@ -1,6 +1,8 @@
 #!/bin/bash
 export ANSIBLE_DIR=/etc/ansible
 
+mkdir $ANSIBLE_DIR
+
 wget https://raw.githubusercontent.com/ansible/ansible/devel/contrib/inventory/ec2.py 
 wget https://raw.githubusercontent.com/ansible/ansible/devel/contrib/inventory/ec2.ini 
 
