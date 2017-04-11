@@ -15,7 +15,7 @@ export EC2_INI_PATH=$ANSIBLE_DIR/ec2.ini
 
 #Get the JUMPBOX IP and over write the ssh config
 
-export JUMPBOX_IP="$(python $ANSIBLE_DIR/ec2.py | python -c 'import sys, json, os ; print(json.load(sys.stdin)[os.environ["JUMPBOX"]][0])')"
+export JUMPBOX_IP="$(sudo python $ANSIBLE_DIR/ec2.py | python -c 'import sys, json, os ; print(json.load(sys.stdin)[os.environ["JUMPBOX"]][0])')"
 echo $JUMPBOX_IP
 
 
