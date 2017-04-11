@@ -9,3 +9,4 @@ cp ec2.ini $ANSIBLE_DIR
 
 export ANSIBLE_HOSTS=$ANSIBLE_DIR/ec2.py
 export EC2_INI_PATH=$ANSIBLE_DIR/ec2.ini
+
