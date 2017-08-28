@@ -25,4 +25,4 @@ viz: stack.jpg
 
 .PHONEY:
 clean:
-	rm -rf stack.json stack.jpg target *.war
+	rm -rf stack.json stack.jpg 
