@@ -11,7 +11,7 @@
         <repository>
             <id>ga-nexus</id>
             <name>nexus.gadevs</name>
-            <url>http://maven-int.ga.gov.au/nexus/content/repositories/public/</url>
+            <url>https://nexus.gadevs.ga/repository/maven-public/</url>
         </repository>
     </repositories>
     <dependencies>
@@ -63,8 +63,8 @@
     </build>
     <distributionManagement>
         <snapshotRepository>
-            <id>nexus.gadevs.snapshots</id>
-            <url>http://maven-int.ga.gov.au/nexus/content/repositories/snapshots/</url>
+            <id>nexus.gadevs</id>
+            <url>https://nexus.gadevs.ga/repository/maven-snapshots/</url>
         </snapshotRepository>
     </distributionManagement>
 </project>
