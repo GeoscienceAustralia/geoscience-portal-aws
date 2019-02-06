@@ -310,6 +310,7 @@ def elb_security_group(template):
     ))
     add_http_ingress(template, security_group)
     add_https_ingress(template, security_group)
+    add_tomcat_ingress(template, security_group)
     return security_group
 
 def webserver_security_group(vpc):
