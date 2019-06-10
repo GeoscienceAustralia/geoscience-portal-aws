@@ -23,7 +23,7 @@ from amazonia.amazonia_resources import name_tag, add_security_group_ingress
 
 PUBLIC_GA_GOV_AU_PTR = '192.104.44.129'
 IMAGE_ID = "ami-48d38c2b"
-KEY_PAIR_NAME = "lazar@work"
+KEY_PAIR_NAME = "ausgin"
 GA_PUBLIC_NEXUS = "http://maven-int.ga.gov.au/nexus/service/local/artifact/maven/redirect?r=public"
 MVN_SNAPSHOTS = "geoscience-portal/mvn-snapshot/"
 
