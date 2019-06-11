@@ -225,24 +225,12 @@ def make_webserver(nat_wait, security_group):
                         "60-set-hostname-resolution": {
                             "command": "echo '127.0.0.1   portal-dev portal-dev.localdomain localhost localhost.localdomain' > /etc/hosts"
                         },
-                        "70-install-tenable": {
-                            "command": "wget -q https://s3-ap-southeast-2.amazonaws.com/ga-agents/Tenable/NessusAgent-7.4.0-amzn.x86_64.rpm -O /tmp/NessusAgent-7.4.0-amzn.x86_64.rpm"
-                        },
-                        "80-install-tenable": {
-                            "command": "wget -q https://s3-ap-southeast-2.amazonaws.com/ga-agents/Tenable/Agent_plugins.tgz -O /tmp/Agent_plugins.tgz"
-                        },
-                        "90-install-tenable": {
-                            "command": "sudo rpm -ivh --force --nosignature /tmp/NessusAgent-7.4.0-amzn.x86_64.rpm"
-                        },
-                        "100-install-tenable": {
-                            "command": "sudo chkconfig nessusagent on"
-                        },
-                        "110-install-tenable": {
-                            "command": "sudo /opt/nessus_agent/sbin/nessuscli agent update --file=/tmp/Agent_plugins.tgz"
-                        },
-                        "120-configure-tenable-agent": {
-                            "command": "sudo /opt/nessus_agent/sbin/nessuscli agent link --key=11731468f59adb10f0c4e16aed2257201d78d7496a42500aeec8415ead72edfb --name=geoscience-portal-prod --cloud --groups=geoscience-portal"
-                        }
+                        # "40-install-pip3": {
+                        #     "command": "wget -O - https://bootstrap.pypa.io/get-pip.py | python3.4 && ln -s /usr/bin/python3.4 /usr/bin/python3"
+                        # },
+                        # "42-install-python3-urllib3": {
+                        #     "command": "pip3 install urllib3"
+                        # },
                     },
                     services={
                         "sysvinit": cf.InitServices({
