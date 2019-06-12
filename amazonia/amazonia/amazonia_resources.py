@@ -222,7 +222,7 @@ def add_security_group_egress(template, security_group, protocol, from_port, to_
 def add_nat(template, public_subnet, key_pair_name, security_group, natIP=NAT_IP_ADDRESS):
     global num_nats
     num_nats += 1
-    nat_title = "NATx" + str(num_nats)
+    nat_title = "NAT" + str(num_nats)
     nat = template.add_resource(ec2.Instance(
         nat_title,
         KeyName=key_pair_name,
