@@ -8,5 +8,6 @@ runcmd:
 - wget https://s3-ap-southeast-2.amazonaws.com/ga-agents/Tenable/Agent_plugins.tgz -O /tmp/Agent_plugins.tgz
 - sudo rpm -ivh --force --nosignature /tmp/NessusAgent-7.4.0-amzn.x86_64.rpm
 - sudo chkconfig nessusagent on
+- sudo service nessusagent start
 - sudo /opt/nessus_agent/sbin/nessuscli agent update --file=/tmp/Agent_plugins.tgz
 - sudo /opt/nessus_agent/sbin/nessuscli agent link --key=11731468f59adb10f0c4e16aed2257201d78d7496a42500aeec8415ead72edfb --name=geoscience-portal-prod --cloud --groups=geoscience-portal
