@@ -74,7 +74,7 @@ class GeosciencePortalStack(SingleAZenv):
             # ),
             Subnets=[Ref(self.public_subnet)],
             HealthCheck=elb.HealthCheck(
-                Target="HTTP:8080/gmap.html",
+                Target="HTTP:8080/",
                 HealthyThreshold="2",
                 UnhealthyThreshold="5",
                 Interval="60",
@@ -108,9 +108,6 @@ class GeosciencePortalStack(SingleAZenv):
 def geoscience_portal_version():
     return sys.argv[1]
 
-def geoscience_portal_geonetwork_version():
-    return sys.argv[2]
-
 def environment():
     return sys.argv[3]
 
@@ -136,10 +133,7 @@ def get_nexus_artifact_url(group_id, artifact_id, version):
         )
 
 def get_geoscience_portal_war_url():
-    return get_nexus_artifact_url("au.gov.ga", "geoscience-portal", geoscience_portal_version())
-
-def get_geoscience_portal_geonetwork_war_url():
-    return get_nexus_artifact_url("au.gov.ga", "geoscience-portal-geonetwork", geoscience_portal_geonetwork_version())
+    return get_nexus_artifact_url("au.gov.geoscience", "geoscience-portal", geoscience_portal_version())
 
 def make_webserver(nat_wait, security_group):
     instance_id = "WebserverLaunchConfig"
@@ -161,10 +155,9 @@ def make_webserver(nat_wait, security_group):
                         "yum": {
                             "tomcat8": [],
                             "wget": [],
-                            "postgresql92-server": [],
+
                             "java-1.8.0-openjdk": [],
-                            # "python-pip": [], TODO: leave out for now
-                            # "python34": [],
+
                             "unzip": [],
                         }
                     },
@@ -193,15 +186,6 @@ def make_webserver(nat_wait, security_group):
                                 "runas=root\n"
                             ]),
                         ),
-                        "/root/.pgpass": cf.InitFile(
-                            content="localhost:5432:*:postgres:" + POSTGRES_SUPERUSER_PASSWORD,
-                            mode="0600",
-                        ),
-                        "/var/lib/pgsql92/password": cf.InitFile(
-                            content=POSTGRES_SUPERUSER_PASSWORD,
-                            owner="postgres",
-                            mode="0600",
-                        ),
                     }),
                     commands={
                         "00-disable-webapp-auto-deployment": {
@@ -213,16 +197,13 @@ def make_webserver(nat_wait, security_group):
                         "20-allow-sudo-without-tty": {
                             "command": "sed -i '/Defaults    requiretty/s/^/#/g' /etc/sudoers"
                         },
-                        "30-init-postgres": {
-                            "command": "sudo -u postgres initdb -D /var/lib/pgsql92/data -A md5 --pwfile=/var/lib/pgsql92/password"
-                        },
-                        "40-persist-hostname": {
+                        "30-persist-hostname": {
                             "command": "sed -i 's/HOSTNAME=localhost.localdomain/HOSTNAME=portal-dev.localdomain/' /etc/sysconfig/network"
                         },
-                        "50-set-hostname": {
+                        "40-set-hostname": {
                             "command": "hostname portal-dev"
                         },
-                        "60-set-hostname-resolution": {
+                        "50-set-hostname-resolution": {
                             "command": "echo '127.0.0.1   portal-dev portal-dev.localdomain localhost localhost.localdomain' > /etc/hosts"
                         },
                         # "40-install-pip3": {
@@ -234,10 +215,6 @@ def make_webserver(nat_wait, security_group):
                     },
                     services={
                         "sysvinit": cf.InitServices({
-                            "postgresql92": cf.InitService(
-                                enabled=True,
-                                ensureRunning=True,
-                            ),
                             "tomcat8": cf.InitService(
                                 enabled=True,
                                 ensureRunning=True,
@@ -259,32 +236,16 @@ def make_webserver(nat_wait, security_group):
                             source=get_geoscience_portal_war_url(),
                             owner="tomcat",
                             group="tomcat",
-                        ),
-                        "/usr/share/tomcat8/webapps/geonetwork.war": cf.InitFile(
-                            source=get_geoscience_portal_geonetwork_war_url(),
-                            owner="tomcat",
-                            group="tomcat",
-                        ),
+                        )
                     }),
                     commands={
                         "00-stop-tomcat": {
                             "command": "service tomcat8 stop"
                         },
-                        "10-setup-geonetwork-database": {
-                            "command": "unzip -p /usr/share/tomcat8/webapps/geonetwork.war WEB-INF/classes/geonetwork-db.sql"
-                                       "| sed 's/${password}/" + GEONETWORK_DB_PASSWORD + "/' | psql -U postgres"
-                        },
-                        "20-undeploy-geonetwork": {
-                            "command": "rm -rf /usr/share/tomcat8/webapps/geonetwork",
-                        },
-                        "30-undeploy-geoscience-portal": {
+                        "10-undeploy-geoscience-portal": {
                             "command": "rm -rf /usr/share/tomcat8/webapps/ROOT",
                         },
-                        "35-set-geonetwork-password": {
-                            "command": "(cd /usr/share/tomcat8/webapps && unzip -q geonetwork.war -d geonetwork && chown -R tomcat.tomcat geonetwork"
-                                       " && sed -i 's/${password}/" + GEONETWORK_DB_PASSWORD + "/' geonetwork/WEB-INF/config-db/jdbc.properties)"
-                        },
-                        "40-start-tomcat": {
+                        "20-start-tomcat": {
                             "command": "service tomcat8 start"
                         },
                     },

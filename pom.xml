@@ -11,21 +11,17 @@
         <repository>
             <id>ga-nexus</id>
             <name>nexus.gadevs</name>
-            <!--<url>https://nexus.gadevs.ga/repository/maven-public/</url>-->
-	    <url>http://rhe-repo-prod01.prod.lan:8080/nexus/content/repositories/public</url>
+            <url>https://nexus.cloud.ga.gov.au/repository/maven-public/</url>
+	    <snapshots>
+<enabled>true</enabled>
+</snapshots>
         </repository>
     </repositories>
     <dependencies>
         <dependency>
-            <groupId>au.gov.ga</groupId>
+            <groupId>au.gov.geoscience</groupId>
             <artifactId>geoscience-portal</artifactId>
 	   		<version>${env.GEOSCIENCE_PORTAL_VERSION}</version>
-            <type>war</type>
-        </dependency>
-        <dependency>
-            <groupId>au.gov.ga</groupId>
-            <artifactId>geoscience-portal-geonetwork</artifactId>
-	    <version>${env.GEOSCIENCE_GEONETWORK_VERSION}</version>
             <type>war</type>
         </dependency>
     </dependencies>
@@ -45,27 +41,16 @@
                 <configuration>
                     <artifactItems>
                         <artifactItem>
-                            <groupId>au.gov.ga</groupId>
+                            <groupId>au.gov.geoscience</groupId>
                             <artifactId>geoscience-portal</artifactId>
 			    			<destFileName>geoscience-portal-${env.GEOSCIENCE_PORTAL_VERSION}.war</destFileName>
                             <type>war</type>
                         </artifactItem>
-                        <artifactItem>
-                            <groupId>au.gov.ga</groupId>
-                            <artifactId>geoscience-portal-geonetwork</artifactId>
-                            <destFileName>geoscience-portal-geonetwork-${env.GEOSCIENCE_GEONETWORK_VERSION}.war</destFileName>
-                            <type>war</type>
-                        </artifactItem>
+               
                     </artifactItems>
                     <outputDirectory>${project.build.directory}</outputDirectory>
                 </configuration>
             </plugin>
         </plugins>
     </build>
-    <distributionManagement>
-        <snapshotRepository>
-            <id>nexus.gadevs</id>
-            <url>https://nexus.gadevs.ga/repository/maven-snapshots/</url>
-        </snapshotRepository>
-    </distributionManagement>
 </project>

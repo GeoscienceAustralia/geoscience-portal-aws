@@ -4,3 +4,5 @@ target
 *.tfstate*
 .terraform
 .DS_Store
+.idea
+*.iml
