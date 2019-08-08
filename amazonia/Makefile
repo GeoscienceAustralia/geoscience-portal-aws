@@ -1,12 +1,12 @@
 .PHONEY:
 build:
-	python setup.py build
+	python3 setup.py build
 
 singleAZ.json: amazonia/__init__.py amazonia/cftemplates.py
-	python ./scripts/singleAZ > $@
+	python3 ./scripts/singleAZ > $@
 
 dualAZ.json: amazonia/__init__.py amazonia/cftemplates.py
-	python ./scripts/dualAZ_tests > $@
+	python3 ./scripts/dualAZ_tests > $@
 
 cftemplate_tests.json: amazonia/__init__.py amazonia/cftemplates.py
 	source ./scripts/cftemplate_tests > $@
@@ -23,7 +23,7 @@ viz: default_vpc.svg
 
 .PHONEY:
 install:
-	pip install -e . --user
+	pip3 install -e . --user
 
 .PHONEY:
 uninstall:
